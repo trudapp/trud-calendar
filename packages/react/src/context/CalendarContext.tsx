@@ -1,0 +1,155 @@
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useMemo,
+  useCallback,
+  type ReactNode,
+} from "react";
+import {
+  calendarReducer,
+  createInitialState,
+  toDateString,
+  getVisibleRange,
+  filterEventsInRange,
+  sortEvents,
+  type CalendarEvent,
+  type CalendarView,
+  type CalendarState,
+  type CalendarAction,
+  type CalendarConfig,
+  type DateString,
+  type DateTimeString,
+  DEFAULT_LOCALE,
+  DEFAULT_DAY_START_HOUR,
+  DEFAULT_DAY_END_HOUR,
+} from "trud-calendar-core";
+
+interface CalendarContextValue {
+  state: CalendarState;
+  dispatch: React.Dispatch<CalendarAction>;
+  events: CalendarEvent[];
+  visibleEvents: CalendarEvent[];
+  visibleRange: { start: DateString; end: DateString };
+  locale: string;
+  weekStartsOn: number;
+  dayStartHour: number;
+  dayEndHour: number;
+  onEventClick?: (event: CalendarEvent) => void;
+  onSlotClick?: (date: DateTimeString) => void;
+  onDateChange?: (date: DateString) => void;
+  onViewChange?: (view: CalendarView) => void;
+}
+
+const CalendarContext = createContext<CalendarContextValue | null>(null);
+
+export function useCalendarContext(): CalendarContextValue {
+  const ctx = useContext(CalendarContext);
+  if (!ctx) {
+    throw new Error("useCalendarContext must be used within a CalendarProvider");
+  }
+  return ctx;
+}
+
+interface CalendarProviderProps {
+  config: CalendarConfig;
+  children: ReactNode;
+}
+
+export function CalendarProvider({ config, children }: CalendarProviderProps) {
+  const locale = config.locale?.locale ?? DEFAULT_LOCALE.locale;
+  const weekStartsOn = config.locale?.weekStartsOn ?? DEFAULT_LOCALE.weekStartsOn;
+  const dayStartHour = config.dayStartHour ?? DEFAULT_DAY_START_HOUR;
+  const dayEndHour = config.dayEndHour ?? DEFAULT_DAY_END_HOUR;
+
+  // Support controlled & uncontrolled date/view
+  const isDateControlled = config.date !== undefined;
+  const isViewControlled = config.view !== undefined;
+
+  const [internalState, dispatch] = useReducer(
+    calendarReducer,
+    createInitialState(
+      config.date ?? config.defaultDate ?? toDateString(new Date()),
+      config.view ?? config.defaultView ?? "month",
+    ),
+  );
+
+  const state: CalendarState = {
+    currentDate: isDateControlled ? config.date! : internalState.currentDate,
+    view: isViewControlled ? config.view! : internalState.view,
+  };
+
+  const wrappedDispatch = useCallback(
+    (action: CalendarAction) => {
+      dispatch(action);
+
+      // Fire callbacks for controlled mode
+      if (action.type === "SET_VIEW" || action.type === "SET_DATE") {
+        if (action.type === "SET_VIEW") config.onViewChange?.(action.payload);
+        if (action.type === "SET_DATE") config.onDateChange?.(action.payload);
+      }
+      if (
+        action.type === "NAVIGATE_PREV" ||
+        action.type === "NAVIGATE_NEXT" ||
+        action.type === "NAVIGATE_TODAY"
+      ) {
+        // We need to compute the new date to fire the callback
+        const newState = calendarReducer(state, action);
+        config.onDateChange?.(newState.currentDate);
+      }
+    },
+    [state, config.onDateChange, config.onViewChange],
+  );
+
+  const visibleRange = useMemo(
+    () => getVisibleRange(state.currentDate, state.view, weekStartsOn),
+    [state.currentDate, state.view, weekStartsOn],
+  );
+
+  const visibleEvents = useMemo(
+    () =>
+      sortEvents(
+        filterEventsInRange(config.events, visibleRange.start, visibleRange.end),
+      ),
+    [config.events, visibleRange.start, visibleRange.end],
+  );
+
+  const value = useMemo<CalendarContextValue>(
+    () => ({
+      state,
+      dispatch: wrappedDispatch,
+      events: config.events,
+      visibleEvents,
+      visibleRange,
+      locale,
+      weekStartsOn,
+      dayStartHour,
+      dayEndHour,
+      onEventClick: config.onEventClick,
+      onSlotClick: config.onSlotClick,
+      onDateChange: config.onDateChange,
+      onViewChange: config.onViewChange,
+    }),
+    [
+      state,
+      wrappedDispatch,
+      config.events,
+      visibleEvents,
+      visibleRange,
+      locale,
+      weekStartsOn,
+      dayStartHour,
+      dayEndHour,
+      config.onEventClick,
+      config.onSlotClick,
+      config.onDateChange,
+      config.onViewChange,
+    ],
+  );
+
+  return (
+    <CalendarContext.Provider value={value}>
+      {children}
+    </CalendarContext.Provider>
+  );
+}

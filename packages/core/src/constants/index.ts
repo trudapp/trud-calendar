@@ -1,0 +1,17 @@
+import type { CalendarLocale, CalendarView } from "../types";
+
+export const DEFAULT_LOCALE: CalendarLocale = {
+  locale: "en-US",
+  weekStartsOn: 0,
+};
+
+export const DEFAULT_VIEW: CalendarView = "month";
+
+export const HOURS_IN_DAY = 24;
+export const MINUTES_IN_HOUR = 60;
+export const MINUTES_IN_DAY = HOURS_IN_DAY * MINUTES_IN_HOUR;
+
+export const VIEWS: CalendarView[] = ["month", "week", "day", "agenda"];
+
+export const DEFAULT_DAY_START_HOUR = 0;
+export const DEFAULT_DAY_END_HOUR = 24;
