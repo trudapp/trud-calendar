@@ -11,6 +11,11 @@ export default defineConfig({
     react(),
     starlight({
       title: "trud-calendar",
+      favicon: "/favicon.ico",
+      head: [
+        { tag: "link", attrs: { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" } },
+        { tag: "link", attrs: { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" } },
+      ],
       customCss: ["./src/styles/custom.css"],
       locales: {
         root: { label: "English", lang: "en" },
