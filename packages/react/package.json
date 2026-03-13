@@ -3,6 +3,13 @@
   "version": "0.1.0",
   "description": "A beautiful, fully-featured React calendar component. Google Calendar-level UX, MIT license, shadcn-compatible.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trudapp/trud-calendar",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/trudapp/trud-calendar#readme",
+  "keywords": ["react", "calendar", "drag-and-drop", "typescript", "shadcn", "tailwind", "i18n", "recurrence", "component"],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
