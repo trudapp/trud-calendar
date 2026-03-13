@@ -17,6 +17,7 @@ A 6-week grid showing the full month context. Features:
 - **Multi-day event spanning** across cells
 - **"+N more" popover** — click to see all events for a day
 - **Drag & Drop** — move events between days (preserves original time)
+- **Keyboard navigation** — arrow keys to navigate between days, Enter/Space to activate
 
 ## Week view
 
@@ -24,10 +25,14 @@ A 7-column time grid showing one week. Features:
 
 - **Overlap handling** — column-packing algorithm positions overlapping events side by side
 - **All-day row** — multi-day and all-day events displayed above the time grid
+- **Multi-day timed events** — timed events spanning multiple days are segmented per day (e.g., a conference from Wed 10:00 to Fri 16:00 shows across all three days)
 - **Current time indicator** — red line showing "now"
 - **Auto-scroll** — scrolls to the current hour on mount
 - **Configurable hours** — set `dayStartHour` and `dayEndHour`
 - **Drag & Drop** — move events to any day/time slot (15-minute snap)
+- **Resize** — drag the bottom edge of events to change duration
+- **Drag-to-create** — drag across empty slots to select a time range
+- **Keyboard navigation** — arrow keys to navigate, Enter/Space to activate
 
 ## Day view
 
@@ -41,6 +46,7 @@ A chronological event list grouped by date. Features:
 - **Today highlight** badge
 - **Empty state** — shows a customizable "no events" message
 - Time range display for timed events, "all-day" label for all-day events
+- **Keyboard navigation** — Up/Down arrow keys between items, Enter/Space to click
 
 ## Switching views
 

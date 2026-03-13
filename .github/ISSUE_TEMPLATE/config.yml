@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://trud-calendar-docs.vercel.app
+    about: Check the docs before opening an issue
+  - name: Discussions
+    url: https://github.com/trudcalendar/trud-calendar/discussions
+    about: Ask questions and discuss ideas

@@ -9,12 +9,16 @@
     "format": "prettier --write .",
     "storybook": "pnpm --filter @trud-calendar/storybook storybook",
     "dev:demo": "pnpm --filter @trud-calendar/demo dev",
-    "dev:docs": "pnpm --filter trud-calendar-docs dev"
+    "dev:docs": "pnpm --filter trud-calendar-docs dev",
+    "test:e2e": "pnpm --filter @trud-calendar/e2e test",
+    "test:e2e:ui": "pnpm --filter @trud-calendar/e2e test:ui"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
+    "jsdom": "^28.1.0",
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

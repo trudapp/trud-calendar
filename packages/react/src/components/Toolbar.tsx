@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useNavigation } from "../hooks/useNavigation";
 import { useCalendarContext } from "../context/CalendarContext";
 import { useCalendarSlots } from "../context/SlotsContext";
@@ -8,6 +9,45 @@ export function Toolbar() {
   const nav = useNavigation();
   const { labels } = useCalendarContext();
   const slots = useCalendarSlots();
+
+  const handleViewKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const currentIdx = VIEWS.indexOf(nav.view);
+      let newIdx = currentIdx;
+
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          newIdx = Math.max(0, currentIdx - 1);
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          newIdx = Math.min(VIEWS.length - 1, currentIdx + 1);
+          break;
+        case "Home":
+          e.preventDefault();
+          newIdx = 0;
+          break;
+        case "End":
+          e.preventDefault();
+          newIdx = VIEWS.length - 1;
+          break;
+        default:
+          return;
+      }
+
+      if (newIdx !== currentIdx) {
+        nav.setView(VIEWS[newIdx]);
+        // Focus the new tab
+        const tablist = e.currentTarget.closest("[role='tablist']");
+        if (tablist) {
+          const tabs = tablist.querySelectorAll<HTMLElement>("[role='tab']");
+          tabs[newIdx]?.focus();
+        }
+      }
+    },
+    [nav],
+  );
 
   if (slots.toolbar) {
     const SlotToolbar = slots.toolbar;
@@ -34,19 +74,19 @@ export function Toolbar() {
   return (
     <div
       className={cn(
-        "flex items-center justify-between px-4 py-2",
+        "flex flex-col sm:flex-row items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 gap-1.5 sm:gap-0",
         "border-b border-[var(--trc-border)]",
       )}
       role="toolbar"
       aria-label="Calendar navigation"
     >
       {/* Left: Navigation */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <button
           onClick={nav.today}
           className={cn(
             "rounded-[var(--trc-radius)] border border-[var(--trc-border)]",
-            "px-3 py-1.5 text-sm font-medium",
+            "px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium",
             "text-[var(--trc-foreground)] bg-[var(--trc-background)]",
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
@@ -58,7 +98,7 @@ export function Toolbar() {
         <button
           onClick={nav.prev}
           className={cn(
-            "rounded-[var(--trc-radius)] p-1.5",
+            "rounded-[var(--trc-radius)] p-1 sm:p-1.5",
             "text-[var(--trc-foreground)]",
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
@@ -82,7 +122,7 @@ export function Toolbar() {
         <button
           onClick={nav.next}
           className={cn(
-            "rounded-[var(--trc-radius)] p-1.5",
+            "rounded-[var(--trc-radius)] p-1 sm:p-1.5",
             "text-[var(--trc-foreground)]",
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
@@ -103,7 +143,7 @@ export function Toolbar() {
             <path d="m9 18 6-6-6-6" />
           </svg>
         </button>
-        <h2 className="text-lg font-semibold text-[var(--trc-foreground)] ml-2">
+        <h2 className="text-sm sm:text-base lg:text-lg font-semibold text-[var(--trc-foreground)] ml-1 sm:ml-2">
           {nav.formattedDate}
         </h2>
       </div>
@@ -122,9 +162,11 @@ export function Toolbar() {
             key={v}
             role="tab"
             aria-selected={nav.view === v}
+            tabIndex={nav.view === v ? 0 : -1}
             onClick={() => nav.setView(v)}
+            onKeyDown={handleViewKeyDown}
             className={cn(
-              "px-3 py-1.5 text-sm font-medium transition-colors",
+              "px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-colors",
               nav.view === v
                 ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
                 : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]",

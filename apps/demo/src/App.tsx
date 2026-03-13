@@ -3,6 +3,7 @@ import { Calendar } from "trud-calendar";
 import type { CalendarEvent, CalendarLabels, DateTimeString } from "trud-calendar-core";
 import { useEvents } from "./use-events";
 import { EventModal } from "./EventModal";
+import { RecurrenceScopeDialog, type RecurrenceScopeChoice } from "./RecurrenceScope";
 import { Sidebar } from "./Sidebar";
 import { customSlots } from "./custom-slots";
 
@@ -78,7 +79,16 @@ function savePref(key: string, value: unknown) {
 // ── App ─────────────────────────────────────────────────────────────────
 
 export function App() {
-  const { events, upsertEvent, deleteEvent, moveEvent } = useEvents();
+  const {
+    events,
+    upsertEvent,
+    deleteEvent,
+    moveEvent,
+    editSingleOccurrence,
+    editSeries,
+    deleteSingleOccurrence,
+    deleteSeries,
+  } = useEvents();
 
   // UI state
   const [darkMode, setDarkMode] = useState(() => loadPref("trc-dark", false));
@@ -92,6 +102,15 @@ export function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [defaultStart, setDefaultStart] = useState<string | undefined>();
+  const [defaultEnd, setDefaultEnd] = useState<string | undefined>();
+
+  // Recurrence scope dialog state
+  const [scopeDialog, setScopeDialog] = useState<{
+    action: "edit" | "delete";
+    instance: CalendarEvent;
+  } | null>(null);
+  // Track edit scope so the modal knows how to save
+  const [editScope, setEditScope] = useState<"single" | "series" | null>(null);
 
   // ── Handlers ────────────────────────────────────────────────────────
 
@@ -128,15 +147,59 @@ export function App() {
 
   const handleSlotClick = useCallback((date: DateTimeString) => {
     setEditingEvent(null);
+    setEditScope(null);
     setDefaultStart(date);
+    setDefaultEnd(undefined);
     setModalOpen(true);
   }, []);
 
   const handleEventClick = useCallback((event: CalendarEvent) => {
+    // If it's a recurring instance, show scope dialog first
+    if (event.recurringEventId) {
+      setScopeDialog({ action: "edit", instance: event });
+      return;
+    }
+    // Regular event — open modal directly
     setEditingEvent(event);
+    setEditScope(null);
     setDefaultStart(undefined);
+    setDefaultEnd(undefined);
     setModalOpen(true);
   }, []);
+
+  const handleScopeChoice = useCallback(
+    (scope: RecurrenceScopeChoice) => {
+      if (!scopeDialog) return;
+      const { action, instance } = scopeDialog;
+      setScopeDialog(null);
+
+      if (action === "edit") {
+        setEditScope(scope);
+        if (scope === "series") {
+          // Find the parent event and open modal with it
+          const parent = events.find((e) => e.id === instance.recurringEventId);
+          if (parent) {
+            setEditingEvent(parent);
+          } else {
+            setEditingEvent(instance);
+          }
+        } else {
+          // Single occurrence — open modal with the instance
+          setEditingEvent(instance);
+        }
+        setDefaultStart(undefined);
+        setDefaultEnd(undefined);
+        setModalOpen(true);
+      } else if (action === "delete") {
+        if (scope === "series") {
+          deleteSeries(instance);
+        } else {
+          deleteSingleOccurrence(instance);
+        }
+      }
+    },
+    [scopeDialog, events, deleteSeries, deleteSingleOccurrence],
+  );
 
   const handleEventDrop = useCallback(
     (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => {
@@ -145,27 +208,66 @@ export function App() {
     [moveEvent],
   );
 
+  const handleEventResize = useCallback(
+    (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => {
+      moveEvent(event, newStart, newEnd);
+    },
+    [moveEvent],
+  );
+
+  const handleSlotSelect = useCallback(
+    (start: DateTimeString, end: DateTimeString) => {
+      setEditingEvent(null);
+      setEditScope(null);
+      setDefaultStart(start);
+      setDefaultEnd(end);
+      setModalOpen(true);
+    },
+    [],
+  );
+
   const handleModalSave = useCallback(
-    (event: CalendarEvent) => {
-      upsertEvent(event);
+    (saved: CalendarEvent) => {
+      if (editScope === "single" && editingEvent?.recurringEventId) {
+        // Edit single occurrence of a recurring event
+        editSingleOccurrence(editingEvent, saved);
+      } else if (editScope === "series" && editingEvent) {
+        // Edit the entire series
+        editSeries(editingEvent, saved);
+      } else {
+        // Regular event (new or existing non-recurring)
+        upsertEvent(saved);
+      }
       setModalOpen(false);
       setEditingEvent(null);
+      setEditScope(null);
     },
-    [upsertEvent],
+    [editScope, editingEvent, editSingleOccurrence, editSeries, upsertEvent],
   );
 
   const handleModalDelete = useCallback(
     (id: string) => {
-      deleteEvent(id);
-      setModalOpen(false);
-      setEditingEvent(null);
+      if (editingEvent?.recurringEventId) {
+        // Deleting from modal — show scope dialog
+        setScopeDialog({ action: "delete", instance: editingEvent });
+        setModalOpen(false);
+        setEditingEvent(null);
+        setEditScope(null);
+      } else {
+        deleteEvent(id);
+        setModalOpen(false);
+        setEditingEvent(null);
+        setEditScope(null);
+      }
     },
-    [deleteEvent],
+    [editingEvent, deleteEvent],
   );
 
   const handleNewEvent = useCallback(() => {
     setEditingEvent(null);
+    setEditScope(null);
     setDefaultStart(undefined);
+    setDefaultEnd(undefined);
     setModalOpen(true);
   }, []);
 
@@ -270,20 +372,33 @@ export function App() {
               onEventClick={enableSlots ? undefined : handleEventClick}
               onSlotClick={handleSlotClick}
               onEventDrop={handleEventDrop}
+              onEventResize={handleEventResize}
+              onSlotSelect={handleSlotSelect}
             />
           </main>
         </div>
+
+        {/* Recurrence scope dialog */}
+        {scopeDialog && (
+          <RecurrenceScopeDialog
+            action={scopeDialog.action}
+            onChoice={handleScopeChoice}
+            onClose={() => setScopeDialog(null)}
+          />
+        )}
 
         {/* Event Modal */}
         {modalOpen && (
           <EventModal
             event={editingEvent}
             defaultStart={defaultStart}
+            defaultEnd={defaultEnd}
             onSave={handleModalSave}
             onDelete={handleModalDelete}
             onClose={() => {
               setModalOpen(false);
               setEditingEvent(null);
+              setEditScope(null);
             }}
           />
         )}

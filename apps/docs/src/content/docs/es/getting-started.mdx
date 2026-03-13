@@ -62,7 +62,9 @@ interface CalendarEvent {
   end: string;        // ISO 8601: "2026-03-13T10:00:00"
   allDay?: boolean;   // Evento de dia completo
   color?: string;     // Cualquier valor de color CSS
-  [key: string]: unknown;  // Datos personalizados
+  recurrence?: RecurrenceRule;  // Regla de recurrencia (ver pagina de Recurrencia)
+  exDates?: string[];           // Fechas a excluir de la recurrencia
+  [key: string]: unknown;       // Datos personalizados
 }
 ```
 

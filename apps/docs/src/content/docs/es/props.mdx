@@ -28,6 +28,8 @@ El componente `<Calendar>` acepta todos los campos de `CalendarConfig`, mas `cla
 | `onEventClick` | `(event: CalendarEvent) => void` | Se dispara al hacer click en un evento |
 | `onSlotClick` | `(dateTime: DateTimeString) => void` | Se dispara al hacer click en un slot vacio |
 | `onEventDrop` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Se dispara al soltar un evento despues de arrastrarlo |
+| `onEventResize` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Se dispara al redimensionar un evento (vista semana/dia) |
+| `onSlotSelect` | `(start: DateTimeString, end: DateTimeString) => void` | Se dispara al seleccionar un rango de tiempo arrastrando sobre slots vacios |
 | `onDateChange` | `(date: DateString) => void` | Se dispara cuando la fecha visible cambia (navegacion) |
 | `onViewChange` | `(view: CalendarView) => void` | Se dispara cuando la vista cambia |
 
@@ -43,7 +45,27 @@ interface CalendarEvent {
   end: DateTimeString;     // "2026-03-13T10:00:00"
   allDay?: boolean;
   color?: string;
-  [key: string]: unknown;  // Metadatos personalizados
+  recurrence?: RecurrenceRule;   // Regla de evento recurrente
+  exDates?: DateString[];        // Fechas a excluir de la recurrencia
+  recurringEventId?: string;     // Presente en instancias expandidas (apunta al padre)
+  originalDate?: DateString;     // Fecha original de esta instancia recurrente
+  [key: string]: unknown;        // Metadatos personalizados
+}
+```
+
+### RecurrenceRule
+
+Consulta [Recurrencia](/es/recurrence/) para documentacion completa.
+
+```ts
+interface RecurrenceRule {
+  freq: "daily" | "weekly" | "monthly" | "yearly";
+  interval?: number;
+  byDay?: RecurrenceDay[];    // "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU"
+  byMonthDay?: number[];
+  bySetPos?: number[];
+  count?: number;
+  until?: string;
 }
 ```
 

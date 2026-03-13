@@ -7,6 +7,29 @@ export type DateTimeString = string;
 /** Calendar view types */
 export type CalendarView = "month" | "week" | "day" | "agenda";
 
+// ── Recurrence types ────────────────────────────────────────────
+
+export type RecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
+
+export type RecurrenceDay = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
+
+export interface RecurrenceRule {
+  /** Frequency of recurrence */
+  freq: RecurrenceFrequency;
+  /** Interval between occurrences (default 1) */
+  interval?: number;
+  /** Max number of occurrences */
+  count?: number;
+  /** End date (inclusive) */
+  until?: DateString;
+  /** Days of the week (for weekly/monthly) */
+  byDay?: RecurrenceDay[];
+  /** Days of the month (for monthly, 1-31) */
+  byMonthDay?: number[];
+  /** Position within the month (e.g. 1 = first, -1 = last, for "first Monday") */
+  bySetPos?: number;
+}
+
 /** A calendar event */
 export interface CalendarEvent {
   /** Unique identifier */
@@ -21,6 +44,14 @@ export interface CalendarEvent {
   allDay?: boolean;
   /** Event color (CSS color value) */
   color?: string;
+  /** Recurrence rule */
+  recurrence?: RecurrenceRule;
+  /** Dates excluded from recurrence (YYYY-MM-DD) */
+  exDates?: DateString[];
+  /** ID of the parent recurring event (set on expanded instances) */
+  recurringEventId?: string;
+  /** Original date of this recurring instance (YYYY-MM-DD) */
+  originalDate?: DateString;
   /** Arbitrary metadata */
   [key: string]: unknown;
 }
@@ -36,6 +67,25 @@ export interface PositionedEvent {
   top: number;
   /** Height as percentage of day */
   height: number;
+  /** Whether this is the first segment of a multi-day timed event */
+  isSegmentStart?: boolean;
+  /** Whether this is the last segment of a multi-day timed event */
+  isSegmentEnd?: boolean;
+}
+
+/** A segment of a multi-day timed event for week/day view rendering */
+export interface TimedEventSegment {
+  event: CalendarEvent;
+  /** The date this segment falls on */
+  day: DateString;
+  /** Start fractional hour for this segment */
+  startHour: number;
+  /** End fractional hour for this segment */
+  endHour: number;
+  /** Whether this is the first day of the event */
+  isStart: boolean;
+  /** Whether this is the last day of the event */
+  isEnd: boolean;
 }
 
 /** A segment of a multi-day event clipped to a single day */
@@ -50,6 +100,7 @@ export interface EventSegment {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type ComponentType<P = any> = (props: P) => any;
 
 /** Slot component overrides */
@@ -155,8 +206,18 @@ export interface CalendarConfig {
   dayEndHour?: number;
   /** Callback when an event is dropped on a new time slot (drag & drop) */
   onEventDrop?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
+  /** Callback when an event is resized (drag bottom edge) */
+  onEventResize?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
+  /** Callback when a time range is selected by dragging on empty slots */
+  onSlotSelect?: (start: DateTimeString, end: DateTimeString) => void;
   /** Enable drag and drop */
   enableDnD?: boolean;
+  /** Enable multi-select events (Ctrl+click, Shift+click, Ctrl+A) */
+  enableMultiSelect?: boolean;
+  /** Callback when selected events are deleted (Delete/Backspace key) */
+  onEventsDelete?: (events: CalendarEvent[]) => void;
+  /** Enable virtual scrolling for time grid events (opt-in, default false) */
+  enableVirtualization?: boolean;
 }
 
 /** Calendar state */

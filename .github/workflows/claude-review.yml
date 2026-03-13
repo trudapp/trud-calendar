@@ -1,0 +1,50 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > /tmp/pr-diff.txt
+          echo "lines=$(wc -l < /tmp/pr-diff.txt)" >> $GITHUB_OUTPUT
+
+      - name: Claude Review
+        if: steps.diff.outputs.lines > 0
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-20250514
+          prompt: |
+            Review this pull request for the trud-calendar project. Focus on:
+
+            1. **Correctness** — Does the code do what it claims? Any bugs?
+            2. **Architecture** — Does it follow the project patterns? (ISO strings for dates, Pointer Events for interactions, pure functions in core, etc.)
+            3. **Tests** — Are new features tested? Are tests meaningful?
+            4. **Documentation** — If public API changed, are docs updated?
+            5. **Performance** — Any unnecessary re-renders, missing memoization?
+
+            Be concise. Only comment on things that need attention — don't praise code that's fine.
+            If everything looks good, say so briefly.
+
+            Project context:
+            - Monorepo: packages/core (headless, zero deps) + packages/react (React components)
+            - All dates are ISO 8601 strings, never Date objects
+            - All interactions use Pointer Events API
+            - CSS variables use --trc- prefix
+            - Tests use Vitest + @testing-library/react

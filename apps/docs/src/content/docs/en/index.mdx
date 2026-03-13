@@ -3,7 +3,7 @@ title: trud-calendar
 description: A beautiful, fully-featured React calendar component with Google Calendar-level UX.
 template: splash
 hero:
-  tagline: The open-source React calendar with Google Calendar-level UX. Drag & drop, 4 views, full i18n, shadcn theming — all MIT licensed.
+  tagline: The open-source React calendar with Google Calendar-level UX. Drag & drop, recurrence, undo/redo, multi-select, touch & keyboard support, mobile responsive, 4 views, full i18n, shadcn theming — all MIT licensed.
   actions:
     - text: Get Started
       link: /en/getting-started/
@@ -99,7 +99,7 @@ hero:
   <div class="trc-feature">
     <div class="trc-feature-icon">&#8693;</div>
     <h3>Drag & Drop</h3>
-    <p>Native HTML5 DnD. Move events across days and time slots. 15-minute snap. Zero extra dependencies.</p>
+    <p>Pointer Events API. Move, resize, and drag-to-create. Works on mouse, touch, and stylus. 15-minute snap.</p>
   </div>
   <div class="trc-feature">
     <div class="trc-feature-icon">&#127760;</div>
@@ -117,9 +117,34 @@ hero:
     <p>CSS variables with shadcn/ui fallback chain. Dark mode built in. Zero-config when paired with shadcn.</p>
   </div>
   <div class="trc-feature">
+    <div class="trc-feature-icon">&#128257;</div>
+    <h3>Recurrence</h3>
+    <p>RFC 5545 RRULE engine. Daily, weekly, monthly, yearly — with exceptions, intervals, and end conditions.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#9000;</div>
+    <h3>Keyboard & A11y</h3>
+    <p>WAI-ARIA grid pattern. Arrow keys, Enter/Space, Escape. Roving tabindex. Full keyboard navigation.</p>
+  </div>
+  <div class="trc-feature">
     <div class="trc-feature-icon">&#9881;</div>
     <h3>Headless Core</h3>
-    <p>trud-calendar-core: types, date math, layout algorithms, state — zero deps, any framework.</p>
+    <p>trud-calendar-core: types, date math, layout algorithms, recurrence, state — zero deps, any framework.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#8634;</div>
+    <h3>Undo / Redo</h3>
+    <p>Built-in undo stack with Ctrl+Z/Y shortcuts. Auto-snapshots on drag, resize, and any state change.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#9745;</div>
+    <h3>Multi-select</h3>
+    <p>Ctrl+click to toggle, Shift+click for range select, Delete to remove. Full selection context API.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#128241;</div>
+    <h3>Mobile Responsive</h3>
+    <p>Adaptive columns (1/3/7 days), compact cells on mobile, swipe navigation for touch devices.</p>
   </div>
 </div>
 

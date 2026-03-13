@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { CalendarProvider, useCalendarContext } from "../context/CalendarContext";
 import { SlotsProvider } from "../context/SlotsContext";
+import { SelectionProvider } from "../context/SelectionContext";
+import { useNavigation } from "../hooks/useNavigation";
+import { useSwipeNavigation } from "../hooks/useSwipeNavigation";
 import { Toolbar } from "./Toolbar";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
@@ -36,26 +39,59 @@ export function Calendar({ className, ...config }: CalendarProps) {
   return (
     <CalendarProvider config={configWithPopover}>
       <SlotsProvider slots={config.slots}>
-        <div
-          className={cn(
-            "flex flex-col h-full bg-[var(--trc-background)] text-[var(--trc-foreground)]",
-            "border border-[var(--trc-border)] rounded-[var(--trc-radius)] overflow-hidden",
-            className,
-          )}
+        <SelectionProvider
+          enableMultiSelect={config.enableMultiSelect ?? false}
+          onEventClick={internalEventClick}
+          onEventsDelete={config.onEventsDelete}
         >
-          <Toolbar />
-          <ViewRenderer />
-          {popover && (
-            <EventPopoverContent
-              event={popover.event}
-              referenceEl={popover.ref}
-              onClose={() => setPopover(null)}
-              locale={config.locale?.locale}
-            />
-          )}
-        </div>
+          <CalendarShell className={className}>
+            <Toolbar />
+            <ViewRenderer />
+            {popover && (
+              <EventPopoverContent
+                event={popover.event}
+                referenceEl={popover.ref}
+                onClose={() => setPopover(null)}
+                locale={config.locale?.locale}
+              />
+            )}
+          </CalendarShell>
+        </SelectionProvider>
       </SlotsProvider>
     </CalendarProvider>
+  );
+}
+
+function CalendarShell({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const nav = useNavigation();
+
+  const swipeHandlers = useSwipeNavigation({
+    onSwipeLeft: nav.next,
+    onSwipeRight: nav.prev,
+  });
+
+  return (
+    <div
+      ref={containerRef}
+      data-trc-calendar=""
+      className={cn(
+        "flex flex-col h-full bg-[var(--trc-background)] text-[var(--trc-foreground)]",
+        "border border-[var(--trc-border)] rounded-[var(--trc-radius)] overflow-hidden",
+        className,
+      )}
+      onPointerDown={swipeHandlers.onPointerDown}
+      onPointerMove={swipeHandlers.onPointerMove}
+      onPointerUp={swipeHandlers.onPointerUp}
+    >
+      {children}
+    </div>
   );
 }
 

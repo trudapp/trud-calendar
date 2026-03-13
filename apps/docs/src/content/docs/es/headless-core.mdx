@@ -31,6 +31,11 @@ import type {
   DateTimeString,
   PositionedEvent,
   EventSegment,
+  RecurrenceRule,
+  RecurrenceDay,
+  TimedEventSegment,
+  UndoStack,
+  VirtualRange,
 } from "trud-calendar-core";
 ```
 
@@ -102,12 +107,87 @@ import {
   isMultiDayEvent,
   partitionEvents,
   segmentMultiDayEvent,
+  segmentTimedMultiDayEvent,
   getEventSegments,
   buildOverlapGroups,
   assignColumns,
   computeTimePositions,
   groupEventsByDate,
 } from "trud-calendar-core";
+```
+
+### Recurrencia
+
+Motor de expansion RFC 5545 RRULE:
+
+```ts
+import {
+  expandRecurringEvents,
+  generateOccurrences,
+} from "trud-calendar-core";
+
+// Expandir todos los eventos recurrentes en un rango de fechas
+const expanded = expandRecurringEvents(events, "2026-03-01", "2026-03-31");
+
+// Generar fechas de ocurrencia para una regla individual
+const dates = generateOccurrences(
+  { freq: "weekly", byDay: ["MO", "WE", "FR"] },
+  "2026-03-01",  // fecha de inicio
+  "2026-03-01",  // inicio del rango
+  "2026-03-31",  // fin del rango
+);
+```
+
+Consulta [Recurrencia](/es/recurrence/) para documentacion detallada.
+
+### Undo/Redo
+
+Un stack de undo generico, agnostico de framework:
+
+```ts
+import {
+  createUndoStack,
+  pushState,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+} from "trud-calendar-core";
+import type { UndoStack } from "trud-calendar-core";
+
+let stack = createUndoStack(initialEvents); // UndoStack<CalendarEvent[]>
+stack = pushState(stack, newEvents);         // snapshot del estado actual
+stack = undo(stack);                        // volver atras
+stack = redo(stack);                        // ir adelante
+canUndo(stack); // boolean
+canRedo(stack); // boolean
+```
+
+El stack es inmutable — cada operacion devuelve un nuevo `UndoStack`. El historial maximo por defecto es 30 estados.
+
+### Virtualizacion
+
+Filtrado de eventos basado en viewport para datasets grandes:
+
+```ts
+import {
+  filterVisibleEvents,
+  scrollToViewportRange,
+} from "trud-calendar-core";
+import type { VirtualRange } from "trud-calendar-core";
+
+// Filtrar PositionedEvent[] a solo los visibles en el viewport
+const visible = filterVisibleEvents(positioned, viewportTop, viewportBottom, overscan);
+
+// Convertir posicion de scroll a rango de horas
+const range: VirtualRange = scrollToViewportRange(
+  scrollTop,       // offset de scroll actual
+  containerHeight, // altura visible del contenedor
+  totalHeight,     // altura total scrolleable
+  dayStartHour,    // ej: 0
+  dayEndHour,      // ej: 24
+);
+// range.startHour, range.endHour
 ```
 
 ### Gestion de estado

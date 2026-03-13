@@ -5,5 +5,8 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["packages/*/src/**/*.test.{ts,tsx}"],
+    environmentMatchGlobs: [
+      ["packages/react/**/*.test.{ts,tsx}", "jsdom"],
+    ],
   },
 });

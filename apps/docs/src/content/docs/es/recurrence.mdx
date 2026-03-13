@@ -1,0 +1,209 @@
+---
+title: Recurrencia
+description: Crea eventos recurrentes con soporte RFC 5545 RRULE.
+---
+
+trud-calendar soporta eventos recurrentes mediante la propiedad `recurrence` en `CalendarEvent`. El motor de recurrencia sigue la semantica de [RFC 5545 RRULE](https://datatracker.ietf.org/doc/html/rfc5545#section-3.3.10).
+
+## Uso basico
+
+Agrega una propiedad `recurrence` a cualquier evento:
+
+```tsx
+const events = [
+  {
+    id: "standup",
+    title: "Standup Diario",
+    start: "2026-03-13T09:00:00",
+    end: "2026-03-13T09:30:00",
+    recurrence: { freq: "daily" },
+  },
+  {
+    id: "review",
+    title: "Review de Sprint",
+    start: "2026-03-13T14:00:00",
+    end: "2026-03-13T15:00:00",
+    recurrence: {
+      freq: "weekly",
+      byDay: ["FR"],
+      count: 12,
+    },
+  },
+];
+```
+
+## Expandir eventos recurrentes
+
+El calendario **no** expande automaticamente los eventos recurrentes en instancias. Debes llamar a `expandRecurringEvents()` de `trud-calendar-core` antes de pasar los eventos al componente `<Calendar>`:
+
+```tsx
+import { Calendar } from "trud-calendar";
+import { expandRecurringEvents } from "trud-calendar-core";
+
+function App() {
+  const expanded = expandRecurringEvents(events, rangeStart, rangeEnd);
+
+  return <Calendar events={expanded} />;
+}
+```
+
+`expandRecurringEvents` devuelve:
+- Todos los eventos **no recurrentes** sin cambios
+- **Instancias generadas** para cada evento recurrente que cae dentro del rango de fechas
+
+Cada instancia generada tiene:
+- `recurringEventId` — el `id` del evento padre
+- `originalDate` — la fecha para la que se genero esta instancia (ej: `"2026-03-17"`)
+- Un `id` sintetico en el formato `parentId::YYYY-MM-DD`
+
+## RecurrenceRule
+
+```ts
+interface RecurrenceRule {
+  freq: "daily" | "weekly" | "monthly" | "yearly";
+  interval?: number;          // Cada N periodos (default: 1)
+  byDay?: RecurrenceDay[];    // "MO", "TU", "WE", "TH", "FR", "SA", "SU"
+  byMonthDay?: number[];      // Dia del mes: [1, 15]
+  bySetPos?: number[];        // Posicion en el conjunto: [1] = primero, [-1] = ultimo
+  count?: number;             // Parar despues de N ocurrencias
+  until?: string;             // Parar despues de esta fecha (YYYY-MM-DD)
+}
+
+type RecurrenceDay = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
+```
+
+## Patrones comunes
+
+### Todos los dias laborables (Lun–Vie)
+
+```ts
+recurrence: {
+  freq: "weekly",
+  byDay: ["MO", "TU", "WE", "TH", "FR"],
+}
+```
+
+### Cada 2 semanas los martes y jueves
+
+```ts
+recurrence: {
+  freq: "weekly",
+  interval: 2,
+  byDay: ["TU", "TH"],
+}
+```
+
+### Primer lunes de cada mes
+
+```ts
+recurrence: {
+  freq: "monthly",
+  byDay: ["MO"],
+  bySetPos: [1],
+}
+```
+
+### Cada ano el 15 de marzo
+
+```ts
+recurrence: {
+  freq: "yearly",
+}
+// La fecha viene de la propiedad `start` del evento
+```
+
+### Parar despues de 10 ocurrencias
+
+```ts
+recurrence: {
+  freq: "weekly",
+  count: 10,
+}
+```
+
+### Parar despues de una fecha especifica
+
+```ts
+recurrence: {
+  freq: "daily",
+  until: "2026-06-30",
+}
+```
+
+## Excluir fechas (exDates)
+
+Usa `exDates` para omitir fechas especificas de una serie recurrente:
+
+```ts
+const event = {
+  id: "standup",
+  title: "Standup Diario",
+  start: "2026-03-13T09:00:00",
+  end: "2026-03-13T09:30:00",
+  recurrence: { freq: "daily" },
+  exDates: ["2026-03-17", "2026-03-24"], // Omitir estas fechas
+};
+```
+
+## Editar una sola ocurrencia
+
+Para editar solo una instancia de una serie recurrente:
+
+1. Agrega el `originalDate` de la instancia al array `exDates` del evento padre
+2. Crea un nuevo evento independiente (sin `recurrence`) para esa fecha con las ediciones
+
+```ts
+// Antes: el evento padre se repite diariamente
+// El usuario edita la ocurrencia del 17 de marzo para cambiar el titulo
+
+// 1. Agregar exDate al padre
+parentEvent.exDates = [...(parentEvent.exDates ?? []), "2026-03-17"];
+
+// 2. Crear excepcion independiente
+const exception = {
+  id: "standup::exception::2026-03-17",
+  title: "Standup Modificado",  // titulo editado
+  start: "2026-03-17T09:00:00",
+  end: "2026-03-17T09:30:00",
+  // Sin recurrence — es un evento independiente
+};
+```
+
+## Editar toda la serie
+
+Para editar todas las ocurrencias, actualiza el evento padre directamente:
+
+```ts
+parentEvent.title = "Nuevo Titulo";
+parentEvent.recurrence = { freq: "weekly", byDay: ["MO", "WE"] };
+```
+
+Como las instancias se generan dinamicamente por `expandRecurringEvents()`, actualizar el padre automaticamente cambia todas las expansiones futuras.
+
+## Integracion con backend
+
+La libreria identifica series recurrentes por la presencia de la propiedad `recurrence` en un evento. Cuando los datos vienen de tu backend:
+
+1. Almacena el **evento padre** con `recurrence`, `exDates`, etc.
+2. Llama a `expandRecurringEvents(events, rangeStart, rangeEnd)` para generar instancias
+3. Cuando el usuario edita una instancia, verifica `recurringEventId` para saber si pertenece a una serie
+4. Usa `originalDate` para saber que ocurrencia especifica se edito
+
+```tsx
+// Obtener de la API
+const events = await api.getEvents();
+
+// Expandir antes de renderizar
+const expanded = expandRecurringEvents(events, viewStart, viewEnd);
+
+// Renderizar
+<Calendar events={expanded} onEventClick={(event) => {
+  if (event.recurringEventId) {
+    // Es una instancia recurrente — preguntar: "editar este o todos?"
+    showScopeDialog(event);
+  } else {
+    // Evento regular
+    openEditModal(event);
+  }
+}} />
+```

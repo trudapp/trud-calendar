@@ -17,6 +17,7 @@ Una grilla de 6 semanas mostrando el contexto completo del mes. Caracteristicas:
 - **Eventos multi-dia** que se extienden entre celdas
 - **Popover "+N mas"** — click para ver todos los eventos del dia
 - **Drag & Drop** — mueve eventos entre dias (preserva la hora original)
+- **Navegacion por teclado** — flechas para navegar entre dias, Enter/Space para activar
 
 ## Vista de Semana
 
@@ -24,10 +25,14 @@ Una grilla de tiempo con 7 columnas mostrando una semana. Caracteristicas:
 
 - **Manejo de solapamiento** — algoritmo de column-packing posiciona eventos solapados lado a lado
 - **Fila de todo el dia** — eventos multi-dia y de dia completo arriba de la grilla
+- **Eventos multi-dia con hora** — eventos con hora que abarcan multiples dias se segmentan por dia (ej: una conferencia de Mie 10:00 a Vie 16:00 se muestra en los tres dias)
 - **Indicador de hora actual** — linea roja mostrando "ahora"
 - **Auto-scroll** — se desplaza a la hora actual al montar
 - **Horas configurables** — usa `dayStartHour` y `dayEndHour`
 - **Drag & Drop** — mueve eventos a cualquier dia/franja horaria (snap de 15 minutos)
+- **Redimensionar** — arrastra el borde inferior de eventos para cambiar duracion
+- **Arrastrar para crear** — arrastra sobre slots vacios para seleccionar un rango de tiempo
+- **Navegacion por teclado** — flechas para navegar, Enter/Space para activar
 
 ## Vista de Dia
 
@@ -41,6 +46,7 @@ Una lista cronologica de eventos agrupados por fecha. Caracteristicas:
 - **Badge de hoy** resaltado
 - **Estado vacio** — muestra un mensaje personalizable de "sin eventos"
 - Muestra rango de tiempo para eventos con hora, etiqueta "todo el dia" para eventos de dia completo
+- **Navegacion por teclado** — flechas Arriba/Abajo entre items, Enter/Space para click
 
 ## Cambiar de vista
 

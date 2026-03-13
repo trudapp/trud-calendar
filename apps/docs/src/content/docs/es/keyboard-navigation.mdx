@@ -1,0 +1,74 @@
+---
+title: Navegacion por Teclado
+description: Accesibilidad completa por teclado siguiendo patrones WAI-ARIA grid.
+---
+
+trud-calendar implementa navegacion por teclado siguiendo el [patron WAI-ARIA grid](https://www.w3.org/WAI/ARIA/apd/patterns/grid/). El soporte de teclado esta siempre habilitado — no necesitas ninguna prop.
+
+## Atajos de teclado
+
+### Vista de Mes
+
+| Tecla | Accion |
+|-------|--------|
+| `Flecha Izquierda` / `Flecha Derecha` | Mover foco entre dias |
+| `Flecha Arriba` / `Flecha Abajo` | Mover foco entre semanas |
+| `Home` | Foco en el primer dia de la fila |
+| `End` | Foco en el ultimo dia de la fila |
+| `Enter` / `Space` | Abrir slot (crear evento) |
+| `Tab` | Mover a la siguiente region enfocable |
+
+### Vista de Semana / Dia
+
+| Tecla | Accion |
+|-------|--------|
+| `Flecha Izquierda` / `Flecha Derecha` | Mover foco entre columnas de dia |
+| `Flecha Arriba` / `Flecha Abajo` | Mover foco entre franjas horarias |
+| `Home` | Foco en el primer slot de la fila |
+| `End` | Foco en el ultimo slot de la fila |
+| `Enter` / `Space` | Abrir slot (crear evento) o hacer click en evento enfocado |
+| `Tab` | Mover entre regiones (toolbar → grilla de tiempo → eventos) |
+
+### Vista de Agenda
+
+| Tecla | Accion |
+|-------|--------|
+| `Flecha Arriba` / `Flecha Abajo` | Mover entre items de eventos |
+| `Home` | Foco en el primer evento |
+| `End` | Foco en el ultimo evento |
+| `Enter` / `Space` | Click en evento enfocado |
+
+### Toolbar
+
+| Tecla | Accion |
+|-------|--------|
+| `Flecha Izquierda` / `Flecha Derecha` | Mover entre tabs de vista |
+| `Home` | Foco en el primer tab |
+| `End` | Foco en el ultimo tab |
+
+### Popover
+
+| Tecla | Accion |
+|-------|--------|
+| `Escape` | Cerrar el popover |
+
+## Roving tabindex
+
+El calendario usa el patron [roving tabindex](https://www.w3.org/WAI/ARIA/apd/practices/keyboard-interface/#kbd_roving_tabindex). Solo una celda en cada grilla tiene `tabIndex={0}` a la vez — todas las demas tienen `tabIndex={-1}`. Esto significa:
+
+- `Tab` mueve el foco **dentro** de la grilla (aterriza en la celda activa)
+- Las flechas mueven el foco **dentro** de la grilla
+- `Tab` de nuevo mueve el foco **fuera** de la grilla
+
+## Roles ARIA
+
+El calendario usa roles ARIA semanticos:
+
+- Slots de hora de la grilla de tiempo: `role="gridcell"`
+- Items de agenda: `role="listitem"` dentro de `role="list"`
+- Botones de vista del toolbar: `role="tab"` dentro de `role="tablist"`
+- Eventos: `role="button"` con activacion por teclado
+
+## Visibilidad del foco
+
+Todos los elementos enfocables tienen indicadores de foco visibles usando estilos `focus-visible`, asegurando que los usuarios de teclado siempre sepan que elemento esta enfocado. El anillo de foco usa la variable de color `--trc-primary`.

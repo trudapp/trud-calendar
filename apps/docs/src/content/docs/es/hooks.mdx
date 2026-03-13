@@ -159,3 +159,185 @@ fmt.monthDay("2026-03-13");                // "13 mar"
 ```
 
 Todas las funciones respetan el `locale` configurado en el `CalendarProvider`.
+
+## useEventDrag()
+
+Hook de drag basado en Pointer Events para construir interacciones de arrastre personalizadas. Usado internamente por WeekView y MonthView.
+
+```ts
+import { useEventDrag } from "trud-calendar";
+
+const {
+  dragState,      // DragState | null — estado actual del drag
+  onPointerDown,  // (e: React.PointerEvent, event: CalendarEvent) => void
+  isDragging,     // boolean
+  didDrag,        // React.RefObject<boolean> — true si ocurrio un drag (suprime click)
+} = useEventDrag({
+  mode: "time",   // "time" para semana/dia, "date" para mes
+  onEventDrop,    // (event, newStart, newEnd) => void
+  enableDnD,      // boolean
+});
+```
+
+`DragState` contiene:
+- `event` — el evento siendo arrastrado
+- `ghostX`, `ghostY` — posicion del cursor para renderizar el ghost de drag
+- `targetDay` — la columna de dia sobre la que esta el cursor (detectada via atributos `data-day`)
+
+Soporta mouse y touch mediante la API de Pointer Events.
+
+## useGridKeyboard()
+
+Hook de navegacion por teclado que implementa el patron WAI-ARIA roving tabindex grid.
+
+```ts
+import { useGridKeyboard } from "trud-calendar";
+
+const grid = useGridKeyboard({
+  cols: 7,
+  rows: 24,
+  onActivate: (row, col) => { /* Enter/Space presionado */ },
+  onEscape: () => { /* Escape presionado */ },
+});
+```
+
+Devuelve:
+- `registerCell(row, col)` — callback ref para celdas de la grilla
+- `getTabIndex(row, col)` — devuelve `0` para la celda activa, `-1` para las demas
+- `handleKeyDown` — manejador de eventos de teclado
+- `handleFocus(row, col)` — manejador de eventos de foco
+
+## useUndoableEvents()
+
+Envuelve un `CalendarEvent[]` con un stack completo de undo/redo. Toma snapshots automaticamente antes de `onEventDrop` y `onEventResize`, y registra atajos de teclado Ctrl+Z / Ctrl+Shift+Z (Ctrl+Y).
+
+```ts
+import { useUndoableEvents } from "trud-calendar";
+
+const {
+  events,        // CalendarEvent[] — estado actual
+  setEvents,     // (events: CalendarEvent[]) => void — actualizar + auto-snapshot
+  onEventDrop,   // (event, newStart, newEnd) => void — snapshot antes de aplicar
+  onEventResize, // (event, newStart, newEnd) => void — snapshot antes de aplicar
+  undo,          // () => void
+  redo,          // () => void
+  canUndo,       // boolean
+  canRedo,       // boolean
+  snapshot,      // () => void — snapshot manual (ej: antes de una actualizacion masiva)
+} = useUndoableEvents({
+  initialEvents: myEvents,
+  maxHistory: 30, // opcional, por defecto 30
+});
+```
+
+### Ejemplo: Calendario con undo/redo
+
+```tsx
+function App() {
+  const undoable = useUndoableEvents({ initialEvents: myEvents });
+
+  return (
+    <>
+      <div className="flex gap-2 mb-2">
+        <button onClick={undoable.undo} disabled={!undoable.canUndo}>Deshacer</button>
+        <button onClick={undoable.redo} disabled={!undoable.canRedo}>Rehacer</button>
+      </div>
+      <Calendar
+        events={undoable.events}
+        enableDnD
+        onEventDrop={undoable.onEventDrop}
+        onEventResize={undoable.onEventResize}
+      />
+    </>
+  );
+}
+```
+
+## useEventSelection()
+
+Gestion de multi-seleccion de eventos con seguimiento basado en Set. Soporta toggle (Ctrl+click), seleccion por rango (Shift+click), seleccionar todo y limpiar.
+
+```ts
+import { useEventSelection } from "trud-calendar";
+
+const {
+  selectedIds,     // Set<string> — IDs de eventos seleccionados
+  isSelected,      // (id: string) => boolean
+  select,          // (id: string) => void — seleccion individual (limpia otros)
+  toggle,          // (id: string) => void — comportamiento Ctrl+click
+  rangeSelect,     // (id: string, sortedIds: string[]) => void — Shift+click
+  clearSelection,  // () => void
+  selectAll,       // (ids: string[]) => void
+  lastSelectedId,  // string | null — ancla para seleccion por rango
+} = useEventSelection();
+```
+
+El componente `<Calendar>` usa `SelectionProvider` internamente, que envuelve `useEventSelection` con deteccion de teclas modificadoras. Los eventos seleccionados muestran un resaltado visual con ring.
+
+## useResponsiveView()
+
+Hook de layout adaptativo usando ResizeObserver. Devuelve flags de breakpoint y el numero recomendado de columnas de dias visibles.
+
+```ts
+import { useResponsiveView } from "trud-calendar";
+
+const ref = useRef<HTMLDivElement>(null);
+const {
+  isMobile,        // boolean — contenedor < 640px
+  isTablet,        // boolean — contenedor 640px–1024px
+  containerWidth,  // number — ancho medido en px
+  visibleDays,     // 1 (movil) | 3 (tablet) | 7 (escritorio)
+} = useResponsiveView(ref);
+```
+
+El componente `<Calendar>` lo usa internamente para adaptar las columnas de la vista semanal y el tamano de celdas en la vista mensual.
+
+## useSwipeNavigation()
+
+Deteccion de swipe tactil para navegacion prev/next. Solo se activa para `pointerType === "touch"` — los arrastres de mouse se ignoran.
+
+```ts
+import { useSwipeNavigation } from "trud-calendar";
+
+const swipe = useSwipeNavigation({
+  onSwipeLeft: () => next(),   // navegar adelante
+  onSwipeRight: () => prev(),  // navegar atras
+  threshold: 50,     // min px horizontal (default: 50)
+  maxVertical: 30,   // max px vertical (default: 30)
+});
+
+// Aplicar al elemento contenedor:
+<div
+  onPointerDown={swipe.onPointerDown}
+  onPointerMove={swipe.onPointerMove}
+  onPointerUp={swipe.onPointerUp}
+>
+  {/* contenido del calendario */}
+</div>
+```
+
+## useVirtualScroll()
+
+Seguimiento de scroll basado en viewport para filtrar eventos visibles. Util para datasets grandes donde renderizar todos los eventos es costoso.
+
+```ts
+import { useVirtualScroll } from "trud-calendar";
+
+const {
+  viewportTop,     // number — borde superior como % (0–100)
+  viewportBottom,  // number — borde inferior como % (0–100)
+  isVirtualized,   // boolean — true cuando esta habilitado
+} = useVirtualScroll({
+  containerRef: scrollRef,
+  totalHours: 24,
+  enabled: true,        // default: false
+  overscanHours: 2,     // horas extra a renderizar arriba/abajo del viewport
+});
+```
+
+Combinar con `filterVisibleEvents()` de `trud-calendar-core` para eliminar eventos fuera de pantalla:
+
+```ts
+import { filterVisibleEvents } from "trud-calendar-core";
+
+const visible = filterVisibleEvents(positioned, viewportTop, viewportBottom);

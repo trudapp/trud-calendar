@@ -1,60 +1,94 @@
 ---
 title: Drag & Drop
-description: Habilita drag and drop para mover eventos entre franjas horarias.
+description: Mueve, redimensiona y crea eventos con interacciones de arrastre — funciona con mouse, touch y stylus.
 ---
 
-trud-calendar usa la API nativa de HTML5 Drag and Drop — cero dependencias extra.
+trud-calendar usa la [API de Pointer Events](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) para todas las interacciones de arrastre — funciona con mouse, pantallas tactiles y stylus sin dependencias extra.
 
 ## Habilitar drag and drop
 
-Establece `enableDnD={true}` y proporciona un handler `onEventDrop`:
+Establece `enableDnD={true}` y proporciona handlers:
 
 ```tsx
 <Calendar
   events={events}
   enableDnD
   onEventDrop={(event, newStart, newEnd) => {
-    // event: el CalendarEvent original (con id, campos custom, etc.)
-    // newStart: "2026-03-15T10:00:00"
-    // newEnd: "2026-03-15T11:00:00"
     await api.updateEvent(event.id, { start: newStart, end: newEnd });
+  }}
+  onEventResize={(event, newStart, newEnd) => {
+    await api.updateEvent(event.id, { start: newStart, end: newEnd });
+  }}
+  onSlotSelect={(start, end) => {
+    // El usuario arrastro sobre slots vacios para seleccionar un rango
+    openCreateModal({ start, end });
   }}
 />
 ```
 
-## Como funciona
+## Interacciones
 
-### Vista de Mes
-- Arrastra una pill de evento de una celda a otra
-- La **fecha cambia** pero la **hora original se preserva**
-- La duracion del evento se mantiene
+### Mover evento
+- **Vista de Mes**: Arrastra una pill de evento de una celda a otra. La fecha cambia pero la hora original se preserva.
+- **Vista de Semana/Dia**: Arrastra un evento de una franja horaria a otra. Tanto la fecha como la hora cambian, ajustandose a incrementos de 15 minutos.
+- La duracion del evento siempre se mantiene.
 
-### Vista de Semana / Dia
-- Arrastra un evento de una franja horaria a otra
-- Tanto la **fecha como la hora** cambian
-- Se ajusta a **incrementos de 15 minutos**
-- La duracion del evento se mantiene
+### Redimensionar evento
+- En las vistas de Semana/Dia, arrastra el **borde inferior** de un evento para cambiar su duracion.
+- Se ajusta a **incrementos de 15 minutos**.
+- Dispara `onEventResize` con los tiempos de inicio/fin actualizados.
 
-## El callback `onEventDrop`
+### Arrastrar para crear (seleccion de slot)
+- Arrastra sobre **slots de tiempo vacios** en la vista de Semana/Dia para seleccionar un rango de tiempo.
+- Dispara `onSlotSelect(start, end)` con el rango seleccionado.
+- Ideal para flujos de "crear evento" — el usuario arrastra para seleccionar cuando, luego llena los detalles.
+
+## Soporte tactil
+
+Todas las interacciones funcionan en dispositivos tactiles sin configuracion adicional:
+- **Toca y mantiene** un evento, luego arrastra para mover
+- **Toca el handle de redimensionar** en la parte inferior de un evento y arrastra para cambiar duracion
+- **Toca y arrastra** sobre slots vacios para seleccionar un rango de tiempo
+
+El calendario usa `touch-action: none` en elementos interactivos para evitar que el navegador haga scroll durante las operaciones de arrastre. Un umbral de movimiento de 5px distingue toques de arrastres.
+
+## Callbacks
+
+### onEventDrop
 
 ```ts
 onEventDrop?: (
   event: CalendarEvent,     // El objeto evento original
-  newStart: DateTimeString, // Nuevo inicio: "2026-03-15T10:00:00"
-  newEnd: DateTimeString,   // Nuevo fin: "2026-03-15T11:00:00"
+  newStart: DateTimeString, // "2026-03-15T10:00:00"
+  newEnd: DateTimeString,   // "2026-03-15T11:00:00"
 ) => void;
 ```
 
-Recibes:
-- El `CalendarEvent` original completo — usa `event.id` para actualizar tu base de datos
-- Nuevos tiempos de inicio y fin como strings ISO 8601 — listos para enviar a tu API
-- La duracion siempre se preserva (se calcula automaticamente)
+### onEventResize
 
-## Ejemplo: Actualizar base de datos al soltar
+```ts
+onEventResize?: (
+  event: CalendarEvent,     // El objeto evento original
+  newStart: DateTimeString, // "2026-03-15T10:00:00"
+  newEnd: DateTimeString,   // "2026-03-15T11:30:00" (nueva duracion)
+) => void;
+```
+
+### onSlotSelect
+
+```ts
+onSlotSelect?: (
+  start: DateTimeString,  // "2026-03-15T10:00:00"
+  end: DateTimeString,    // "2026-03-15T11:00:00"
+) => void;
+```
+
+## Ejemplo: Handler de interaccion completo
 
 ```tsx
 function App() {
   const [events, setEvents] = useState(initialEvents);
+  const [creating, setCreating] = useState(null);
 
   const handleDrop = async (event, newStart, newEnd) => {
     // Actualizacion optimista
@@ -63,8 +97,6 @@ function App() {
         e.id === event.id ? { ...e, start: newStart, end: newEnd } : e
       )
     );
-
-    // Persistir en el backend
     await fetch(`/api/events/${event.id}`, {
       method: "PATCH",
       body: JSON.stringify({ start: newStart, end: newEnd }),
@@ -76,6 +108,8 @@ function App() {
       events={events}
       enableDnD
       onEventDrop={handleDrop}
+      onEventResize={handleDrop}
+      onSlotSelect={(start, end) => setCreating({ start, end })}
     />
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { CalendarEvent } from "trud-calendar-core";
+import type { CalendarEvent, RecurrenceRule, RecurrenceDay } from "trud-calendar-core";
 
 const PRESET_COLORS = [
   { value: "#3b82f6", label: "Blue" },
@@ -12,11 +12,34 @@ const PRESET_COLORS = [
   { value: "#6366f1", label: "Indigo" },
 ];
 
+type RecurrencePreset = "none" | "daily" | "weekly" | "monthly" | "yearly" | "custom";
+
+const WEEKDAYS: { value: RecurrenceDay; label: string }[] = [
+  { value: "MO", label: "Mon" },
+  { value: "TU", label: "Tue" },
+  { value: "WE", label: "Wed" },
+  { value: "TH", label: "Thu" },
+  { value: "FR", label: "Fri" },
+  { value: "SA", label: "Sat" },
+  { value: "SU", label: "Sun" },
+];
+
+function recurrenceToPreset(r?: RecurrenceRule): RecurrencePreset {
+  if (!r) return "none";
+  if (r.freq === "daily" && !r.interval && !r.byDay?.length) return "daily";
+  if (r.freq === "weekly" && !r.interval && !r.byDay?.length) return "weekly";
+  if (r.freq === "monthly" && !r.interval) return "monthly";
+  if (r.freq === "yearly" && !r.interval) return "yearly";
+  return "custom";
+}
+
 export interface EventModalProps {
   /** If editing, the existing event. Null means creating a new one. */
   event: CalendarEvent | null;
   /** The pre-populated start time (ISO string) from a slot click */
   defaultStart?: string;
+  /** The pre-populated end time (ISO string) from a slot selection */
+  defaultEnd?: string;
   onSave: (event: CalendarEvent) => void;
   onDelete?: (id: string) => void;
   onClose: () => void;
@@ -25,6 +48,7 @@ export interface EventModalProps {
 export function EventModal({
   event,
   defaultStart,
+  defaultEnd: defaultEndProp,
   onSave,
   onDelete,
   onClose,
@@ -47,7 +71,7 @@ export function EventModal({
     };
   })();
 
-  const initialEnd = event?.end ?? `${defaultEnd.date}T${defaultEnd.time}:00`;
+  const initialEnd = event?.end ?? defaultEndProp ?? `${defaultEnd.date}T${defaultEnd.time}:00`;
   const endDate = initialEnd.slice(0, 10);
   const endTime = initialEnd.length > 10 ? initialEnd.slice(11, 16) : defaultEnd.time;
 
@@ -60,6 +84,18 @@ export function EventModal({
   const [allDay, setAllDay] = useState(event?.allDay ?? false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Recurrence state
+  const [recurrencePreset, setRecurrencePreset] = useState<RecurrencePreset>(
+    recurrenceToPreset(event?.recurrence),
+  );
+  const [recInterval, setRecInterval] = useState(event?.recurrence?.interval ?? 1);
+  const [recByDay, setRecByDay] = useState<RecurrenceDay[]>(event?.recurrence?.byDay ?? []);
+  const [recEndType, setRecEndType] = useState<"never" | "count" | "until">(
+    event?.recurrence?.count ? "count" : event?.recurrence?.until ? "until" : "never",
+  );
+  const [recCount, setRecCount] = useState(event?.recurrence?.count ?? 10);
+  const [recUntil, setRecUntil] = useState(event?.recurrence?.until ?? "");
+
   useEffect(() => {
     const dialog = dialogRef.current;
     if (dialog && !dialog.open) {
@@ -70,18 +106,41 @@ export function EventModal({
     };
   }, []);
 
+  const buildRecurrence = (): RecurrenceRule | undefined => {
+    if (recurrencePreset === "none") return undefined;
+
+    const rule: RecurrenceRule = {
+      freq: recurrencePreset === "custom" ? "weekly" : recurrencePreset,
+    };
+
+    if (recurrencePreset === "custom") {
+      if (recInterval > 1) rule.interval = recInterval;
+      if (recByDay.length > 0) rule.byDay = recByDay;
+    }
+
+    if (recEndType === "count") rule.count = recCount;
+    if (recEndType === "until" && recUntil) rule.until = recUntil;
+
+    return rule;
+  };
+
   const handleSave = () => {
     if (!title.trim()) return;
     const startISO = allDay ? `${sDate}T00:00:00` : `${sDate}T${sTime}:00`;
     const endISO = allDay ? `${eDate}T23:59:00` : `${eDate}T${eTime}:00`;
-    onSave({
+    const recurrence = buildRecurrence();
+
+    const saved: CalendarEvent = {
       id: event?.id ?? crypto.randomUUID(),
       title: title.trim(),
       start: startISO,
       end: endISO,
       color,
       allDay,
-    });
+    };
+    if (recurrence) saved.recurrence = recurrence;
+
+    onSave(saved);
   };
 
   const handleDelete = () => {
@@ -98,6 +157,12 @@ export function EventModal({
     if (e.target === dialogRef.current) {
       onClose();
     }
+  };
+
+  const toggleDay = (day: RecurrenceDay) => {
+    setRecByDay((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
   };
 
   return (
@@ -202,6 +267,123 @@ export function EventModal({
             </div>
           )}
         </div>
+
+        {/* Recurrence */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-[var(--trc-foreground)] mb-1">
+            Repeat
+          </label>
+          <select
+            value={recurrencePreset}
+            onChange={(e) => setRecurrencePreset(e.target.value as RecurrencePreset)}
+            className="modal-input"
+          >
+            <option value="none">Does not repeat</option>
+            <option value="daily">Every day</option>
+            <option value="weekly">Every week</option>
+            <option value="monthly">Every month</option>
+            <option value="yearly">Every year</option>
+            <option value="custom">Custom...</option>
+          </select>
+        </div>
+
+        {/* Custom recurrence options */}
+        {recurrencePreset === "custom" && (
+          <div className="mb-4 p-3 rounded-[var(--trc-radius)] border border-[var(--trc-border)] bg-[var(--trc-muted)]/30 space-y-3">
+            {/* Interval */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[var(--trc-foreground)]">Every</span>
+              <input
+                type="number"
+                min={1}
+                max={99}
+                value={recInterval}
+                onChange={(e) => setRecInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                className="modal-input w-16 text-center"
+              />
+              <span className="text-sm text-[var(--trc-foreground)]">week(s)</span>
+            </div>
+
+            {/* Days of week */}
+            <div>
+              <span className="text-sm text-[var(--trc-foreground)] block mb-1.5">On days</span>
+              <div className="flex gap-1">
+                {WEEKDAYS.map((d) => (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => toggleDay(d.value)}
+                    className={`w-9 h-8 text-xs rounded-[var(--trc-radius)] border transition-colors ${
+                      recByDay.includes(d.value)
+                        ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)] border-[var(--trc-primary)]"
+                        : "border-[var(--trc-border)] text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recurrence end */}
+        {recurrencePreset !== "none" && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-[var(--trc-foreground)] mb-1">
+              Ends
+            </label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm text-[var(--trc-foreground)] cursor-pointer">
+                <input
+                  type="radio"
+                  name="recEnd"
+                  checked={recEndType === "never"}
+                  onChange={() => setRecEndType("never")}
+                  className="accent-[var(--trc-primary)]"
+                />
+                Never
+              </label>
+              <label className="flex items-center gap-2 text-sm text-[var(--trc-foreground)] cursor-pointer">
+                <input
+                  type="radio"
+                  name="recEnd"
+                  checked={recEndType === "count"}
+                  onChange={() => setRecEndType("count")}
+                  className="accent-[var(--trc-primary)]"
+                />
+                After
+                <input
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={recCount}
+                  onChange={(e) => setRecCount(Math.max(1, parseInt(e.target.value) || 1))}
+                  disabled={recEndType !== "count"}
+                  className="modal-input w-16 text-center disabled:opacity-40"
+                />
+                occurrences
+              </label>
+              <label className="flex items-center gap-2 text-sm text-[var(--trc-foreground)] cursor-pointer">
+                <input
+                  type="radio"
+                  name="recEnd"
+                  checked={recEndType === "until"}
+                  onChange={() => setRecEndType("until")}
+                  className="accent-[var(--trc-primary)]"
+                />
+                On date
+                <input
+                  type="date"
+                  value={recUntil}
+                  onChange={(e) => setRecUntil(e.target.value)}
+                  disabled={recEndType !== "until"}
+                  className="modal-input disabled:opacity-40"
+                />
+              </label>
+            </div>
+          </div>
+        )}
 
         {/* Color picker */}
         <div className="mb-6">

@@ -5,6 +5,7 @@ export type {
   CalendarView,
   CalendarEvent,
   PositionedEvent,
+  TimedEventSegment,
   EventSegment,
   CalendarSlots,
   ToolbarSlotProps,
@@ -19,6 +20,9 @@ export type {
   CalendarConfig,
   CalendarState,
   CalendarAction,
+  RecurrenceFrequency,
+  RecurrenceDay,
+  RecurrenceRule,
 } from "./types";
 
 // Constants
@@ -86,9 +90,42 @@ export {
   isMultiDayEvent,
   partitionEvents,
   segmentMultiDayEvent,
+  segmentTimedMultiDayEvent,
   getEventSegments,
   buildOverlapGroups,
   assignColumns,
   computeTimePositions,
   groupEventsByDate,
 } from "./utils/events";
+
+// Time utilities (shared by resize, create, drop)
+export {
+  snapToIncrement,
+  fractionalHourToDateTime,
+  yPositionToFractionalHour,
+  normalizeRange,
+  computeDropPosition,
+} from "./utils/time";
+
+// Recurrence utilities
+export {
+  generateOccurrences,
+  expandRecurringEvents,
+  parseRRule,
+  toRRuleString,
+} from "./utils/recurrence";
+
+// Virtualization utilities
+export type { VirtualRange } from "./utils/virtualize";
+export { filterVisibleEvents, scrollToViewportRange } from "./utils/virtualize";
+
+// Undo/redo utilities
+export type { UndoStack } from "./utils/undo";
+export {
+  createUndoStack,
+  pushState,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+} from "./utils/undo";

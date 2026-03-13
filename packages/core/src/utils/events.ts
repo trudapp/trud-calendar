@@ -3,6 +3,7 @@ import type {
   DateString,
   EventSegment,
   PositionedEvent,
+  TimedEventSegment,
 } from "../types";
 import {
   parseDate,
@@ -102,6 +103,59 @@ export function getEventSegments(
   for (const event of allDayEvents) {
     segments.push(...segmentMultiDayEvent(event, rangeStart, rangeEnd));
   }
+  return segments;
+}
+
+// ── Timed multi-day segmentation ─────────────────────────────────
+
+/**
+ * Segment a timed multi-day event into per-day segments for week/day view.
+ * Each segment has startHour/endHour appropriate for that day:
+ * - First day: event start time → dayEndHour
+ * - Middle days: dayStartHour → dayEndHour
+ * - Last day: dayStartHour → event end time
+ */
+export function segmentTimedMultiDayEvent(
+  event: CalendarEvent,
+  days: DateString[],
+  dayStartHour: number,
+  dayEndHour: number,
+): TimedEventSegment[] {
+  const eventStartDate = event.start.slice(0, 10) as DateString;
+  const eventEndDate = event.end.slice(0, 10) as DateString;
+  const eventStartHour = getTimeOfDay(event.start);
+  const eventEndHour = getTimeOfDay(event.end);
+
+  const segments: TimedEventSegment[] = [];
+
+  for (const day of days) {
+    if (day < eventStartDate || day > eventEndDate) continue;
+
+    const isStart = day === eventStartDate;
+    const isEnd = day === eventEndDate;
+
+    let startHour: number;
+    let endHour: number;
+
+    if (isStart && isEnd) {
+      // Single day — shouldn't normally reach here for multi-day events
+      startHour = eventStartHour;
+      endHour = eventEndHour;
+    } else if (isStart) {
+      startHour = eventStartHour;
+      endHour = dayEndHour;
+    } else if (isEnd) {
+      startHour = dayStartHour;
+      endHour = eventEndHour;
+    } else {
+      // Middle day — full day
+      startHour = dayStartHour;
+      endHour = dayEndHour;
+    }
+
+    segments.push({ event, day, startHour, endHour, isStart, isEnd });
+  }
+
   return segments;
 }
 

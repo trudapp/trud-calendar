@@ -160,3 +160,185 @@ fmt.monthDay("2026-03-13");                // "Mar 13"
 ```
 
 All functions respect the `locale` set in the `CalendarProvider`.
+
+## useEventDrag()
+
+Pointer-based event drag hook for building custom drag interactions. Used internally by WeekView and MonthView.
+
+```ts
+import { useEventDrag } from "trud-calendar";
+
+const {
+  dragState,      // DragState | null — current drag state
+  onPointerDown,  // (e: React.PointerEvent, event: CalendarEvent) => void
+  isDragging,     // boolean
+  didDrag,        // React.RefObject<boolean> — true if a drag occurred (suppress click)
+} = useEventDrag({
+  mode: "time",   // "time" for week/day, "date" for month
+  onEventDrop,    // (event, newStart, newEnd) => void
+  enableDnD,      // boolean
+});
+```
+
+`DragState` contains:
+- `event` — the event being dragged
+- `ghostX`, `ghostY` — cursor position for rendering a drag ghost
+- `targetDay` — the day column the cursor is over (detected via `data-day` attributes)
+
+Supports both mouse and touch interactions via Pointer Events API.
+
+## useGridKeyboard()
+
+Keyboard navigation hook implementing the WAI-ARIA roving tabindex grid pattern.
+
+```ts
+import { useGridKeyboard } from "trud-calendar";
+
+const grid = useGridKeyboard({
+  cols: 7,
+  rows: 24,
+  onActivate: (row, col) => { /* Enter/Space pressed */ },
+  onEscape: () => { /* Escape pressed */ },
+});
+```
+
+Returns:
+- `registerCell(row, col)` — ref callback for grid cells
+- `getTabIndex(row, col)` — returns `0` for the active cell, `-1` for others
+- `handleKeyDown` — keyboard event handler
+- `handleFocus(row, col)` — focus event handler
+
+## useUndoableEvents()
+
+Wraps a `CalendarEvent[]` with a full undo/redo stack. Auto-snapshots before `onEventDrop` and `onEventResize` apply, and registers Ctrl+Z / Ctrl+Shift+Z (Ctrl+Y) keyboard shortcuts.
+
+```ts
+import { useUndoableEvents } from "trud-calendar";
+
+const {
+  events,        // CalendarEvent[] — current state
+  setEvents,     // (events: CalendarEvent[]) => void — update + auto-snapshot
+  onEventDrop,   // (event, newStart, newEnd) => void — snapshots before applying
+  onEventResize, // (event, newStart, newEnd) => void — snapshots before applying
+  undo,          // () => void
+  redo,          // () => void
+  canUndo,       // boolean
+  canRedo,       // boolean
+  snapshot,      // () => void — manual snapshot (e.g., before a batch update)
+} = useUndoableEvents({
+  initialEvents: myEvents,
+  maxHistory: 30, // optional, defaults to 30
+});
+```
+
+### Example: Calendar with undo/redo
+
+```tsx
+function App() {
+  const undoable = useUndoableEvents({ initialEvents: myEvents });
+
+  return (
+    <>
+      <div className="flex gap-2 mb-2">
+        <button onClick={undoable.undo} disabled={!undoable.canUndo}>Undo</button>
+        <button onClick={undoable.redo} disabled={!undoable.canRedo}>Redo</button>
+      </div>
+      <Calendar
+        events={undoable.events}
+        enableDnD
+        onEventDrop={undoable.onEventDrop}
+        onEventResize={undoable.onEventResize}
+      />
+    </>
+  );
+}
+```
+
+## useEventSelection()
+
+Multi-select event management with Set-based tracking. Supports toggle (Ctrl+click), range select (Shift+click), select all, and clear.
+
+```ts
+import { useEventSelection } from "trud-calendar";
+
+const {
+  selectedIds,     // Set<string> — currently selected event IDs
+  isSelected,      // (id: string) => boolean
+  select,          // (id: string) => void — single select (clears others)
+  toggle,          // (id: string) => void — Ctrl+click behavior
+  rangeSelect,     // (id: string, sortedIds: string[]) => void — Shift+click
+  clearSelection,  // () => void
+  selectAll,       // (ids: string[]) => void
+  lastSelectedId,  // string | null — anchor for range selection
+} = useEventSelection();
+```
+
+The `<Calendar>` component uses `SelectionProvider` internally, which wraps `useEventSelection` with modifier key detection. Selected events show a visual ring highlight.
+
+## useResponsiveView()
+
+Adaptive layout hook using ResizeObserver. Returns breakpoint flags and the recommended number of visible day columns.
+
+```ts
+import { useResponsiveView } from "trud-calendar";
+
+const ref = useRef<HTMLDivElement>(null);
+const {
+  isMobile,        // boolean — container < 640px
+  isTablet,        // boolean — container 640px–1024px
+  containerWidth,  // number — measured width in px
+  visibleDays,     // 1 (mobile) | 3 (tablet) | 7 (desktop)
+} = useResponsiveView(ref);
+```
+
+The `<Calendar>` component uses this internally to adapt the week view column count and month view cell sizes.
+
+## useSwipeNavigation()
+
+Touch swipe detection for prev/next navigation. Only activates for `pointerType === "touch"` — mouse drags are ignored.
+
+```ts
+import { useSwipeNavigation } from "trud-calendar";
+
+const swipe = useSwipeNavigation({
+  onSwipeLeft: () => next(),   // navigate forward
+  onSwipeRight: () => prev(),  // navigate backward
+  threshold: 50,     // min horizontal px (default: 50)
+  maxVertical: 30,   // max vertical px (default: 30)
+});
+
+// Spread on the container element:
+<div
+  onPointerDown={swipe.onPointerDown}
+  onPointerMove={swipe.onPointerMove}
+  onPointerUp={swipe.onPointerUp}
+>
+  {/* calendar content */}
+</div>
+```
+
+## useVirtualScroll()
+
+Viewport-based scroll tracking for filtering visible events. Useful for large datasets where rendering all events is expensive.
+
+```ts
+import { useVirtualScroll } from "trud-calendar";
+
+const {
+  viewportTop,     // number — top edge as % (0–100)
+  viewportBottom,  // number — bottom edge as % (0–100)
+  isVirtualized,   // boolean — true when enabled
+} = useVirtualScroll({
+  containerRef: scrollRef,
+  totalHours: 24,
+  enabled: true,        // default: false
+  overscanHours: 2,     // extra hours to render above/below viewport
+});
+```
+
+Pair with `filterVisibleEvents()` from `trud-calendar-core` to cull off-screen events:
+
+```ts
+import { filterVisibleEvents } from "trud-calendar-core";
+
+const visible = filterVisibleEvents(positioned, viewportTop, viewportBottom);

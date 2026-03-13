@@ -1,60 +1,94 @@
 ---
 title: Drag & Drop
-description: Enable drag and drop to move events between time slots.
+description: Move, resize, and create events with drag interactions — works on mouse, touch, and stylus.
 ---
 
-trud-calendar uses the native HTML5 Drag and Drop API — zero extra dependencies.
+trud-calendar uses the [Pointer Events API](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) for all drag interactions — working seamlessly on mouse, touch screens, and stylus devices with zero extra dependencies.
 
 ## Enable drag and drop
 
-Set `enableDnD={true}` and provide an `onEventDrop` handler:
+Set `enableDnD={true}` and provide handlers:
 
 ```tsx
 <Calendar
   events={events}
   enableDnD
   onEventDrop={(event, newStart, newEnd) => {
-    // event: the original CalendarEvent (with id, custom fields, etc.)
-    // newStart: "2026-03-15T10:00:00"
-    // newEnd: "2026-03-15T11:00:00"
     await api.updateEvent(event.id, { start: newStart, end: newEnd });
+  }}
+  onEventResize={(event, newStart, newEnd) => {
+    await api.updateEvent(event.id, { start: newStart, end: newEnd });
+  }}
+  onSlotSelect={(start, end) => {
+    // User dragged across empty slots to select a time range
+    openCreateModal({ start, end });
   }}
 />
 ```
 
-## How it works
+## Interactions
 
-### Month view
-- Drag an event pill from one day cell to another
-- The **date changes** but the **original time is preserved**
-- Event duration is maintained
+### Event move
+- **Month view**: Drag an event pill from one day cell to another. The date changes but the original time is preserved.
+- **Week/Day view**: Drag an event from one time slot to another. Both date and time change, snapping to 15-minute increments.
+- Event duration is always preserved.
 
-### Week / Day view
-- Drag an event from one time slot to another
-- Both **date and time** change
-- Snaps to **15-minute increments**
-- Event duration is maintained
+### Event resize
+- In Week/Day view, drag the **bottom edge** of an event to change its duration.
+- Snaps to **15-minute increments**.
+- Fires `onEventResize` with the updated start/end times.
 
-## The `onEventDrop` callback
+### Drag-to-create (slot selection)
+- Drag across **empty time slots** in Week/Day view to select a time range.
+- Fires `onSlotSelect(start, end)` with the selected range.
+- Great for "create event" flows — the user drags to select when, then fills in the details.
+
+## Touch support
+
+All interactions work on touch devices out of the box:
+- **Touch and hold** an event, then drag to move
+- **Touch the resize handle** at the bottom of an event and drag to resize
+- **Touch and drag** across empty slots to select a time range
+
+The calendar uses `touch-action: none` on interactive elements to prevent the browser from scrolling during drag operations. A 5px movement threshold distinguishes taps from drags.
+
+## Callbacks
+
+### onEventDrop
 
 ```ts
 onEventDrop?: (
-  event: CalendarEvent,   // The original event object
-  newStart: DateTimeString, // New start: "2026-03-15T10:00:00"
-  newEnd: DateTimeString,   // New end: "2026-03-15T11:00:00"
+  event: CalendarEvent,     // The original event object
+  newStart: DateTimeString, // "2026-03-15T10:00:00"
+  newEnd: DateTimeString,   // "2026-03-15T11:00:00"
 ) => void;
 ```
 
-You receive:
-- The full original `CalendarEvent` — use `event.id` to update your database
-- New start and end times as ISO 8601 strings — ready to send to your API
-- Duration is always preserved (calculated automatically)
+### onEventResize
 
-## Example: Update database on drop
+```ts
+onEventResize?: (
+  event: CalendarEvent,     // The original event object
+  newStart: DateTimeString, // "2026-03-15T10:00:00"
+  newEnd: DateTimeString,   // "2026-03-15T11:30:00" (new duration)
+) => void;
+```
+
+### onSlotSelect
+
+```ts
+onSlotSelect?: (
+  start: DateTimeString,  // "2026-03-15T10:00:00"
+  end: DateTimeString,    // "2026-03-15T11:00:00"
+) => void;
+```
+
+## Example: Full interaction handler
 
 ```tsx
 function App() {
   const [events, setEvents] = useState(initialEvents);
+  const [creating, setCreating] = useState(null);
 
   const handleDrop = async (event, newStart, newEnd) => {
     // Optimistic update
@@ -63,8 +97,6 @@ function App() {
         e.id === event.id ? { ...e, start: newStart, end: newEnd } : e
       )
     );
-
-    // Persist to backend
     await fetch(`/api/events/${event.id}`, {
       method: "PATCH",
       body: JSON.stringify({ start: newStart, end: newEnd }),
@@ -76,6 +108,8 @@ function App() {
       events={events}
       enableDnD
       onEventDrop={handleDrop}
+      onEventResize={handleDrop}
+      onSlotSelect={(start, end) => setCreating({ start, end })}
     />
   );
 }

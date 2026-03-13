@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { useCalendarContext } from "../context/CalendarContext";
 import { useCalendarSlots } from "../context/SlotsContext";
+import { useSelectionContext } from "../context/SelectionContext";
 import { cn } from "../lib/cn";
 import {
   groupEventsByDate,
@@ -15,10 +16,24 @@ import {
 interface AgendaEventItemProps {
   event: CalendarEvent;
   locale: string;
-  onEventClick?: (event: CalendarEvent) => void;
+  onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
+  itemIndex: number;
+  focusedIndex: number;
+  onFocus: (index: number) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+  isSelected?: boolean;
 }
 
-function AgendaEventItem({ event, locale, onEventClick }: AgendaEventItemProps) {
+function AgendaEventItem({
+  event,
+  locale,
+  onEventClick,
+  itemIndex,
+  focusedIndex,
+  onFocus,
+  onKeyDown,
+  isSelected,
+}: AgendaEventItemProps) {
   const slots = useCalendarSlots();
   const color = event.color || "var(--trc-event-default)";
 
@@ -26,8 +41,14 @@ function AgendaEventItem({ event, locale, onEventClick }: AgendaEventItemProps) 
     const SlotAgendaEvent = slots.agendaEvent;
     return (
       <button
-        className="w-full text-left"
-        onClick={() => onEventClick?.(event)}
+        className={cn(
+          "w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--trc-primary)] rounded-[var(--trc-radius)]",
+          isSelected && "ring-2 ring-[var(--trc-primary)] ring-offset-1",
+        )}
+        onClick={(e) => onEventClick?.(event, e)}
+        tabIndex={itemIndex === focusedIndex ? 0 : -1}
+        onFocus={() => onFocus(itemIndex)}
+        onKeyDown={onKeyDown}
       >
         <SlotAgendaEvent event={event} />
       </button>
@@ -40,8 +61,13 @@ function AgendaEventItem({ event, locale, onEventClick }: AgendaEventItemProps) 
         "flex items-start gap-3 w-full text-left p-3",
         "rounded-[var(--trc-radius)]",
         "hover:bg-[var(--trc-accent)] transition-colors",
+        "outline-none focus-visible:ring-2 focus-visible:ring-[var(--trc-primary)]",
+        isSelected && "ring-2 ring-[var(--trc-primary)] ring-offset-1",
       )}
-      onClick={() => onEventClick?.(event)}
+      onClick={(e) => onEventClick?.(event, e)}
+      tabIndex={itemIndex === focusedIndex ? 0 : -1}
+      onFocus={() => onFocus(itemIndex)}
+      onKeyDown={onKeyDown}
     >
       <div
         className="w-1 self-stretch rounded-full shrink-0"
@@ -64,13 +90,79 @@ function AgendaEventItem({ event, locale, onEventClick }: AgendaEventItemProps) 
 }
 
 export function AgendaView() {
-  const { visibleEvents, visibleRange, locale, onEventClick, labels } =
+  const { visibleEvents, visibleRange, locale, labels } =
     useCalendarContext();
+  const selectionCtx = useSelectionContext();
 
   const grouped = useMemo(
     () =>
       groupEventsByDate(visibleEvents, visibleRange.start, visibleRange.end),
     [visibleEvents, visibleRange],
+  );
+
+  // Flatten all events for keyboard navigation
+  const allItems = useMemo(() => {
+    const items: CalendarEvent[] = [];
+    for (const [, events] of grouped) {
+      items.push(...events);
+    }
+    return items;
+  }, [grouped]);
+
+  const [focusedIndex, setFocusedIndex] = useState(0);
+
+  // Selection-aware click handler
+  const handleEventClick = useCallback(
+    (event: CalendarEvent, e: React.MouseEvent) => {
+      selectionCtx.handleEventClick(event, e);
+    },
+    [selectionCtx],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      let newIndex = focusedIndex;
+
+      switch (e.key) {
+        case "ArrowUp":
+          e.preventDefault();
+          newIndex = Math.max(0, focusedIndex - 1);
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          newIndex = Math.min(allItems.length - 1, focusedIndex + 1);
+          break;
+        case "Home":
+          e.preventDefault();
+          newIndex = 0;
+          break;
+        case "End":
+          e.preventDefault();
+          newIndex = allItems.length - 1;
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          if (allItems[focusedIndex]) {
+            selectionCtx.handleEventClick(
+              allItems[focusedIndex],
+              e as unknown as React.MouseEvent,
+            );
+          }
+          return;
+        default:
+          return;
+      }
+
+      setFocusedIndex(newIndex);
+      // Focus the element at the new index
+      const container = e.currentTarget.closest("[role='list']");
+      if (container) {
+        const buttons = container.querySelectorAll<HTMLElement>("button[tabindex]");
+        buttons[newIndex]?.focus();
+      }
+    },
+    [focusedIndex, allItems, selectionCtx],
   );
 
   if (grouped.size === 0) {
@@ -82,6 +174,8 @@ export function AgendaView() {
       </div>
     );
   }
+
+  let itemCounter = 0;
 
   return (
     <div className="flex-1 overflow-y-auto p-4" role="list" aria-label="Agenda view">
@@ -113,14 +207,22 @@ export function AgendaView() {
               )}
             </div>
             <div className="flex flex-col gap-0.5">
-              {events.map((event) => (
-                <AgendaEventItem
-                  key={event.id}
-                  event={event}
-                  locale={locale}
-                  onEventClick={onEventClick}
-                />
-              ))}
+              {events.map((event) => {
+                const idx = itemCounter++;
+                return (
+                  <AgendaEventItem
+                    key={event.id}
+                    event={event}
+                    locale={locale}
+                    onEventClick={handleEventClick}
+                    itemIndex={idx}
+                    focusedIndex={focusedIndex}
+                    onFocus={setFocusedIndex}
+                    onKeyDown={handleKeyDown}
+                    isSelected={selectionCtx.isSelected(event.id)}
+                  />
+                );
+              })}
             </div>
           </div>
         );

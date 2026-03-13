@@ -49,6 +49,16 @@ export default defineConfig({
               label: "Drag & Drop",
             },
             {
+              slug: "recurrence",
+              label: "Recurrence",
+              translations: { es: "Recurrencia" },
+            },
+            {
+              slug: "keyboard-navigation",
+              label: "Keyboard Navigation",
+              translations: { es: "Navegacion por Teclado" },
+            },
+            {
               slug: "i18n",
               label: "Locale & i18n",
               translations: { es: "Idiomas e i18n" },

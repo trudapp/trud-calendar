@@ -13,6 +13,7 @@ import {
   getVisibleRange,
   filterEventsInRange,
   sortEvents,
+  expandRecurringEvents,
   type CalendarEvent,
   type CalendarView,
   type CalendarState,
@@ -28,6 +29,8 @@ import {
 } from "trud-calendar-core";
 
 export type EventDropHandler = (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
+export type EventResizeHandler = (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
+export type SlotSelectHandler = (start: DateTimeString, end: DateTimeString) => void;
 
 interface CalendarContextValue {
   state: CalendarState;
@@ -44,7 +47,10 @@ interface CalendarContextValue {
   onDateChange?: (date: DateString) => void;
   onViewChange?: (view: CalendarView) => void;
   onEventDrop?: EventDropHandler;
+  onEventResize?: EventResizeHandler;
+  onSlotSelect?: SlotSelectHandler;
   enableDnD?: boolean;
+  enableVirtualization?: boolean;
   labels: CalendarLabels;
 }
 
@@ -118,10 +124,12 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
   );
 
   const visibleEvents = useMemo(
-    () =>
-      sortEvents(
-        filterEventsInRange(config.events, visibleRange.start, visibleRange.end),
-      ),
+    () => {
+      const expanded = expandRecurringEvents(config.events, visibleRange.start, visibleRange.end);
+      return sortEvents(
+        filterEventsInRange(expanded, visibleRange.start, visibleRange.end),
+      );
+    },
     [config.events, visibleRange.start, visibleRange.end],
   );
 
@@ -141,7 +149,10 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       onDateChange: config.onDateChange,
       onViewChange: config.onViewChange,
       onEventDrop: config.onEventDrop,
+      onEventResize: config.onEventResize,
+      onSlotSelect: config.onSlotSelect,
       enableDnD: config.enableDnD,
+      enableVirtualization: config.enableVirtualization,
       labels,
     }),
     [
@@ -159,7 +170,10 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       config.onDateChange,
       config.onViewChange,
       config.onEventDrop,
+      config.onEventResize,
+      config.onSlotSelect,
       config.enableDnD,
+      config.enableVirtualization,
       labels,
     ],
   );

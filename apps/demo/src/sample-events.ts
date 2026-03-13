@@ -1,4 +1,4 @@
-import type { CalendarEvent } from "trud-calendar-core";
+import type { CalendarEvent, RecurrenceRule } from "trud-calendar-core";
 
 const COLORS = {
   blue: "#3b82f6",
@@ -123,6 +123,15 @@ export function generateSampleEvents(): CalendarEvent[] {
       color: COLORS.pink,
     },
 
+    // ---- Multi-day timed event ----
+    {
+      id: "evt-multiday-timed",
+      title: "Product Conference",
+      start: d(2, 10, 0),
+      end: d(4, 16, 0),
+      color: COLORS.indigo,
+    },
+
     // ---- Next week ----
     {
       id: "evt-13",
@@ -166,6 +175,24 @@ export function generateSampleEvents(): CalendarEvent[] {
       end: allDay(12),
       allDay: true,
       color: COLORS.green,
+    },
+
+    // ---- Recurring events ----
+    {
+      id: "rec-standup",
+      title: "Daily Standup",
+      start: d(0, 9, 0),
+      end: d(0, 9, 15),
+      color: COLORS.blue,
+      recurrence: { freq: "daily" } as RecurrenceRule,
+    },
+    {
+      id: "rec-gym",
+      title: "Gym",
+      start: d(0, 7, 0),
+      end: d(0, 8, 0),
+      color: COLORS.green,
+      recurrence: { freq: "weekly", byDay: ["MO", "WE", "FR"] } as RecurrenceRule,
     },
   ];
 }

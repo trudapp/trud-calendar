@@ -28,6 +28,8 @@ The `<Calendar>` component accepts all fields from `CalendarConfig`, plus `class
 | `onEventClick` | `(event: CalendarEvent) => void` | Fired when an event is clicked |
 | `onSlotClick` | `(dateTime: DateTimeString) => void` | Fired when an empty time slot is clicked |
 | `onEventDrop` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Fired when an event is dropped after dragging |
+| `onEventResize` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Fired when an event is resized (week/day view) |
+| `onSlotSelect` | `(start: DateTimeString, end: DateTimeString) => void` | Fired when a time range is selected by dragging across empty slots |
 | `onDateChange` | `(date: DateString) => void` | Fired when the visible date changes (navigation) |
 | `onViewChange` | `(view: CalendarView) => void` | Fired when the view changes |
 
@@ -43,7 +45,27 @@ interface CalendarEvent {
   end: DateTimeString;     // "2026-03-13T10:00:00"
   allDay?: boolean;
   color?: string;
-  [key: string]: unknown;  // Custom metadata
+  recurrence?: RecurrenceRule;   // Recurring event rule
+  exDates?: DateString[];        // Dates to exclude from recurrence
+  recurringEventId?: string;     // Set on expanded instances (points to parent)
+  originalDate?: DateString;     // Original date of this recurring instance
+  [key: string]: unknown;        // Custom metadata
+}
+```
+
+### RecurrenceRule
+
+See [Recurrence](/en/recurrence/) for full documentation.
+
+```ts
+interface RecurrenceRule {
+  freq: "daily" | "weekly" | "monthly" | "yearly";
+  interval?: number;
+  byDay?: RecurrenceDay[];    // "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU"
+  byMonthDay?: number[];
+  bySetPos?: number[];
+  count?: number;
+  until?: string;
 }
 ```
 

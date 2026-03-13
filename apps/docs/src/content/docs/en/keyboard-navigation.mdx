@@ -1,0 +1,74 @@
+---
+title: Keyboard Navigation
+description: Full keyboard accessibility following WAI-ARIA grid patterns.
+---
+
+trud-calendar implements keyboard navigation following the [WAI-ARIA grid pattern](https://www.w3.org/WAI/ARIA/apd/patterns/grid/). Keyboard support is always enabled — no prop needed.
+
+## Keyboard shortcuts
+
+### Month view
+
+| Key | Action |
+|-----|--------|
+| `Arrow Left` / `Arrow Right` | Move focus between days |
+| `Arrow Up` / `Arrow Down` | Move focus between weeks |
+| `Home` | Focus first day of the row |
+| `End` | Focus last day of the row |
+| `Enter` / `Space` | Open slot (create event) |
+| `Tab` | Move to next focusable region |
+
+### Week / Day view
+
+| Key | Action |
+|-----|--------|
+| `Arrow Left` / `Arrow Right` | Move focus between day columns |
+| `Arrow Up` / `Arrow Down` | Move focus between hour slots |
+| `Home` | Focus first slot in the row |
+| `End` | Focus last slot in the row |
+| `Enter` / `Space` | Open slot (create event) or click focused event |
+| `Tab` | Move between regions (toolbar → time grid → events) |
+
+### Agenda view
+
+| Key | Action |
+|-----|--------|
+| `Arrow Up` / `Arrow Down` | Move between event items |
+| `Home` | Focus first event |
+| `End` | Focus last event |
+| `Enter` / `Space` | Click focused event |
+
+### Toolbar
+
+| Key | Action |
+|-----|--------|
+| `Arrow Left` / `Arrow Right` | Move between view tabs |
+| `Home` | Focus first tab |
+| `End` | Focus last tab |
+
+### Popover
+
+| Key | Action |
+|-----|--------|
+| `Escape` | Close the popover |
+
+## Roving tabindex
+
+The calendar uses the [roving tabindex](https://www.w3.org/WAI/ARIA/apd/practices/keyboard-interface/#kbd_roving_tabindex) pattern. Only one cell in each grid has `tabIndex={0}` at a time — all others have `tabIndex={-1}`. This means:
+
+- `Tab` moves focus **into** the grid (lands on the active cell)
+- Arrow keys move focus **within** the grid
+- `Tab` again moves focus **out** of the grid
+
+## ARIA roles
+
+The calendar uses semantic ARIA roles:
+
+- Time grid hour slots: `role="gridcell"`
+- Agenda items: `role="listitem"` within `role="list"`
+- Toolbar view buttons: `role="tab"` within `role="tablist"`
+- Events: `role="button"` with keyboard activation
+
+## Focus visibility
+
+All focusable elements have visible focus indicators using `focus-visible` styles, ensuring keyboard users always know which element is focused. The focus ring uses the `--trc-primary` color variable.

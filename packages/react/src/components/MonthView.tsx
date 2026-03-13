@@ -1,6 +1,9 @@
 import { useMemo, useCallback, useState, useRef, useEffect } from "react";
 import { useCalendarContext } from "../context/CalendarContext";
 import { useCalendarSlots } from "../context/SlotsContext";
+import { useSelectionContext } from "../context/SelectionContext";
+import { useEventDrag } from "../hooks/useEventDrag";
+import { useGridKeyboard } from "../hooks/useGridKeyboard";
 import { cn } from "../lib/cn";
 import {
   getMonthViewRange,
@@ -27,36 +30,34 @@ interface MonthEventPillProps {
   event: CalendarEvent;
   segment?: EventSegment;
   locale: string;
-  onClick?: (event: CalendarEvent) => void;
+  onClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
   enableDnD?: boolean;
-  draggingId?: string | null;
+  isDragging?: boolean;
+  onDragPointerDown?: (e: React.PointerEvent, event: CalendarEvent) => void;
+  didDrag?: React.MutableRefObject<boolean>;
+  isSelected?: boolean;
 }
 
-function MonthEventPill({ event, segment, locale, onClick, enableDnD, draggingId }: MonthEventPillProps) {
+function MonthEventPill({
+  event,
+  segment,
+  locale,
+  onClick,
+  enableDnD,
+  isDragging,
+  onDragPointerDown,
+  didDrag,
+  isSelected,
+}: MonthEventPillProps) {
   const isStart = segment ? segment.isStart : true;
   const isEnd = segment ? segment.isEnd : true;
   const color = event.color || "var(--trc-event-default)";
-  const isDragging = draggingId === event.id;
-
-  const handleDragStart = useCallback(
-    (e: React.DragEvent) => {
-      if (!enableDnD) return;
-      e.stopPropagation();
-      const payload = JSON.stringify({
-        id: event.id,
-        start: event.start,
-        end: event.end,
-      });
-      e.dataTransfer.setData("application/trud-calendar-event", payload);
-      e.dataTransfer.effectAllowed = "move";
-    },
-    [enableDnD, event.id, event.start, event.end],
-  );
 
   return (
     <button
+      data-event-id={event.id}
       className={cn(
-        "w-full text-left text-xs truncate px-1.5 py-0.5",
+        "w-full text-left text-[10px] sm:text-xs truncate px-1 sm:px-1.5 py-0 sm:py-0.5",
         "transition-opacity hover:opacity-80",
         isStart ? "rounded-l-sm" : "",
         isEnd ? "rounded-r-sm" : "",
@@ -64,9 +65,8 @@ function MonthEventPill({ event, segment, locale, onClick, enableDnD, draggingId
         event.allDay || (segment && !isStart && !isEnd)
           ? "text-white font-medium"
           : "text-[var(--trc-foreground)]",
+        isSelected && "ring-2 ring-[var(--trc-primary)] ring-offset-1",
       )}
-      draggable={!!enableDnD}
-      onDragStart={handleDragStart}
       style={{
         backgroundColor:
           event.allDay || isMultiDayEvent(event) ? color : `${color}20`,
@@ -74,10 +74,27 @@ function MonthEventPill({ event, segment, locale, onClick, enableDnD, draggingId
           !event.allDay && !isMultiDayEvent(event) ? `2px solid ${color}` : undefined,
         opacity: isDragging ? 0.4 : undefined,
         transition: isDragging ? "opacity 150ms" : undefined,
+        touchAction: enableDnD ? "none" : undefined,
       }}
+      onPointerDown={
+        enableDnD && onDragPointerDown
+          ? (e) => {
+              e.stopPropagation();
+              onDragPointerDown(e, event);
+            }
+          : undefined
+      }
       onClick={(e) => {
         e.stopPropagation();
-        onClick?.(event);
+        if (didDrag?.current) return;
+        onClick?.(event, e);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick?.(event, e as unknown as React.MouseEvent);
+        }
       }}
       title={event.title}
     >
@@ -102,17 +119,36 @@ export function MonthView() {
     visibleEvents,
     locale,
     weekStartsOn,
-    onEventClick,
     onSlotClick,
     onEventDrop,
     enableDnD,
     labels,
   } = useCalendarContext();
   const slots = useCalendarSlots();
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const selectionCtx = useSelectionContext();
   const [morePopover, setMorePopover] = useState<MorePopoverState | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Event drag hook (pointer events based)
+  const {
+    dragState,
+    onPointerDown: onDragPointerDown,
+    didDrag,
+  } = useEventDrag({
+    enabled: !!enableDnD,
+    onEventDrop,
+    mode: "date",
+    selectedIds: selectionCtx.selectedIds,
+    events: visibleEvents,
+  });
+
+  // Selection-aware click handler
+  const handleEventClick = useCallback(
+    (event: CalendarEvent, e: React.MouseEvent) => {
+      selectionCtx.handleEventClick(event, e);
+    },
+    [selectionCtx],
+  );
 
   const range = useMemo(
     () => getMonthViewRange(state.currentDate, weekStartsOn),
@@ -125,6 +161,14 @@ export function MonthView() {
     const weekStart = startOfWeek(range.start, weekStartsOn);
     return getWeekDays(weekStart);
   }, [range.start, weekStartsOn]);
+
+  const weeks = useMemo(() => {
+    const result: DateString[][] = [];
+    for (let i = 0; i < days.length; i += 7) {
+      result.push(days.slice(i, i + 7));
+    }
+    return result;
+  }, [days]);
 
   // Build event segments by day for multi-day events + single day events
   const eventsByDay = useMemo(() => {
@@ -153,6 +197,24 @@ export function MonthView() {
 
     return map;
   }, [visibleEvents, days, range]);
+
+  // Keyboard navigation
+  const gridKeyboard = useGridKeyboard({
+    rows: weeks.length,
+    cols: 7,
+    onActivate: useCallback(
+      (row: number, col: number) => {
+        const day = weeks[row]?.[col];
+        if (day) {
+          onSlotClick?.(`${day}T09:00:00`);
+        }
+      },
+      [weeks, onSlotClick],
+    ),
+    onEscape: useCallback(() => {
+      setMorePopover(null);
+    }, []),
+  });
 
   // Close popover on click outside or Escape
   useEffect(() => {
@@ -189,58 +251,6 @@ export function MonthView() {
     [onSlotClick],
   );
 
-  const handleMonthDragEnd = useCallback(() => {
-    setDraggingId(null);
-    setDragOverDay(null);
-  }, []);
-
-  const handleDayCellDrop = useCallback(
-    (e: React.DragEvent, targetDay: DateString) => {
-      if (!enableDnD || !onEventDrop) return;
-      e.preventDefault();
-      setDragOverDay(null);
-      setDraggingId(null);
-
-      const raw = e.dataTransfer.getData("application/trud-calendar-event");
-      if (!raw) return;
-
-      try {
-        const data = JSON.parse(raw) as { id: string; start: string; end: string };
-
-        const original = visibleEvents.find((ev) => ev.id === data.id);
-        if (!original) return;
-
-        // Compute duration in ms
-        const durationMs = new Date(data.end).getTime() - new Date(data.start).getTime();
-
-        // Preserve original time, change date
-        const originalTime = data.start.slice(11); // HH:mm:ss
-        const newStartStr = `${targetDay}T${originalTime}`;
-        const newStartMs = new Date(newStartStr).getTime();
-        const newEndDate = new Date(newStartMs + durationMs);
-
-        const endHH = String(newEndDate.getHours()).padStart(2, "0");
-        const endMM = String(newEndDate.getMinutes()).padStart(2, "0");
-        const endSS = String(newEndDate.getSeconds()).padStart(2, "0");
-        const endDay = newEndDate.toISOString().slice(0, 10);
-        const newEndStr = `${endDay}T${endHH}:${endMM}:${endSS}`;
-
-        onEventDrop(original, newStartStr, newEndStr);
-      } catch {
-        // Ignore malformed data
-      }
-    },
-    [enableDnD, onEventDrop, visibleEvents],
-  );
-
-  const weeks = useMemo(() => {
-    const result: DateString[][] = [];
-    for (let i = 0; i < days.length; i += 7) {
-      result.push(days.slice(i, i + 7));
-    }
-    return result;
-  }, [days]);
-
   return (
     <div className="flex flex-col flex-1 overflow-hidden" role="grid" aria-label="Month view">
       {/* Weekday headers */}
@@ -255,7 +265,7 @@ export function MonthView() {
         {weekDayHeaders.map((day) => (
           <div
             key={day}
-            className="py-2 text-center text-xs font-medium text-[var(--trc-muted-foreground)] uppercase"
+            className="py-1 sm:py-2 text-center text-[10px] sm:text-xs font-medium text-[var(--trc-muted-foreground)] uppercase"
             role="columnheader"
           >
             {formatWeekdayShort(day, locale)}
@@ -264,24 +274,7 @@ export function MonthView() {
       </div>
 
       {/* Week rows */}
-      <div
-        className="flex flex-col flex-1"
-        onDragEnd={handleMonthDragEnd}
-        onDragStartCapture={(e) => {
-          if (!enableDnD) return;
-          // Find which event is being dragged by walking up to the draggable button
-          const target = e.target as HTMLElement;
-          const draggable = target.closest("[draggable='true']");
-          if (draggable) {
-            // Search all visible events for a title match
-            const title = draggable.getAttribute("title");
-            if (title) {
-              const ev = visibleEvents.find((ev) => ev.title === title);
-              if (ev) setDraggingId(ev.id);
-            }
-          }
-        }}
-      >
+      <div className="flex flex-col flex-1">
         {weeks.map((week, weekIdx) => (
           <div
             key={weekIdx}
@@ -291,7 +284,7 @@ export function MonthView() {
             )}
             role="row"
           >
-            {week.map((day) => {
+            {week.map((day, colIdx) => {
               const todayFlag = isToday(day);
               const currentMonth = isSameMonth(day, state.currentDate);
               const dayData = eventsByDay.get(day);
@@ -303,7 +296,7 @@ export function MonthView() {
               const visibleEventsSlice = totalEvents > MAX_VISIBLE_EVENTS ? MAX_VISIBLE_EVENTS - 1 : totalEvents;
               const hiddenCount = totalEvents - visibleEventsSlice;
 
-              const isDragOver = enableDnD && dragOverDay === day;
+              const isDragOver = dragState?.targetDay === day;
 
               if (slots.dayCell) {
                 const SlotDayCell = slots.dayCell;
@@ -322,38 +315,31 @@ export function MonthView() {
               return (
                 <div
                   key={day}
+                  ref={(el) => gridKeyboard.registerCell(weekIdx, colIdx, el)}
                   role="gridcell"
+                  data-day={day}
+                  tabIndex={gridKeyboard.getTabIndex(weekIdx, colIdx)}
+                  onKeyDown={gridKeyboard.handleKeyDown}
+                  onFocus={() => gridKeyboard.handleFocus(weekIdx, colIdx)}
                   className={cn(
-                    "flex flex-col p-1 overflow-hidden cursor-pointer",
+                    "flex flex-col p-0.5 sm:p-1 overflow-hidden cursor-pointer",
                     "border-r border-[var(--trc-border)] last:border-r-0",
                     "hover:bg-[var(--trc-accent)]/50 transition-colors",
                     !currentMonth && "opacity-40",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-[var(--trc-primary)] focus-visible:ring-inset",
                   )}
                   style={{
                     backgroundColor: isDragOver ? "var(--trc-accent)" : undefined,
                     opacity: isDragOver && currentMonth ? 0.6 : undefined,
                   }}
                   onClick={() => handleSlotClick(day)}
-                  onDragOver={(e) => {
-                    if (!enableDnD) return;
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = "move";
-                    setDragOverDay(day);
-                  }}
-                  onDragLeave={(e) => {
-                    const related = e.relatedTarget as Node | null;
-                    const current = e.currentTarget as Node;
-                    if (related && current.contains(related)) return;
-                    setDragOverDay(null);
-                  }}
-                  onDrop={(e) => handleDayCellDrop(e, day)}
                   aria-label={day}
                 >
                   {/* Day number */}
-                  <div className="flex justify-center mb-0.5">
+                  <div className="flex justify-center mb-0 sm:mb-0.5">
                     <span
                       className={cn(
-                        "text-sm w-7 h-7 flex items-center justify-center rounded-full",
+                        "text-xs sm:text-sm w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center rounded-full",
                         todayFlag
                           ? "bg-[var(--trc-today-bg)] text-[var(--trc-today-text)] font-bold"
                           : "text-[var(--trc-foreground)]",
@@ -366,32 +352,49 @@ export function MonthView() {
 
                   {/* Events */}
                   <div className="flex flex-col gap-0.5 min-h-0 overflow-hidden">
-                    {dayData?.multiDay.slice(0, visibleEventsSlice).map((seg) => (
-                      <MonthEventPill
+                    {dayData?.multiDay.slice(0, visibleEventsSlice).map((seg, idx) => (
+                      <div
                         key={`${seg.event.id}-${seg.date}`}
-                        event={seg.event}
-                        segment={seg}
-                        locale={locale}
-                        onClick={onEventClick}
-                        enableDnD={enableDnD}
-                        draggingId={draggingId}
-                      />
+                        className={cn(idx >= 2 && "hidden sm:block")}
+                      >
+                        <MonthEventPill
+                          event={seg.event}
+                          segment={seg}
+                          locale={locale}
+                          onClick={handleEventClick}
+                          enableDnD={enableDnD}
+                          isDragging={dragState?.event.id === seg.event.id}
+                          onDragPointerDown={onDragPointerDown}
+                          didDrag={didDrag}
+                          isSelected={selectionCtx.isSelected(seg.event.id)}
+                        />
+                      </div>
                     ))}
                     {dayData?.singleDay
                       .slice(0, Math.max(0, visibleEventsSlice - (dayData?.multiDay.length ?? 0)))
-                      .map((event) => (
-                        <MonthEventPill
-                          key={event.id}
-                          event={event}
-                          locale={locale}
-                          onClick={onEventClick}
-                          enableDnD={enableDnD}
-                          draggingId={draggingId}
-                        />
-                      ))}
+                      .map((event, idx) => {
+                        const overallIdx = (dayData?.multiDay.length ?? 0) + idx;
+                        return (
+                          <div
+                            key={event.id}
+                            className={cn(overallIdx >= 2 && "hidden sm:block")}
+                          >
+                            <MonthEventPill
+                              event={event}
+                              locale={locale}
+                              onClick={handleEventClick}
+                              enableDnD={enableDnD}
+                              isDragging={dragState?.event.id === event.id}
+                              onDragPointerDown={onDragPointerDown}
+                              didDrag={didDrag}
+                              isSelected={selectionCtx.isSelected(event.id)}
+                            />
+                          </div>
+                        );
+                      })}
                     {hiddenCount > 0 && (
                       <button
-                        className="text-xs text-[var(--trc-muted-foreground)] text-left px-1.5 hover:text-[var(--trc-foreground)] transition-colors"
+                        className="text-[10px] sm:text-xs text-[var(--trc-muted-foreground)] text-left px-1 sm:px-1.5 hover:text-[var(--trc-foreground)] transition-colors"
                         onClick={(e) => handleMoreClick(e, day)}
                       >
                         {labels.more(hiddenCount)}
@@ -435,12 +438,35 @@ export function MonthView() {
                   key={event.id}
                   event={event}
                   locale={locale}
-                  onClick={(ev) => {
+                  onClick={(ev, e) => {
                     setMorePopover(null);
-                    onEventClick?.(ev);
+                    handleEventClick(ev, e);
                   }}
+                  isSelected={selectionCtx.isSelected(event.id)}
                 />
               ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Drag ghost */}
+      {dragState && (() => {
+        const color = dragState.event.color || "var(--trc-event-default)";
+        return (
+          <div
+            className="fixed z-50 pointer-events-none opacity-80"
+            style={{
+              left: dragState.ghostX,
+              top: dragState.ghostY,
+              width: 150,
+            }}
+          >
+            <div
+              className="rounded-sm px-1.5 py-0.5 text-xs font-medium truncate shadow-md text-white"
+              style={{ backgroundColor: color }}
+            >
+              {dragState.event.title}
             </div>
           </div>
         );
