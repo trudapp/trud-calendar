@@ -1,8 +1,14 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import react from "@astrojs/react";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  vite: {
+    plugins: [tailwindcss()],
+  },
   integrations: [
+    react(),
     starlight({
       title: "trud-calendar",
       customCss: ["./src/styles/custom.css"],
@@ -15,10 +21,15 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/trudcalendar/trud-calendar",
+          href: "https://github.com/trudapp/trud-calendar",
         },
       ],
       sidebar: [
+        {
+          label: "Playground",
+          link: "/playground",
+          translations: { es: "Playground" },
+        },
         {
           label: "Getting Started",
           translations: { es: "Primeros pasos" },

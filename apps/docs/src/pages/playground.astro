@@ -1,0 +1,20 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import Playground from "../components/Playground";
+import "../styles/playground.css";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Playground",
+    description: "Interactive demo of trud-calendar. Try drag & drop, resize, view switching, dark mode, and i18n.",
+    template: "splash",
+  }}
+>
+  <div style="max-width: 1100px; margin: 0 auto; padding: 1rem 0 3rem;">
+    <p style="text-align: center; color: var(--sl-color-gray-2); margin-bottom: 1.5rem; font-size: 0.95rem;">
+      Drag events to move them, resize from the bottom edge, drag across empty slots to create. Try switching views, locale, and dark mode.
+    </p>
+    <Playground client:only="react" />
+  </div>
+</StarlightPage>
