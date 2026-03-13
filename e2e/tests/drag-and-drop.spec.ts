@@ -18,7 +18,6 @@ test.describe("Drag and Drop", () => {
     const eventPill = monthGrid.locator("button[data-event-id]").first();
     await expect(eventPill).toBeVisible();
 
-    const eventTitle = await eventPill.textContent();
     const eventId = await eventPill.getAttribute("data-event-id");
 
     // Find the source cell and a different target cell
@@ -185,8 +184,6 @@ test.describe("Drag and Drop", () => {
 
     const bbox = await timedEvent.boundingBox();
     expect(bbox).not.toBeNull();
-    const originalHeight = bbox!.height;
-
     // The resize handle is at the bottom of the event
     const resizeHandle = timedEvent.locator(".cursor-s-resize");
     const hasHandle = (await resizeHandle.count()) > 0;

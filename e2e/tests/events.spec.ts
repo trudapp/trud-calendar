@@ -98,8 +98,6 @@ test.describe("Events", () => {
       .locator("[role='grid'][aria-label='Month view'] button[data-event-id]")
       .first();
     await expect(firstEvent).toBeVisible();
-    const eventTitle = await firstEvent.textContent();
-
     // Click the event to open the modal
     await firstEvent.click();
 

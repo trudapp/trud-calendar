@@ -41,10 +41,6 @@ test.describe("Dark Mode", () => {
     page,
   }) => {
     // Get background color of the calendar in light mode
-    const calendarContainer = page.locator(
-      ".demo-main .bg-\\[var\\(--trc-background\\)\\]",
-    );
-
     // If the CSS variable selector doesn't work, use a more general approach
     const demoMain = page.locator(".demo-main");
     await expect(demoMain).toBeVisible();

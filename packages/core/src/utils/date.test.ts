@@ -11,7 +11,6 @@ import {
   endOfMonth,
   isSameDay,
   isSameMonth,
-  isToday,
   isBefore,
   isAfter,
   rangesOverlap,

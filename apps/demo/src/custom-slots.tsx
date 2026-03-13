@@ -1,7 +1,6 @@
 import { useCalendarContext } from "trud-calendar";
 import type {
   CalendarSlots,
-  CalendarEvent,
   ToolbarSlotProps,
   DayCellSlotProps,
   TimeEventSlotProps,

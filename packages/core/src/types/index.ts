@@ -99,9 +99,7 @@ export interface EventSegment {
   isEnd: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-
-type ComponentType<P = any> = (props: P) => any;
+type ComponentType<P = any> = (props: P) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /** Slot component overrides */
 export interface CalendarSlots {
