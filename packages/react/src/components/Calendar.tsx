@@ -82,7 +82,7 @@ function CalendarShell({
       ref={containerRef}
       data-trc-calendar=""
       className={cn(
-        "flex flex-col h-full bg-[var(--trc-background)] text-[var(--trc-foreground)]",
+        "@container flex flex-col h-full bg-[var(--trc-background)] text-[var(--trc-foreground)]",
         "border border-[var(--trc-border)] rounded-[var(--trc-radius)] overflow-hidden",
         className,
       )}

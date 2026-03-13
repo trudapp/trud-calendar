@@ -209,7 +209,7 @@ function AllDayRow({ days, events, allDayLabel, onEventClick, isEventSelected, g
       )}
       style={{ gridTemplateColumns: `${gutterWidth} repeat(${days.length}, 1fr)` }}
     >
-      <div className="text-[10px] sm:text-xs text-[var(--trc-muted-foreground)] p-0.5 sm:p-1 text-right pr-1 sm:pr-2 border-r border-[var(--trc-border)]">
+      <div className="text-[10px] @[640px]:text-xs text-[var(--trc-muted-foreground)] p-0.5 @[640px]:p-1 text-right pr-1 @[640px]:pr-2 border-r border-[var(--trc-border)]">
         {allDayLabel}
       </div>
       {days.map((day) => {
@@ -672,16 +672,16 @@ export function WeekView({ singleDay }: WeekViewProps) {
             <div
               key={day}
               className={cn(
-                "text-center py-1 sm:py-2 border-r border-[var(--trc-border)] last:border-r-0",
+                "text-center py-1 @[640px]:py-2 border-r border-[var(--trc-border)] last:border-r-0",
               )}
               role="columnheader"
             >
-              <div className="text-[10px] sm:text-xs font-medium text-[var(--trc-muted-foreground)] uppercase">
+              <div className="text-[10px] @[640px]:text-xs font-medium text-[var(--trc-muted-foreground)] uppercase">
                 {formatWeekdayShort(day, locale)}
               </div>
               <div
                 className={cn(
-                  "text-base sm:text-xl font-semibold mx-auto w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full",
+                  "text-base @[640px]:text-xl font-semibold mx-auto w-8 h-8 @[640px]:w-10 @[640px]:h-10 flex items-center justify-center rounded-full",
                   todayFlag
                     ? "bg-[var(--trc-today-bg)] text-[var(--trc-today-text)]"
                     : "text-[var(--trc-foreground)]",
@@ -720,7 +720,7 @@ export function WeekView({ singleDay }: WeekViewProps) {
             <div
               key={idx}
               className={cn(
-                "text-[10px] sm:text-xs text-[var(--trc-muted-foreground)] text-right pr-1 sm:pr-2",
+                "text-[10px] @[640px]:text-xs text-[var(--trc-muted-foreground)] text-right pr-1 @[640px]:pr-2",
                 "border-r border-[var(--trc-border)]",
                 "border-b border-[var(--trc-border)]",
                 "-mt-2",

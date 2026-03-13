@@ -74,19 +74,19 @@ export function Toolbar() {
   return (
     <div
       className={cn(
-        "flex flex-col sm:flex-row items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 gap-1.5 sm:gap-0",
+        "flex flex-col @[640px]:flex-row items-center justify-between px-2 @[640px]:px-4 py-1.5 @[640px]:py-2 gap-1.5 @[640px]:gap-0",
         "border-b border-[var(--trc-border)]",
       )}
       role="toolbar"
       aria-label="Calendar navigation"
     >
       {/* Left: Navigation */}
-      <div className="flex items-center gap-1 sm:gap-2">
+      <div className="flex items-center gap-1 @[640px]:gap-2">
         <button
           onClick={nav.today}
           className={cn(
             "rounded-[var(--trc-radius)] border border-[var(--trc-border)]",
-            "px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium",
+            "px-2 @[640px]:px-3 py-1 @[640px]:py-1.5 text-xs @[640px]:text-sm font-medium",
             "text-[var(--trc-foreground)] bg-[var(--trc-background)]",
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
@@ -98,7 +98,7 @@ export function Toolbar() {
         <button
           onClick={nav.prev}
           className={cn(
-            "rounded-[var(--trc-radius)] p-1 sm:p-1.5",
+            "rounded-[var(--trc-radius)] p-1 @[640px]:p-1.5",
             "text-[var(--trc-foreground)]",
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
@@ -122,7 +122,7 @@ export function Toolbar() {
         <button
           onClick={nav.next}
           className={cn(
-            "rounded-[var(--trc-radius)] p-1 sm:p-1.5",
+            "rounded-[var(--trc-radius)] p-1 @[640px]:p-1.5",
             "text-[var(--trc-foreground)]",
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
@@ -143,7 +143,7 @@ export function Toolbar() {
             <path d="m9 18 6-6-6-6" />
           </svg>
         </button>
-        <h2 className="text-sm sm:text-base lg:text-lg font-semibold text-[var(--trc-foreground)] ml-1 sm:ml-2">
+        <h2 className="text-sm @[640px]:text-base @[1024px]:text-lg font-semibold text-[var(--trc-foreground)] ml-1 @[640px]:ml-2">
           {nav.formattedDate}
         </h2>
       </div>
@@ -166,7 +166,7 @@ export function Toolbar() {
             onClick={() => nav.setView(v)}
             onKeyDown={handleViewKeyDown}
             className={cn(
-              "px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-colors",
+              "px-2 @[640px]:px-3 py-1 @[640px]:py-1.5 text-xs @[640px]:text-sm font-medium transition-colors",
               nav.view === v
                 ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
                 : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]",

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Calendar } from "trud-calendar";
 import type { CalendarEvent, DateTimeString } from "trud-calendar-core";
 import { expandRecurringEvents } from "trud-calendar-core";
@@ -73,15 +73,20 @@ export default function Playground() {
   const [baseEvents, setBaseEvents] = useState(makeSampleEvents);
   const [darkMode, setDarkMode] = useState(false);
   const [locale, setLocale] = useState("en-US");
-  const [weekStartsOn, setWeekStartsOn] = useState<0 | 1>(0);
+  const [weekStartsOn, setWeekStartsOn] = useState<0 | 1>(1);
 
-  // Expand recurring events
+  // Detect system/browser dark mode preference on mount
+  useEffect(() => {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setDarkMode(prefersDark);
+  }, []);
+
   const events = useMemo(() => {
     const now = new Date();
     const rangeStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0);
     const pad = (n: number) => String(n).padStart(2, "0");
-    const toDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const toDate = (dt: Date) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
     return expandRecurringEvents(baseEvents, toDate(rangeStart), toDate(rangeEnd));
   }, [baseEvents]);
 
@@ -103,84 +108,101 @@ export default function Playground() {
     []
   );
 
+  const locales = [
+    { value: "en-US", label: "EN" },
+    { value: "es-ES", label: "ES" },
+    { value: "fr-FR", label: "FR" },
+    { value: "de-DE", label: "DE" },
+    { value: "ja-JP", label: "JA" },
+    { value: "pt-BR", label: "PT" },
+  ];
+
   const localeLabels: Record<string, Record<string, string | ((n: number) => string)>> = {
     "es-ES": {
       today: "Hoy", month: "Mes", week: "Semana", day: "Dia", agenda: "Agenda",
-      allDay: "todo el dia", noEvents: "No hay eventos", more: (n: number) => `+${n} mas`,
+      allDay: "Todo el dia", noEvents: "No hay eventos", more: (n: number) => `+${n} mas`,
     },
   };
 
   return (
-    <div className={darkMode ? "dark" : ""}>
-      <div style={{
-        background: "var(--trc-background, #fff)",
-        borderRadius: "0.75rem",
-        border: "1px solid var(--trc-border, #e5e5e5)",
-        overflow: "hidden",
-      }}>
-        {/* Controls bar */}
-        <div style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0.5rem",
-          alignItems: "center",
-          padding: "0.75rem 1rem",
-          borderBottom: "1px solid var(--trc-border, #e5e5e5)",
-          background: "var(--trc-muted, #f5f5f5)",
-          fontSize: "0.8rem",
-        }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", color: "var(--trc-foreground, #0a0a0a)" }}>
-            <input type="checkbox" checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
-            Dark mode
-          </label>
+    <div className={`${darkMode ? "dark" : ""} flex flex-col h-full`}>
+      {/* Controls bar */}
+      <div className="flex items-center justify-center gap-4 px-4 py-2 border-b border-[var(--trc-border)] bg-[var(--trc-background)] flex-shrink-0">
+        {/* Dark mode */}
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className="rounded-[var(--trc-radius)] border border-[var(--trc-border)] px-2.5 py-1.5 text-xs text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)] transition-colors flex items-center gap-1.5"
+        >
+          {darkMode ? (
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ) : (
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+          {darkMode ? "Light" : "Dark"}
+        </button>
 
-          <select
-            value={locale}
-            onChange={(e) => setLocale(e.target.value)}
-            style={{
-              padding: "0.25rem 0.5rem",
-              borderRadius: "0.375rem",
-              border: "1px solid var(--trc-border, #e5e5e5)",
-              fontSize: "0.8rem",
-              background: "var(--trc-background, #fff)",
-              color: "var(--trc-foreground, #0a0a0a)",
-            }}
+        {/* Locale pills */}
+        <div className="flex rounded-[var(--trc-radius)] border border-[var(--trc-border)] overflow-hidden">
+          {locales.map((l) => (
+            <button
+              key={l.value}
+              onClick={() => setLocale(l.value)}
+              className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                locale === l.value
+                  ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
+                  : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
+              }`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Week start pills */}
+        <div className="flex rounded-[var(--trc-radius)] border border-[var(--trc-border)] overflow-hidden">
+          <button
+            onClick={() => setWeekStartsOn(0)}
+            className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+              weekStartsOn === 0
+                ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
+                : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
+            }`}
           >
-            <option value="en-US">English</option>
-            <option value="es-ES">Espanol</option>
-            <option value="fr-FR">Francais</option>
-            <option value="de-DE">Deutsch</option>
-            <option value="ja-JP">Japanese</option>
-            <option value="pt-BR">Portugues</option>
-          </select>
-
-          <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", color: "var(--trc-foreground, #0a0a0a)" }}>
-            <input
-              type="checkbox"
-              checked={weekStartsOn === 1}
-              onChange={() => setWeekStartsOn(weekStartsOn === 0 ? 1 : 0)}
-            />
-            Week starts Monday
-          </label>
+            Sun
+          </button>
+          <button
+            onClick={() => setWeekStartsOn(1)}
+            className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+              weekStartsOn === 1
+                ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
+                : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
+            }`}
+          >
+            Mon
+          </button>
         </div>
+      </div>
 
-        {/* Calendar */}
-        <div style={{ height: "70vh", minHeight: "500px" }}>
-          <Calendar
-            events={events}
-            defaultView="week"
-            enableDnD
-            locale={{
-              locale,
-              weekStartsOn,
-              labels: localeLabels[locale] as any,
-            }}
-            onEventClick={(event) => alert(`Clicked: ${event.title}`)}
-            onEventDrop={handleEventDrop}
-            onEventResize={handleEventResize}
-            onSlotSelect={(start, end) => alert(`Create event: ${start} → ${end}`)}
-          />
-        </div>
+      {/* Calendar fills the rest */}
+      <div className="flex-1 min-h-0">
+        <Calendar
+          events={events}
+          defaultView="week"
+          enableDnD
+          locale={{
+            locale,
+            weekStartsOn,
+            labels: localeLabels[locale] as Record<string, string | ((n: number) => string)> | undefined,
+          }}
+          onEventClick={(event) => alert(`Clicked: ${event.title}`)}
+          onEventDrop={handleEventDrop}
+          onEventResize={handleEventResize}
+          onSlotSelect={(start, end) => alert(`Create event: ${start} → ${end}`)}
+        />
       </div>
     </div>
   );

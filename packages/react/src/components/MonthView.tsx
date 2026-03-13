@@ -57,7 +57,7 @@ function MonthEventPill({
     <button
       data-event-id={event.id}
       className={cn(
-        "w-full text-left text-[10px] sm:text-xs truncate px-1 sm:px-1.5 py-0 sm:py-0.5",
+        "w-full text-left text-[10px] @[640px]:text-xs truncate px-1 @[640px]:px-1.5 py-0 @[640px]:py-0.5",
         "transition-opacity hover:opacity-80",
         isStart ? "rounded-l-sm" : "",
         isEnd ? "rounded-r-sm" : "",
@@ -265,7 +265,7 @@ export function MonthView() {
         {weekDayHeaders.map((day) => (
           <div
             key={day}
-            className="py-1 sm:py-2 text-center text-[10px] sm:text-xs font-medium text-[var(--trc-muted-foreground)] uppercase"
+            className="py-1 @[640px]:py-2 text-center text-[10px] @[640px]:text-xs font-medium text-[var(--trc-muted-foreground)] uppercase"
             role="columnheader"
           >
             {formatWeekdayShort(day, locale)}
@@ -322,7 +322,7 @@ export function MonthView() {
                   onKeyDown={gridKeyboard.handleKeyDown}
                   onFocus={() => gridKeyboard.handleFocus(weekIdx, colIdx)}
                   className={cn(
-                    "flex flex-col p-0.5 sm:p-1 overflow-hidden cursor-pointer",
+                    "flex flex-col p-0.5 @[640px]:p-1 overflow-hidden cursor-pointer",
                     "border-r border-[var(--trc-border)] last:border-r-0",
                     "hover:bg-[var(--trc-accent)]/50 transition-colors",
                     !currentMonth && "opacity-40",
@@ -336,10 +336,10 @@ export function MonthView() {
                   aria-label={day}
                 >
                   {/* Day number */}
-                  <div className="flex justify-center mb-0 sm:mb-0.5">
+                  <div className="flex justify-center mb-0 @[640px]:mb-0.5">
                     <span
                       className={cn(
-                        "text-xs sm:text-sm w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center rounded-full",
+                        "text-xs @[640px]:text-sm w-5 h-5 @[640px]:w-7 @[640px]:h-7 flex items-center justify-center rounded-full",
                         todayFlag
                           ? "bg-[var(--trc-today-bg)] text-[var(--trc-today-text)] font-bold"
                           : "text-[var(--trc-foreground)]",
@@ -355,7 +355,7 @@ export function MonthView() {
                     {dayData?.multiDay.slice(0, visibleEventsSlice).map((seg, idx) => (
                       <div
                         key={`${seg.event.id}-${seg.date}`}
-                        className={cn(idx >= 2 && "hidden sm:block")}
+                        className={cn(idx >= 2 && "hidden @[640px]:block")}
                       >
                         <MonthEventPill
                           event={seg.event}
@@ -377,7 +377,7 @@ export function MonthView() {
                         return (
                           <div
                             key={event.id}
-                            className={cn(overallIdx >= 2 && "hidden sm:block")}
+                            className={cn(overallIdx >= 2 && "hidden @[640px]:block")}
                           >
                             <MonthEventPill
                               event={event}
@@ -394,7 +394,7 @@ export function MonthView() {
                       })}
                     {hiddenCount > 0 && (
                       <button
-                        className="text-[10px] sm:text-xs text-[var(--trc-muted-foreground)] text-left px-1 sm:px-1.5 hover:text-[var(--trc-foreground)] transition-colors"
+                        className="text-[10px] @[640px]:text-xs text-[var(--trc-muted-foreground)] text-left px-1 @[640px]:px-1.5 hover:text-[var(--trc-foreground)] transition-colors"
                         onClick={(e) => handleMoreClick(e, day)}
                       >
                         {labels.more(hiddenCount)}
