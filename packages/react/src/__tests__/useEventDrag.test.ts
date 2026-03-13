@@ -30,7 +30,7 @@ const makeEvent = (
 });
 
 function createPointerEvent(
-  type: string,
+  _type: string,
   overrides: Partial<PointerEvent> = {},
 ): React.PointerEvent {
   return {
