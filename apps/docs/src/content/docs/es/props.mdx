@@ -1,0 +1,102 @@
+---
+title: Referencia de Props
+description: Referencia completa de todas las props del componente Calendar.
+---
+
+El componente `<Calendar>` acepta todos los campos de `CalendarConfig`, mas `className`.
+
+## Todas las props
+
+| Prop | Tipo | Default | Descripcion |
+|------|------|---------|-------------|
+| `events` | `CalendarEvent[]` | **requerido** | Eventos a mostrar |
+| `defaultView` | `CalendarView` | `"month"` | Vista inicial (no controlado) |
+| `defaultDate` | `DateString` | hoy | Fecha inicial (no controlado) |
+| `view` | `CalendarView` | — | Vista controlada |
+| `date` | `DateString` | — | Fecha controlada |
+| `locale` | `Partial<CalendarLocale>` | `{ locale: "en-US", weekStartsOn: 0 }` | Configuracion de locale |
+| `slots` | `Partial<CalendarSlots>` | — | Sobreescrituras de componentes |
+| `enableDnD` | `boolean` | `false` | Habilitar drag and drop |
+| `dayStartHour` | `number` | `0` | Hora de inicio de la grilla (0-23) |
+| `dayEndHour` | `number` | `24` | Hora de fin de la grilla (0-24) |
+| `className` | `string` | — | Clases CSS adicionales |
+
+## Callbacks
+
+| Callback | Firma | Descripcion |
+|----------|-------|-------------|
+| `onEventClick` | `(event: CalendarEvent) => void` | Se dispara al hacer click en un evento |
+| `onSlotClick` | `(dateTime: DateTimeString) => void` | Se dispara al hacer click en un slot vacio |
+| `onEventDrop` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Se dispara al soltar un evento despues de arrastrarlo |
+| `onDateChange` | `(date: DateString) => void` | Se dispara cuando la fecha visible cambia (navegacion) |
+| `onViewChange` | `(view: CalendarView) => void` | Se dispara cuando la vista cambia |
+
+## Definiciones de tipos
+
+### CalendarEvent
+
+```ts
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start: DateTimeString;   // "2026-03-13T09:00:00"
+  end: DateTimeString;     // "2026-03-13T10:00:00"
+  allDay?: boolean;
+  color?: string;
+  [key: string]: unknown;  // Metadatos personalizados
+}
+```
+
+### CalendarView
+
+```ts
+type CalendarView = "month" | "week" | "day" | "agenda";
+```
+
+### CalendarLocale
+
+```ts
+interface CalendarLocale {
+  locale: string;          // BCP 47: "en-US", "es-ES", "ja-JP"
+  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  labels?: Partial<CalendarLabels>;
+}
+```
+
+### CalendarLabels
+
+```ts
+interface CalendarLabels {
+  today: string;
+  month: string;
+  week: string;
+  day: string;
+  agenda: string;
+  allDay: string;
+  noEvents: string;
+  more: (count: number) => string;
+}
+```
+
+### DateString / DateTimeString
+
+```ts
+type DateString = string;      // "2026-03-13" (YYYY-MM-DD)
+type DateTimeString = string;  // "2026-03-13T09:00:00" (YYYY-MM-DDTHH:mm:ss)
+```
+
+### CalendarSlots
+
+Consulta la pagina de [Slots API](/es/slots/) para los tipos de props detallados.
+
+```ts
+interface CalendarSlots {
+  toolbar?: ComponentType<ToolbarSlotProps>;
+  event?: ComponentType<EventSlotProps>;
+  dayCell?: ComponentType<DayCellSlotProps>;
+  timeEvent?: ComponentType<TimeEventSlotProps>;
+  allDayEvent?: ComponentType<AllDayEventSlotProps>;
+  popover?: ComponentType<PopoverSlotProps>;
+  agendaEvent?: ComponentType<AgendaEventSlotProps>;
+}
+```

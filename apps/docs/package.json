@@ -1,0 +1,15 @@
+{
+  "name": "trud-calendar-docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "devDependencies": {
+    "@astrojs/starlight": "^0.38.1",
+    "astro": "^6.0.4"
+  }
+}

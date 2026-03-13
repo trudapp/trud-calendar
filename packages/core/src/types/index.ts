@@ -103,12 +103,26 @@ export interface AgendaEventSlotProps {
   event: CalendarEvent;
 }
 
+/** UI label strings — provide your own for i18n */
+export interface CalendarLabels {
+  today: string;
+  month: string;
+  week: string;
+  day: string;
+  agenda: string;
+  allDay: string;
+  noEvents: string;
+  more: (count: number) => string;
+}
+
 /** Locale configuration */
 export interface CalendarLocale {
   /** BCP 47 locale string (e.g., "en-US", "es-ES") */
   locale: string;
   /** First day of week: 0 = Sunday, 1 = Monday */
   weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  /** UI labels for buttons, views, etc. */
+  labels?: Partial<CalendarLabels>;
 }
 
 /** Calendar configuration */
@@ -139,6 +153,10 @@ export interface CalendarConfig {
   dayStartHour?: number;
   /** Hour the time grid ends (0-24), default 24 */
   dayEndHour?: number;
+  /** Callback when an event is dropped on a new time slot (drag & drop) */
+  onEventDrop?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
+  /** Enable drag and drop */
+  enableDnD?: boolean;
 }
 
 /** Calendar state */

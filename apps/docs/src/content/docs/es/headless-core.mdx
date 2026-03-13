@@ -1,0 +1,182 @@
+---
+title: Headless Core
+description: Usa trud-calendar-core para logica de calendario agnostica de framework.
+---
+
+El paquete `trud-calendar-core` provee toda la logica de calendario con **cero dependencias** y **cero dependencia de React**. Usalo para construir UIs de calendario en cualquier framework — Vue, Svelte, Angular, vanilla JS o server-side.
+
+## Instalacion
+
+```bash
+npm install trud-calendar-core
+```
+
+## Que incluye
+
+### Tipos
+
+Todas las interfaces TypeScript y definiciones de tipos:
+
+```ts
+import type {
+  CalendarEvent,
+  CalendarView,
+  CalendarState,
+  CalendarAction,
+  CalendarConfig,
+  CalendarSlots,
+  CalendarLocale,
+  CalendarLabels,
+  DateString,
+  DateTimeString,
+  PositionedEvent,
+  EventSegment,
+} from "trud-calendar-core";
+```
+
+### Utilidades de fecha
+
+Funciones puras para matematica de fechas — sin efectos secundarios, completamente tree-shakeable:
+
+```ts
+import {
+  parseDate,
+  toDateString,
+  toDateTimeString,
+  addDays,
+  addMonths,
+  addWeeks,
+  startOfWeek,
+  startOfMonth,
+  endOfMonth,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  isBefore,
+  isAfter,
+  rangesOverlap,
+  dateInRange,
+  daysBetween,
+  eachDayOfRange,
+  getWeekDays,
+  getMonthViewRange,
+  getWeekViewRange,
+  getVisibleRange,
+  getTimeOfDay,
+  getDurationHours,
+  getHourLabels,
+} from "trud-calendar-core";
+```
+
+### Formato
+
+Formato con soporte de locale via la API `Intl` (formatters memoizados):
+
+```ts
+import {
+  formatToolbarTitle,
+  formatWeekdayShort,
+  formatWeekdayNarrow,
+  formatDayNumber,
+  formatTime,
+  formatTimeRange,
+  formatAgendaDate,
+  formatMonthDay,
+} from "trud-calendar-core";
+
+formatTime("2026-03-13T14:30:00", "en-US");      // "2:30 PM"
+formatTime("2026-03-13T14:30:00", "de-DE");      // "14:30"
+formatAgendaDate("2026-03-13", "es-ES");          // "viernes, 13 de marzo"
+formatToolbarTitle("2026-03-13", "month", "ja-JP"); // "2026年3月"
+```
+
+### Utilidades de eventos
+
+Ordenamiento, filtrado, algoritmos de layout:
+
+```ts
+import {
+  sortEvents,
+  filterEventsInRange,
+  getEventsForDay,
+  isMultiDayEvent,
+  partitionEvents,
+  segmentMultiDayEvent,
+  getEventSegments,
+  buildOverlapGroups,
+  assignColumns,
+  computeTimePositions,
+  groupEventsByDate,
+} from "trud-calendar-core";
+```
+
+### Gestion de estado
+
+Un reducer para el estado de navegacion del calendario:
+
+```ts
+import {
+  calendarReducer,
+  createInitialState,
+} from "trud-calendar-core";
+
+const state = createInitialState("2026-03-13", "month");
+// { currentDate: "2026-03-13", view: "month" }
+
+const next = calendarReducer(state, { type: "NAVIGATE_NEXT" });
+// { currentDate: "2026-04-13", view: "month" }
+```
+
+Acciones: `NAVIGATE_PREV`, `NAVIGATE_NEXT`, `NAVIGATE_TODAY`, `SET_DATE`, `SET_VIEW`.
+
+### Constantes
+
+```ts
+import {
+  DEFAULT_LABELS,
+  DEFAULT_LOCALE,
+  DEFAULT_VIEW,
+  VIEWS,               // ["month", "week", "day", "agenda"]
+  DEFAULT_DAY_START_HOUR,  // 0
+  DEFAULT_DAY_END_HOUR,    // 24
+  HOURS_IN_DAY,         // 24
+  MINUTES_IN_HOUR,      // 60
+  MINUTES_IN_DAY,       // 1440
+} from "trud-calendar-core";
+```
+
+## Ejemplo: Construir un calendario en vanilla JS
+
+```ts
+import {
+  getVisibleRange,
+  filterEventsInRange,
+  computeTimePositions,
+  eachDayOfRange,
+  formatTime,
+  formatWeekdayShort,
+} from "trud-calendar-core";
+
+// Obtener el rango de fechas visible para una vista de semana empezando en lunes
+const range = getVisibleRange("2026-03-13", "week", 1);
+const days = eachDayOfRange(range.start, range.end);
+
+// Filtrar eventos
+const visible = filterEventsInRange(myEvents, range.start, range.end);
+
+// Calcular posiciones de la grilla de tiempo para un dia
+const dayEvents = visible.filter(e => e.start.startsWith("2026-03-13"));
+const positioned = computeTimePositions(dayEvents, 8, 20);
+
+// Renderizar
+for (const { event, top, height, column, totalColumns } of positioned) {
+  const el = document.createElement("div");
+  el.textContent = `${formatTime(event.start, "en-US")} ${event.title}`;
+  el.style.position = "absolute";
+  el.style.top = `${top}%`;
+  el.style.height = `${height}%`;
+  el.style.left = `${(column / totalColumns) * 100}%`;
+  el.style.width = `${100 / totalColumns}%`;
+  container.appendChild(el);
+}
+```

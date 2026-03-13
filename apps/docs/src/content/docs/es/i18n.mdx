@@ -1,0 +1,117 @@
+---
+title: Idiomas e i18n
+description: Configura el formato de fechas y traduce las etiquetas de la UI.
+---
+
+trud-calendar soporta internacionalizacion completa a traves de dos mecanismos:
+
+1. **Formato de fechas** — via la API nativa `Intl` (sin moment/date-fns)
+2. **Etiquetas de UI** — via el sistema `CalendarLabels`
+
+## Formato de fechas
+
+Pasa un [string de locale BCP 47](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Intl#argumento_locales):
+
+```tsx
+<Calendar
+  events={events}
+  locale={{
+    locale: "es-ES",
+    weekStartsOn: 1, // Lunes
+  }}
+/>
+```
+
+Esto traduce automaticamente todo el texto derivado de fechas: nombres de meses, encabezados de dias, formato de hora, titulo del toolbar, etc.
+
+### Valores de `weekStartsOn`
+
+| Valor | Dia |
+|-------|-----|
+| `0` | Domingo (por defecto) |
+| `1` | Lunes |
+| `2` | Martes |
+| `3` | Miercoles |
+| `4` | Jueves |
+| `5` | Viernes |
+| `6` | Sabado |
+
+## Etiquetas de UI
+
+El texto de botones y nombres de vistas **no** se derivan del locale — necesitan traducciones explicitas. Proporcionarlas via `locale.labels`:
+
+```tsx
+<Calendar
+  events={events}
+  locale={{
+    locale: "es-ES",
+    weekStartsOn: 1,
+    labels: {
+      today: "Hoy",
+      month: "Mes",
+      week: "Semana",
+      day: "Dia",
+      agenda: "Agenda",
+      allDay: "todo el dia",
+      noEvents: "No hay eventos en este periodo",
+      more: (n) => `+${n} mas`,
+    },
+  }}
+/>
+```
+
+### Interfaz CalendarLabels
+
+```ts
+interface CalendarLabels {
+  today: string;                    // Boton "Hoy"
+  month: string;                    // Tab vista Mes
+  week: string;                     // Tab vista Semana
+  day: string;                      // Tab vista Dia
+  agenda: string;                   // Tab vista Agenda
+  allDay: string;                   // Etiqueta "todo el dia" en vista semana/dia
+  noEvents: string;                 // Texto de estado vacio en vista agenda
+  more: (count: number) => string;  // Boton "+N mas" en vista mes
+}
+```
+
+### Sobreescrituras parciales
+
+Solo necesitas proveer las etiquetas que quieras cambiar — el resto usa los valores por defecto en ingles:
+
+```tsx
+// Solo traducir los tabs de vistas
+<Calendar
+  events={events}
+  locale={{
+    locale: "fr-FR",
+    labels: {
+      today: "Aujourd'hui",
+      month: "Mois",
+      week: "Semaine",
+      day: "Jour",
+    },
+  }}
+/>
+```
+
+## Ejemplo completo de locale
+
+```tsx
+const configEspanol = {
+  locale: "es-ES",
+  weekStartsOn: 1 as const,
+  labels: {
+    today: "Hoy",
+    month: "Mes",
+    week: "Semana",
+    day: "Dia",
+    agenda: "Agenda",
+    allDay: "todo el dia",
+    noEvents: "No hay eventos en este periodo",
+    more: (n: number) => `+${n} mas`,
+  },
+};
+
+<Calendar events={events} locale={configEspanol} />
+```

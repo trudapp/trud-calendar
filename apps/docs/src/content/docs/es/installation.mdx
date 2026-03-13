@@ -1,0 +1,63 @@
+---
+title: Instalacion
+description: Como instalar y configurar trud-calendar en tu proyecto.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Instalar el paquete
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install trud-calendar
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add trud-calendar
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add trud-calendar
+    ```
+  </TabItem>
+</Tabs>
+
+**Peer dependencies:** `react >=18`, `react-dom >=18`
+
+## Configuracion con Tailwind v4
+
+Agrega la fuente del paquete a tu CSS para que Tailwind genere las clases de utilidad necesarias:
+
+```css
+@import "tailwindcss";
+@source "../node_modules/trud-calendar/dist";
+```
+
+Importa las variables de tema (opcional si ya usas shadcn — las variables se heredan automaticamente):
+
+```css
+@import "trud-calendar/styles.css";
+```
+
+## Sin Tailwind
+
+Si no usas Tailwind, simplemente importa el CSS pre-construido:
+
+```css
+@import "trud-calendar/styles.css";
+```
+
+O en tu archivo JavaScript de entrada:
+
+```ts
+import "trud-calendar/styles.css";
+```
+
+## Proyectos con shadcn/ui
+
+Si tu proyecto ya usa shadcn/ui, el calendario hereda tu tema automaticamente. Las variables CSS hacen fallback a las de shadcn: `var(--background)`, `var(--foreground)`, etc. No necesitas configuracion extra.
+
+Solo asegurate de agregar la directiva `@source` en tu CSS para que Tailwind genere las clases de utilidad del calendario.

@@ -1,0 +1,161 @@
+---
+title: Hooks
+description: Hooks de React para construir interfaces de calendario personalizadas.
+---
+
+Todos los hooks deben usarse dentro de un componente `<CalendarProvider>`. Si estas usando el componente `<Calendar>`, el provider ya esta configurado.
+
+## useCalendar()
+
+Orquestador principal — combina estado, eventos y navegacion.
+
+```ts
+import { useCalendar } from "trud-calendar";
+
+const {
+  currentDate,    // DateString — fecha enfocada actual
+  view,           // CalendarView — vista actual
+  events,         // CalendarEvent[] — todos los eventos
+  visibleEvents,  // CalendarEvent[] — filtrados al rango visible
+  visibleRange,   // { start: DateString, end: DateString }
+  locale,         // string — locale BCP 47
+  prev,           // () => void — ir al periodo anterior
+  next,           // () => void — ir al siguiente periodo
+  today,          // () => void — ir a hoy
+  setDate,        // (date: DateString) => void
+  setView,        // (view: CalendarView) => void
+} = useCalendar();
+```
+
+## useNavigation()
+
+Navegacion de fechas y cambio de vistas. Mas ligero que `useCalendar` — usalo cuando solo necesitas controles de navegacion.
+
+```ts
+import { useNavigation } from "trud-calendar";
+
+const {
+  currentDate,    // DateString
+  view,           // CalendarView
+  formattedDate,  // string — titulo con formato de locale (ej: "marzo 2026")
+  prev,           // () => void
+  next,           // () => void
+  today,          // () => void
+  setDate,        // (date: DateString) => void
+  setView,        // (view: CalendarView) => void
+} = useNavigation();
+```
+
+## useEvents()
+
+Accede a los datos de eventos del rango visible actual.
+
+```ts
+import { useEvents } from "trud-calendar";
+
+const {
+  visibleEvents,   // CalendarEvent[] — ordenados, filtrados al rango visible
+  getForDay,       // (date: DateString) => CalendarEvent[]
+  partitioned,     // { allDay: CalendarEvent[], timed: CalendarEvent[] }
+  segments,        // EventSegment[] — segmentos de eventos multi-dia
+  groupedByDate,   // Map<DateString, CalendarEvent[]>
+} = useEvents();
+```
+
+### Ejemplo: Obtener eventos de un dia especifico
+
+```tsx
+const { getForDay } = useEvents();
+const eventosDeHoy = getForDay("2026-03-13");
+```
+
+## useEventLayout(events)
+
+Algoritmo de column-packing para eventos solapados. Usado internamente por la grilla de tiempo de semana/dia — usalo tu mismo cuando construyas layouts personalizados basados en tiempo.
+
+```ts
+import { useEventLayout } from "trud-calendar";
+
+const positioned: PositionedEvent[] = useEventLayout(timedEvents);
+```
+
+Cada `PositionedEvent` contiene:
+
+```ts
+interface PositionedEvent {
+  event: CalendarEvent;
+  column: number;        // Indice de columna (base 0) en grupo de solapamiento
+  totalColumns: number;  // Total de columnas en grupo de solapamiento
+  top: number;           // % desde arriba (0-100)
+  height: number;        // % de altura (0-100)
+}
+```
+
+Usa estos valores para posicionar eventos con CSS:
+
+```tsx
+{positioned.map(({ event, column, totalColumns, top, height }) => (
+  <div
+    key={event.id}
+    style={{
+      position: "absolute",
+      top: `${top}%`,
+      height: `${height}%`,
+      left: `${(column / totalColumns) * 100}%`,
+      width: `${100 / totalColumns}%`,
+    }}
+  >
+    {event.title}
+  </div>
+))}
+```
+
+## useCurrentTime(intervalMs?)
+
+Reloj en vivo para indicadores de "hora actual". Se actualiza cada 60 segundos por defecto.
+
+```ts
+import { useCurrentTime } from "trud-calendar";
+
+const {
+  now,        // string — datetime ISO del momento actual
+  today,      // string — YYYY-MM-DD de hoy
+  timeOfDay,  // number — hora fraccional (14.5 = 2:30 PM)
+} = useCurrentTime();
+
+// Intervalo personalizado: actualizar cada 10 segundos
+const time = useCurrentTime(10_000);
+```
+
+### Ejemplo: Indicador de hora actual
+
+```tsx
+const { timeOfDay } = useCurrentTime();
+const topPercent = ((timeOfDay - dayStartHour) / (dayEndHour - dayStartHour)) * 100;
+
+<div
+  className="absolute left-0 right-0 border-t-2 border-red-500 z-10"
+  style={{ top: `${topPercent}%` }}
+/>
+```
+
+## useDateFormat()
+
+Funciones de formato de fecha con soporte de locale, basadas en la API `Intl`.
+
+```ts
+import { useDateFormat } from "trud-calendar";
+
+const fmt = useDateFormat();
+
+fmt.toolbarTitle("2026-03-13", "month");   // "marzo 2026" (con locale es-ES)
+fmt.time("2026-03-13T14:30:00");           // "14:30"
+fmt.timeRange(start, end);                 // "14:30 – 15:00"
+fmt.weekdayShort("2026-03-13");            // "vie"
+fmt.weekdayNarrow("2026-03-13");           // "V"
+fmt.dayNumber("2026-03-13");               // "13"
+fmt.agendaDate("2026-03-13");              // "viernes, 13 de marzo"
+fmt.monthDay("2026-03-13");                // "13 mar"
+```
+
+Todas las funciones respetan el `locale` configurado en el `CalendarProvider`.

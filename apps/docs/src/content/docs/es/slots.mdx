@@ -1,0 +1,189 @@
+---
+title: Slots API
+description: Reemplaza cualquier sub-componente con tu propia implementacion personalizada.
+---
+
+La Slots API te permite reemplazar cualquier sub-componente con el tuyo propio. Los componentes slot reciben props tipados — construye UIs completamente personalizadas mientras mantienes la gestion de estado, algoritmos de layout y navegacion del calendario.
+
+## Uso
+
+Pasa tus componentes personalizados via la prop `slots`:
+
+```tsx
+<Calendar
+  events={events}
+  slots={{
+    toolbar: MiToolbarPersonalizado,
+    dayCell: MiCeldaDeDia,
+    timeEvent: MiEventoTemporal,
+    allDayEvent: MiEventoDeDiaCompleto,
+    popover: MiPopover,
+    agendaEvent: MiEventoAgenda,
+  }}
+/>
+```
+
+## Slots disponibles
+
+| Slot | Props | Usado en |
+|------|-------|----------|
+| `toolbar` | `ToolbarSlotProps` | Todas las vistas |
+| `dayCell` | `DayCellSlotProps` | Vista de mes |
+| `timeEvent` | `TimeEventSlotProps` | Vista de semana/dia |
+| `allDayEvent` | `AllDayEventSlotProps` | Vista de semana/dia |
+| `popover` | `PopoverSlotProps` | Todas las vistas |
+| `agendaEvent` | `AgendaEventSlotProps` | Vista de agenda |
+
+## Referencia de props de slots
+
+### ToolbarSlotProps
+
+```ts
+interface ToolbarSlotProps {
+  currentDate: DateString;
+  view: CalendarView;
+  onPrev: () => void;
+  onNext: () => void;
+  onToday: () => void;
+  onViewChange: (view: CalendarView) => void;
+  formattedDate: string;  // Titulo con formato de locale, ej: "marzo 2026"
+}
+```
+
+### DayCellSlotProps
+
+```ts
+interface DayCellSlotProps {
+  date: DateString;
+  isToday: boolean;
+  isCurrentMonth: boolean;
+  events: CalendarEvent[];
+}
+```
+
+### TimeEventSlotProps
+
+```ts
+interface TimeEventSlotProps {
+  event: CalendarEvent;
+  positioned: PositionedEvent;
+  // positioned.column: indice de columna (base 0)
+  // positioned.totalColumns: total de columnas en grupo de solapamiento
+  // positioned.top: posicion % desde arriba
+  // positioned.height: altura en %
+}
+```
+
+### AllDayEventSlotProps
+
+```ts
+interface AllDayEventSlotProps {
+  event: CalendarEvent;
+  segment: EventSegment;
+  // segment.date: la fecha de este segmento
+  // segment.isStart: primer dia del evento
+  // segment.isEnd: ultimo dia del evento
+}
+```
+
+### PopoverSlotProps
+
+```ts
+interface PopoverSlotProps {
+  event: CalendarEvent;
+  onClose: () => void;
+}
+```
+
+### AgendaEventSlotProps
+
+```ts
+interface AgendaEventSlotProps {
+  event: CalendarEvent;
+}
+```
+
+## Ejemplos
+
+### Toolbar personalizado
+
+```tsx
+import type { ToolbarSlotProps } from "trud-calendar";
+
+function MiToolbar({
+  formattedDate,
+  view,
+  onPrev,
+  onNext,
+  onToday,
+  onViewChange,
+}: ToolbarSlotProps) {
+  return (
+    <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex gap-2">
+        <button onClick={onPrev}>Anterior</button>
+        <button onClick={onToday}>Hoy</button>
+        <button onClick={onNext}>Siguiente</button>
+      </div>
+      <h2 className="text-lg font-bold">{formattedDate}</h2>
+      <select
+        value={view}
+        onChange={(e) => onViewChange(e.target.value as CalendarView)}
+      >
+        <option value="month">Mes</option>
+        <option value="week">Semana</option>
+        <option value="day">Dia</option>
+        <option value="agenda">Agenda</option>
+      </select>
+    </div>
+  );
+}
+
+<Calendar events={events} slots={{ toolbar: MiToolbar }} />
+```
+
+### Celda de dia personalizada (vista mes)
+
+```tsx
+import type { DayCellSlotProps } from "trud-calendar";
+
+function MiCeldaDeDia({ date, isToday, isCurrentMonth, events }: DayCellSlotProps) {
+  return (
+    <div
+      className={`p-2 min-h-[80px] ${
+        isToday ? "bg-blue-50 border-blue-300" : ""
+      } ${!isCurrentMonth ? "opacity-30" : ""}`}
+    >
+      <div className="font-bold">{new Date(date).getDate()}</div>
+      {events.map((e) => (
+        <div key={e.id} className="text-xs truncate" style={{ color: e.color }}>
+          {e.title}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Evento de agenda personalizado
+
+```tsx
+import type { AgendaEventSlotProps } from "trud-calendar";
+
+function MiEventoAgenda({ event }: AgendaEventSlotProps) {
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
+      <div
+        className="w-3 h-3 rounded-full"
+        style={{ backgroundColor: event.color }}
+      />
+      <div>
+        <div className="font-medium">{event.title}</div>
+        <div className="text-sm text-gray-500">
+          {event.description || "Sin descripcion"}
+        </div>
+      </div>
+    </div>
+  );
+}
+```

@@ -20,10 +20,14 @@ import {
   type CalendarConfig,
   type DateString,
   type DateTimeString,
+  type CalendarLabels,
   DEFAULT_LOCALE,
+  DEFAULT_LABELS,
   DEFAULT_DAY_START_HOUR,
   DEFAULT_DAY_END_HOUR,
 } from "trud-calendar-core";
+
+export type EventDropHandler = (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
 
 interface CalendarContextValue {
   state: CalendarState;
@@ -39,6 +43,9 @@ interface CalendarContextValue {
   onSlotClick?: (date: DateTimeString) => void;
   onDateChange?: (date: DateString) => void;
   onViewChange?: (view: CalendarView) => void;
+  onEventDrop?: EventDropHandler;
+  enableDnD?: boolean;
+  labels: CalendarLabels;
 }
 
 const CalendarContext = createContext<CalendarContextValue | null>(null);
@@ -61,6 +68,10 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
   const weekStartsOn = config.locale?.weekStartsOn ?? DEFAULT_LOCALE.weekStartsOn;
   const dayStartHour = config.dayStartHour ?? DEFAULT_DAY_START_HOUR;
   const dayEndHour = config.dayEndHour ?? DEFAULT_DAY_END_HOUR;
+  const labels: CalendarLabels = useMemo(
+    () => ({ ...DEFAULT_LABELS, ...config.locale?.labels }),
+    [config.locale?.labels],
+  );
 
   // Support controlled & uncontrolled date/view
   const isDateControlled = config.date !== undefined;
@@ -129,6 +140,9 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       onSlotClick: config.onSlotClick,
       onDateChange: config.onDateChange,
       onViewChange: config.onViewChange,
+      onEventDrop: config.onEventDrop,
+      enableDnD: config.enableDnD,
+      labels,
     }),
     [
       state,
@@ -144,6 +158,9 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       config.onSlotClick,
       config.onDateChange,
       config.onViewChange,
+      config.onEventDrop,
+      config.enableDnD,
+      labels,
     ],
   );
 

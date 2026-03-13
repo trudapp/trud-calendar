@@ -1,0 +1,107 @@
+---
+title: Temas
+description: Personaliza la apariencia del calendario con variables CSS y modo oscuro.
+---
+
+trud-calendar usa propiedades personalizadas CSS para los temas. Funciona sin configuracion con valores por defecto sensatos, y hereda automaticamente los temas de shadcn/ui si estan presentes.
+
+## Variables CSS
+
+Sobreescribe cualquier variable en tu CSS:
+
+```css
+:root {
+  /* Layout */
+  --trc-background: #ffffff;
+  --trc-foreground: #0a0a0a;
+  --trc-muted: #f5f5f5;
+  --trc-muted-foreground: #737373;
+  --trc-border: #e5e5e5;
+  --trc-accent: #f5f5f5;
+  --trc-accent-foreground: #171717;
+  --trc-card: #ffffff;
+  --trc-card-foreground: #0a0a0a;
+
+  /* Interactivo */
+  --trc-primary: #171717;
+  --trc-primary-foreground: #fafafa;
+  --trc-ring: #171717;
+  --trc-radius: 0.5rem;
+
+  /* Especificos del calendario */
+  --trc-today-bg: #dbeafe;
+  --trc-today-text: #1d4ed8;
+  --trc-event-default: #3b82f6;
+  --trc-current-time: #ef4444;
+  --trc-hour-height: 3rem;
+}
+```
+
+## Modo oscuro
+
+Agrega la clase `.dark` a un elemento padre:
+
+```tsx
+<div className={darkMode ? "dark" : ""}>
+  <Calendar events={events} />
+</div>
+```
+
+El tema oscuro integrado usa estos valores:
+
+```css
+.dark {
+  --trc-background: #0a0a0a;
+  --trc-foreground: #fafafa;
+  --trc-muted: #262626;
+  --trc-muted-foreground: #a3a3a3;
+  --trc-border: #262626;
+  --trc-primary: #fafafa;
+  --trc-primary-foreground: #171717;
+  --trc-accent: #262626;
+  --trc-accent-foreground: #fafafa;
+  --trc-card: #0a0a0a;
+  --trc-card-foreground: #fafafa;
+  --trc-ring: #d4d4d4;
+  --trc-today-bg: #1e3a5f;
+  --trc-today-text: #93c5fd;
+  --trc-event-default: #60a5fa;
+  --trc-current-time: #f87171;
+}
+```
+
+## Compatibilidad con shadcn/ui
+
+Cada variable `--trc-*` hace fallback a la variable correspondiente de shadcn. Por ejemplo:
+
+```css
+--trc-background: var(--background, #ffffff);
+--trc-foreground: var(--foreground, #0a0a0a);
+--trc-primary: var(--primary, #171717);
+```
+
+Si tu proyecto usa shadcn/ui, el calendario hereda tu tema automaticamente — sin configuracion necesaria.
+
+## Colores personalizados de eventos
+
+Cada evento puede tener su propio color:
+
+```ts
+const events = [
+  { id: "1", title: "Reunion", start: "...", end: "...", color: "#3b82f6" },
+  { id: "2", title: "Almuerzo", start: "...", end: "...", color: "#10b981" },
+  { id: "3", title: "Deadline", start: "...", end: "...", color: "#ef4444" },
+];
+```
+
+Los eventos sin `color` usan `var(--trc-event-default)`.
+
+## Ajustar la grilla de tiempo
+
+Controla la altura de cada fila de hora:
+
+```css
+:root {
+  --trc-hour-height: 4rem; /* Filas mas altas */
+}
+```

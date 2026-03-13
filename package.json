@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "storybook": "pnpm --filter @trud-calendar/storybook storybook",
-    "dev:demo": "pnpm --filter @trud-calendar/demo dev"
+    "dev:demo": "pnpm --filter @trud-calendar/demo dev",
+    "dev:docs": "pnpm --filter trud-calendar-docs dev"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.0.0",

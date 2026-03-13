@@ -1,0 +1,68 @@
+---
+title: Vistas
+description: Las cuatro vistas del calendario — Mes, Semana, Dia y Agenda.
+---
+
+trud-calendar incluye cuatro vistas:
+
+```ts
+type CalendarView = "month" | "week" | "day" | "agenda";
+```
+
+## Vista de Mes
+
+Una grilla de 6 semanas mostrando el contexto completo del mes. Caracteristicas:
+
+- **Pills de eventos** con indicadores de color
+- **Eventos multi-dia** que se extienden entre celdas
+- **Popover "+N mas"** — click para ver todos los eventos del dia
+- **Drag & Drop** — mueve eventos entre dias (preserva la hora original)
+
+## Vista de Semana
+
+Una grilla de tiempo con 7 columnas mostrando una semana. Caracteristicas:
+
+- **Manejo de solapamiento** — algoritmo de column-packing posiciona eventos solapados lado a lado
+- **Fila de todo el dia** — eventos multi-dia y de dia completo arriba de la grilla
+- **Indicador de hora actual** — linea roja mostrando "ahora"
+- **Auto-scroll** — se desplaza a la hora actual al montar
+- **Horas configurables** — usa `dayStartHour` y `dayEndHour`
+- **Drag & Drop** — mueve eventos a cualquier dia/franja horaria (snap de 15 minutos)
+
+## Vista de Dia
+
+Una grilla de tiempo con una sola columna — mismo motor que la vista de semana, enfocada en un dia. Todas las funcionalidades de la vista de semana aplican.
+
+## Vista de Agenda
+
+Una lista cronologica de eventos agrupados por fecha. Caracteristicas:
+
+- **Encabezados de seccion** con posicionamiento sticky
+- **Badge de hoy** resaltado
+- **Estado vacio** — muestra un mensaje personalizable de "sin eventos"
+- Muestra rango de tiempo para eventos con hora, etiqueta "todo el dia" para eventos de dia completo
+
+## Cambiar de vista
+
+Usa `defaultView` (no controlado) o `view` + `onViewChange` (controlado):
+
+```tsx
+// No controlado — empieza en vista de semana
+<Calendar events={events} defaultView="week" />
+
+// Controlado — tu manejas el estado de la vista
+const [view, setView] = useState<CalendarView>("month");
+<Calendar events={events} view={view} onViewChange={setView} />
+```
+
+## Personalizar la grilla de tiempo
+
+Limita las horas visibles en las vistas de semana y dia:
+
+```tsx
+<Calendar
+  events={events}
+  dayStartHour={8}   // Empieza a las 8 AM
+  dayEndHour={20}    // Termina a las 8 PM
+/>
+```

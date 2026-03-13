@@ -1,4 +1,15 @@
-import type { CalendarLocale, CalendarView } from "../types";
+import type { CalendarLabels, CalendarLocale, CalendarView } from "../types";
+
+export const DEFAULT_LABELS: CalendarLabels = {
+  today: "Today",
+  month: "Month",
+  week: "Week",
+  day: "Day",
+  agenda: "Agenda",
+  allDay: "all-day",
+  noEvents: "No events in this period",
+  more: (n: number) => `+${n} more`,
+};
 
 export const DEFAULT_LOCALE: CalendarLocale = {
   locale: "en-US",

@@ -1,0 +1,117 @@
+---
+title: Locale & i18n
+description: Configure date formatting and translate UI labels.
+---
+
+trud-calendar supports full internationalization through two mechanisms:
+
+1. **Date formatting** — via the native `Intl` API (no moment/date-fns)
+2. **UI labels** — via the `CalendarLabels` system
+
+## Date formatting
+
+Pass a [BCP 47 locale string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#locales_argument):
+
+```tsx
+<Calendar
+  events={events}
+  locale={{
+    locale: "es-ES",
+    weekStartsOn: 1, // Monday
+  }}
+/>
+```
+
+This automatically translates all date-derived text: month names, weekday headers, time formatting, toolbar title, etc.
+
+### Supported `weekStartsOn` values
+
+| Value | Day |
+|-------|-----|
+| `0` | Sunday (default) |
+| `1` | Monday |
+| `2` | Tuesday |
+| `3` | Wednesday |
+| `4` | Thursday |
+| `5` | Friday |
+| `6` | Saturday |
+
+## UI labels
+
+Button text and view names are **not** locale-derived — they need explicit translations. Provide them via `locale.labels`:
+
+```tsx
+<Calendar
+  events={events}
+  locale={{
+    locale: "es-ES",
+    weekStartsOn: 1,
+    labels: {
+      today: "Hoy",
+      month: "Mes",
+      week: "Semana",
+      day: "Dia",
+      agenda: "Agenda",
+      allDay: "todo el dia",
+      noEvents: "No hay eventos en este periodo",
+      more: (n) => `+${n} mas`,
+    },
+  }}
+/>
+```
+
+### CalendarLabels interface
+
+```ts
+interface CalendarLabels {
+  today: string;                    // "Today" button
+  month: string;                    // Month view tab
+  week: string;                     // Week view tab
+  day: string;                      // Day view tab
+  agenda: string;                   // Agenda view tab
+  allDay: string;                   // "all-day" label in week/day view
+  noEvents: string;                 // Empty state text in agenda view
+  more: (count: number) => string;  // "+N more" button in month view
+}
+```
+
+### Partial overrides
+
+You only need to provide the labels you want to change — the rest fall back to English defaults:
+
+```tsx
+// Only translate the view tabs
+<Calendar
+  events={events}
+  locale={{
+    locale: "fr-FR",
+    labels: {
+      today: "Aujourd'hui",
+      month: "Mois",
+      week: "Semaine",
+      day: "Jour",
+    },
+  }}
+/>
+```
+
+## Full locale example
+
+```tsx
+const spanishConfig = {
+  locale: "es-ES",
+  weekStartsOn: 1 as const,
+  labels: {
+    today: "Hoy",
+    month: "Mes",
+    week: "Semana",
+    day: "Dia",
+    agenda: "Agenda",
+    allDay: "todo el dia",
+    noEvents: "No hay eventos en este periodo",
+    more: (n: number) => `+${n} mas`,
+  },
+};
+
+<Calendar events={events} locale={spanishConfig} />
+```

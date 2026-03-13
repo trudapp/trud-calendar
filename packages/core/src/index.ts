@@ -14,6 +14,7 @@ export type {
   AllDayEventSlotProps,
   PopoverSlotProps,
   AgendaEventSlotProps,
+  CalendarLabels,
   CalendarLocale,
   CalendarConfig,
   CalendarState,
@@ -22,6 +23,7 @@ export type {
 
 // Constants
 export {
+  DEFAULT_LABELS,
   DEFAULT_LOCALE,
   DEFAULT_VIEW,
   HOURS_IN_DAY,

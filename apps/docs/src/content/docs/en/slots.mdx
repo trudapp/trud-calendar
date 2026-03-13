@@ -1,0 +1,189 @@
+---
+title: Slots API
+description: Replace any sub-component with your own custom implementation.
+---
+
+The Slots API lets you replace any sub-component with your own. Slot components receive typed props — build completely custom UIs while keeping the calendar's state management, layout algorithms, and navigation.
+
+## Usage
+
+Pass your custom components via the `slots` prop:
+
+```tsx
+<Calendar
+  events={events}
+  slots={{
+    toolbar: MyCustomToolbar,
+    dayCell: MyCustomDayCell,
+    timeEvent: MyCustomTimeEvent,
+    allDayEvent: MyCustomAllDayEvent,
+    popover: MyCustomPopover,
+    agendaEvent: MyCustomAgendaEvent,
+  }}
+/>
+```
+
+## Available slots
+
+| Slot | Props | Used in |
+|------|-------|---------|
+| `toolbar` | `ToolbarSlotProps` | All views |
+| `dayCell` | `DayCellSlotProps` | Month view |
+| `timeEvent` | `TimeEventSlotProps` | Week/Day view |
+| `allDayEvent` | `AllDayEventSlotProps` | Week/Day view |
+| `popover` | `PopoverSlotProps` | All views |
+| `agendaEvent` | `AgendaEventSlotProps` | Agenda view |
+
+## Slot props reference
+
+### ToolbarSlotProps
+
+```ts
+interface ToolbarSlotProps {
+  currentDate: DateString;
+  view: CalendarView;
+  onPrev: () => void;
+  onNext: () => void;
+  onToday: () => void;
+  onViewChange: (view: CalendarView) => void;
+  formattedDate: string;  // Locale-aware title, e.g., "March 2026"
+}
+```
+
+### DayCellSlotProps
+
+```ts
+interface DayCellSlotProps {
+  date: DateString;
+  isToday: boolean;
+  isCurrentMonth: boolean;
+  events: CalendarEvent[];
+}
+```
+
+### TimeEventSlotProps
+
+```ts
+interface TimeEventSlotProps {
+  event: CalendarEvent;
+  positioned: PositionedEvent;
+  // positioned.column: 0-based column index
+  // positioned.totalColumns: total columns in overlap group
+  // positioned.top: % position from top
+  // positioned.height: % height
+}
+```
+
+### AllDayEventSlotProps
+
+```ts
+interface AllDayEventSlotProps {
+  event: CalendarEvent;
+  segment: EventSegment;
+  // segment.date: the date this segment falls on
+  // segment.isStart: first day of the event
+  // segment.isEnd: last day of the event
+}
+```
+
+### PopoverSlotProps
+
+```ts
+interface PopoverSlotProps {
+  event: CalendarEvent;
+  onClose: () => void;
+}
+```
+
+### AgendaEventSlotProps
+
+```ts
+interface AgendaEventSlotProps {
+  event: CalendarEvent;
+}
+```
+
+## Examples
+
+### Custom toolbar
+
+```tsx
+import type { ToolbarSlotProps } from "trud-calendar";
+
+function MyToolbar({
+  formattedDate,
+  view,
+  onPrev,
+  onNext,
+  onToday,
+  onViewChange,
+}: ToolbarSlotProps) {
+  return (
+    <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex gap-2">
+        <button onClick={onPrev}>Back</button>
+        <button onClick={onToday}>Today</button>
+        <button onClick={onNext}>Forward</button>
+      </div>
+      <h2 className="text-lg font-bold">{formattedDate}</h2>
+      <select
+        value={view}
+        onChange={(e) => onViewChange(e.target.value as CalendarView)}
+      >
+        <option value="month">Month</option>
+        <option value="week">Week</option>
+        <option value="day">Day</option>
+        <option value="agenda">Agenda</option>
+      </select>
+    </div>
+  );
+}
+
+<Calendar events={events} slots={{ toolbar: MyToolbar }} />
+```
+
+### Custom day cell (month view)
+
+```tsx
+import type { DayCellSlotProps } from "trud-calendar";
+
+function MyDayCell({ date, isToday, isCurrentMonth, events }: DayCellSlotProps) {
+  return (
+    <div
+      className={`p-2 min-h-[80px] ${
+        isToday ? "bg-blue-50 border-blue-300" : ""
+      } ${!isCurrentMonth ? "opacity-30" : ""}`}
+    >
+      <div className="font-bold">{new Date(date).getDate()}</div>
+      {events.map((e) => (
+        <div key={e.id} className="text-xs truncate" style={{ color: e.color }}>
+          {e.title}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Custom agenda event
+
+```tsx
+import type { AgendaEventSlotProps } from "trud-calendar";
+
+function MyAgendaEvent({ event }: AgendaEventSlotProps) {
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
+      <div
+        className="w-3 h-3 rounded-full"
+        style={{ backgroundColor: event.color }}
+      />
+      <div>
+        <div className="font-medium">{event.title}</div>
+        <div className="text-sm text-gray-500">
+          {event.description || "No description"}
+        </div>
+      </div>
+    </div>
+  );
+}
+```

@@ -2,3 +2,221 @@
 @source "../../../packages/react/src/**/*.{ts,tsx}";
 @source "./**/*.{ts,tsx}";
 @import "../../../packages/react/src/styles/variables.css";
+
+/* ── Demo Layout ─────────────────────────────────────────────────────── */
+
+.demo-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--trc-background);
+  color: var(--trc-foreground);
+}
+
+.demo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--trc-border);
+  background-color: var(--trc-background);
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.demo-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.demo-main {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-main > * {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--trc-border);
+  background-color: var(--trc-background);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 40;
+    width: 280px;
+    transition: transform 0.2s ease-in-out;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+  .sidebar-closed {
+    transform: translateX(-100%);
+  }
+  .sidebar-open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .sidebar-closed,
+  .sidebar-open {
+    transform: none;
+  }
+}
+
+/* ── Sidebar Controls ────────────────────────────────────────────────── */
+
+.sidebar-select {
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  border-radius: var(--trc-radius);
+  border: 1px solid var(--trc-border);
+  background-color: var(--trc-background);
+  color: var(--trc-foreground);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.sidebar-select:focus {
+  border-color: var(--trc-ring);
+}
+
+.toggle-pill-group {
+  display: flex;
+  border-radius: var(--trc-radius);
+  border: 1px solid var(--trc-border);
+  overflow: hidden;
+}
+
+.toggle-pill {
+  flex: 1;
+  padding: 0.3125rem 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  transition: background-color 0.15s, color 0.15s;
+  cursor: pointer;
+  border: none;
+}
+
+.toggle-pill-active {
+  background-color: var(--trc-primary);
+  color: var(--trc-primary-foreground);
+}
+
+.toggle-pill-inactive {
+  background-color: var(--trc-background);
+  color: var(--trc-muted-foreground);
+}
+.toggle-pill-inactive:hover {
+  background-color: var(--trc-accent);
+}
+
+/* ── Event Modal ─────────────────────────────────────────────────────── */
+
+.event-modal-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 1rem;
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+}
+
+.event-modal-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.event-modal-content {
+  background-color: var(--trc-card);
+  color: var(--trc-card-foreground);
+  border: 1px solid var(--trc-border);
+  border-radius: var(--trc-radius);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 28rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: modal-in 0.15s ease-out;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.875rem;
+  border-radius: var(--trc-radius);
+  border: 1px solid var(--trc-border);
+  background-color: var(--trc-background);
+  color: var(--trc-foreground);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.modal-input:focus {
+  border-color: var(--trc-ring);
+}
+.modal-input::placeholder {
+  color: var(--trc-muted-foreground);
+}
+
+/* ── Base Reset ──────────────────────────────────────────────────────── */
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+}
+
+/* Fix date/time inputs in dark mode */
+.dark input[type="date"],
+.dark input[type="time"] {
+  color-scheme: dark;
+}

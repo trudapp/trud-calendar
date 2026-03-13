@@ -1,0 +1,100 @@
+---
+title: Getting Started
+description: Get up and running with trud-calendar in minutes.
+---
+
+import { Tabs, TabItem, Code } from '@astrojs/starlight/components';
+
+## Quick start
+
+Install the package:
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install trud-calendar
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add trud-calendar
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add trud-calendar
+    ```
+  </TabItem>
+</Tabs>
+
+**Peer dependencies:** `react >=18`, `react-dom >=18`
+
+## Basic usage
+
+```tsx
+import { Calendar } from "trud-calendar";
+
+const events = [
+  {
+    id: "1",
+    title: "Team standup",
+    start: "2026-03-13T09:00:00",
+    end: "2026-03-13T09:30:00",
+  },
+  {
+    id: "2",
+    title: "Vacation",
+    start: "2026-03-16T00:00:00",
+    end: "2026-03-20T23:59:59",
+    allDay: true,
+    color: "#10b981",
+  },
+];
+
+function App() {
+  return (
+    <Calendar
+      events={events}
+      onEventClick={(event) => console.log("Clicked:", event)}
+      onSlotClick={(dateTime) => console.log("Slot:", dateTime)}
+    />
+  );
+}
+```
+
+That's it. The calendar renders with sensible defaults — month view, English locale, Sunday start, full 24h time grid.
+
+## CalendarEvent shape
+
+```ts
+interface CalendarEvent {
+  id: string;         // Unique identifier
+  title: string;      // Event title
+  start: string;      // ISO 8601: "2026-03-13T09:00:00"
+  end: string;        // ISO 8601: "2026-03-13T10:00:00"
+  allDay?: boolean;   // All-day event
+  color?: string;     // Any CSS color value
+  [key: string]: unknown;  // Attach any custom data
+}
+```
+
+All dates use **ISO 8601 strings** — no `Date` objects. This makes them serializable, easy to memoize, and compatible with any backend.
+
+## Controlled mode
+
+Control the date and/or view from outside:
+
+```tsx
+const [date, setDate] = useState("2026-03-13");
+const [view, setView] = useState<CalendarView>("week");
+
+<Calendar
+  events={events}
+  date={date}
+  view={view}
+  onDateChange={setDate}
+  onViewChange={setView}
+/>
+```
+
+Or use uncontrolled mode with `defaultDate` and `defaultView` (no callbacks needed).

@@ -1,0 +1,68 @@
+---
+title: Views
+description: The four calendar views — Month, Week, Day, and Agenda.
+---
+
+trud-calendar comes with four built-in views:
+
+```ts
+type CalendarView = "month" | "week" | "day" | "agenda";
+```
+
+## Month view
+
+A 6-week grid showing the full month context. Features:
+
+- **Event pills** with color indicators
+- **Multi-day event spanning** across cells
+- **"+N more" popover** — click to see all events for a day
+- **Drag & Drop** — move events between days (preserves original time)
+
+## Week view
+
+A 7-column time grid showing one week. Features:
+
+- **Overlap handling** — column-packing algorithm positions overlapping events side by side
+- **All-day row** — multi-day and all-day events displayed above the time grid
+- **Current time indicator** — red line showing "now"
+- **Auto-scroll** — scrolls to the current hour on mount
+- **Configurable hours** — set `dayStartHour` and `dayEndHour`
+- **Drag & Drop** — move events to any day/time slot (15-minute snap)
+
+## Day view
+
+A single-column time grid — same engine as the week view, focused on one day. All week view features apply.
+
+## Agenda view
+
+A chronological event list grouped by date. Features:
+
+- **Date section headers** with sticky positioning
+- **Today highlight** badge
+- **Empty state** — shows a customizable "no events" message
+- Time range display for timed events, "all-day" label for all-day events
+
+## Switching views
+
+Use `defaultView` (uncontrolled) or `view` + `onViewChange` (controlled):
+
+```tsx
+// Uncontrolled — starts on week view
+<Calendar events={events} defaultView="week" />
+
+// Controlled — you manage the view state
+const [view, setView] = useState<CalendarView>("month");
+<Calendar events={events} view={view} onViewChange={setView} />
+```
+
+## Time grid customization
+
+Limit the visible hours in the week and day views:
+
+```tsx
+<Calendar
+  events={events}
+  dayStartHour={8}   // Start at 8 AM
+  dayEndHour={20}    // End at 8 PM
+/>
+```

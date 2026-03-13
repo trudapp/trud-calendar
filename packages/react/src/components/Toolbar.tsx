@@ -1,17 +1,12 @@
 import { useNavigation } from "../hooks/useNavigation";
+import { useCalendarContext } from "../context/CalendarContext";
 import { useCalendarSlots } from "../context/SlotsContext";
 import { cn } from "../lib/cn";
 import { VIEWS, type CalendarView } from "trud-calendar-core";
 
-const viewLabels: Record<CalendarView, string> = {
-  month: "Month",
-  week: "Week",
-  day: "Day",
-  agenda: "Agenda",
-};
-
 export function Toolbar() {
   const nav = useNavigation();
+  const { labels } = useCalendarContext();
   const slots = useCalendarSlots();
 
   if (slots.toolbar) {
@@ -28,6 +23,13 @@ export function Toolbar() {
       />
     );
   }
+
+  const viewLabels: Record<CalendarView, string> = {
+    month: labels.month,
+    week: labels.week,
+    day: labels.day,
+    agenda: labels.agenda,
+  };
 
   return (
     <div
@@ -49,9 +51,9 @@ export function Toolbar() {
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
           )}
-          aria-label="Go to today"
+          aria-label={labels.today}
         >
-          Today
+          {labels.today}
         </button>
         <button
           onClick={nav.prev}

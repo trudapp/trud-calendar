@@ -1,0 +1,107 @@
+---
+title: Theming
+description: Customize the calendar's look with CSS variables and dark mode.
+---
+
+trud-calendar uses CSS custom properties for theming. It works out of the box with sensible defaults, and automatically inherits shadcn/ui themes if present.
+
+## CSS variables
+
+Override any variable in your CSS:
+
+```css
+:root {
+  /* Layout */
+  --trc-background: #ffffff;
+  --trc-foreground: #0a0a0a;
+  --trc-muted: #f5f5f5;
+  --trc-muted-foreground: #737373;
+  --trc-border: #e5e5e5;
+  --trc-accent: #f5f5f5;
+  --trc-accent-foreground: #171717;
+  --trc-card: #ffffff;
+  --trc-card-foreground: #0a0a0a;
+
+  /* Interactive */
+  --trc-primary: #171717;
+  --trc-primary-foreground: #fafafa;
+  --trc-ring: #171717;
+  --trc-radius: 0.5rem;
+
+  /* Calendar-specific */
+  --trc-today-bg: #dbeafe;
+  --trc-today-text: #1d4ed8;
+  --trc-event-default: #3b82f6;
+  --trc-current-time: #ef4444;
+  --trc-hour-height: 3rem;
+}
+```
+
+## Dark mode
+
+Add the `.dark` class to a parent element:
+
+```tsx
+<div className={darkMode ? "dark" : ""}>
+  <Calendar events={events} />
+</div>
+```
+
+The built-in dark theme uses these values:
+
+```css
+.dark {
+  --trc-background: #0a0a0a;
+  --trc-foreground: #fafafa;
+  --trc-muted: #262626;
+  --trc-muted-foreground: #a3a3a3;
+  --trc-border: #262626;
+  --trc-primary: #fafafa;
+  --trc-primary-foreground: #171717;
+  --trc-accent: #262626;
+  --trc-accent-foreground: #fafafa;
+  --trc-card: #0a0a0a;
+  --trc-card-foreground: #fafafa;
+  --trc-ring: #d4d4d4;
+  --trc-today-bg: #1e3a5f;
+  --trc-today-text: #93c5fd;
+  --trc-event-default: #60a5fa;
+  --trc-current-time: #f87171;
+}
+```
+
+## shadcn/ui compatibility
+
+Each `--trc-*` variable falls back to the corresponding shadcn variable. For example:
+
+```css
+--trc-background: var(--background, #ffffff);
+--trc-foreground: var(--foreground, #0a0a0a);
+--trc-primary: var(--primary, #171717);
+```
+
+If your project uses shadcn/ui, the calendar inherits your theme automatically — no configuration needed.
+
+## Custom event colors
+
+Each event can have its own color:
+
+```ts
+const events = [
+  { id: "1", title: "Meeting", start: "...", end: "...", color: "#3b82f6" },
+  { id: "2", title: "Lunch", start: "...", end: "...", color: "#10b981" },
+  { id: "3", title: "Deadline", start: "...", end: "...", color: "#ef4444" },
+];
+```
+
+Events without a `color` use `var(--trc-event-default)`.
+
+## Adjusting the time grid
+
+Control the height of each hour row:
+
+```css
+:root {
+  --trc-hour-height: 4rem; /* Taller rows */
+}
+```

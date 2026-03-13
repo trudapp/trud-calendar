@@ -1,0 +1,39 @@
+---
+title: trud-calendar
+description: A beautiful, fully-featured React calendar component with Google Calendar-level UX.
+template: splash
+hero:
+  tagline: A beautiful, fully-featured React calendar. Google Calendar-level UX, MIT license, shadcn-compatible, zero-config theming.
+  actions:
+    - text: Get Started
+      link: /en/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/trudcalendar/trud-calendar
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="4 Views" icon="open-book">
+    Month, Week, Day, and Agenda views — each with a polished, responsive design.
+  </Card>
+  <Card title="Drag & Drop" icon="rocket">
+    Move events across days and time slots with native HTML5 Drag and Drop. Zero extra dependencies.
+  </Card>
+  <Card title="Full i18n" icon="translate">
+    Native `Intl` API for date formatting + fully translatable UI labels. No moment.js or date-fns.
+  </Card>
+  <Card title="Slots API" icon="puzzle">
+    Replace any sub-component — toolbar, event pills, day cells, popovers — with your own custom components.
+  </Card>
+  <Card title="shadcn Compatible" icon="seti:css">
+    CSS variables auto-inherit from shadcn/ui. Dark mode works out of the box. Zero-config theming.
+  </Card>
+  <Card title="Headless Core" icon="setting">
+    `trud-calendar-core` provides types, date utils, layout algorithms, and state management — framework-agnostic, zero dependencies.
+  </Card>
+</CardGrid>

@@ -1,0 +1,82 @@
+---
+title: Drag & Drop
+description: Habilita drag and drop para mover eventos entre franjas horarias.
+---
+
+trud-calendar usa la API nativa de HTML5 Drag and Drop — cero dependencias extra.
+
+## Habilitar drag and drop
+
+Establece `enableDnD={true}` y proporciona un handler `onEventDrop`:
+
+```tsx
+<Calendar
+  events={events}
+  enableDnD
+  onEventDrop={(event, newStart, newEnd) => {
+    // event: el CalendarEvent original (con id, campos custom, etc.)
+    // newStart: "2026-03-15T10:00:00"
+    // newEnd: "2026-03-15T11:00:00"
+    await api.updateEvent(event.id, { start: newStart, end: newEnd });
+  }}
+/>
+```
+
+## Como funciona
+
+### Vista de Mes
+- Arrastra una pill de evento de una celda a otra
+- La **fecha cambia** pero la **hora original se preserva**
+- La duracion del evento se mantiene
+
+### Vista de Semana / Dia
+- Arrastra un evento de una franja horaria a otra
+- Tanto la **fecha como la hora** cambian
+- Se ajusta a **incrementos de 15 minutos**
+- La duracion del evento se mantiene
+
+## El callback `onEventDrop`
+
+```ts
+onEventDrop?: (
+  event: CalendarEvent,     // El objeto evento original
+  newStart: DateTimeString, // Nuevo inicio: "2026-03-15T10:00:00"
+  newEnd: DateTimeString,   // Nuevo fin: "2026-03-15T11:00:00"
+) => void;
+```
+
+Recibes:
+- El `CalendarEvent` original completo — usa `event.id` para actualizar tu base de datos
+- Nuevos tiempos de inicio y fin como strings ISO 8601 — listos para enviar a tu API
+- La duracion siempre se preserva (se calcula automaticamente)
+
+## Ejemplo: Actualizar base de datos al soltar
+
+```tsx
+function App() {
+  const [events, setEvents] = useState(initialEvents);
+
+  const handleDrop = async (event, newStart, newEnd) => {
+    // Actualizacion optimista
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === event.id ? { ...e, start: newStart, end: newEnd } : e
+      )
+    );
+
+    // Persistir en el backend
+    await fetch(`/api/events/${event.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ start: newStart, end: newEnd }),
+    });
+  };
+
+  return (
+    <Calendar
+      events={events}
+      enableDnD
+      onEventDrop={handleDrop}
+    />
+  );
+}
+```

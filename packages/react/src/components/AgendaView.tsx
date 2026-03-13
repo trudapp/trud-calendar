@@ -64,7 +64,7 @@ function AgendaEventItem({ event, locale, onEventClick }: AgendaEventItemProps) 
 }
 
 export function AgendaView() {
-  const { visibleEvents, visibleRange, locale, onEventClick } =
+  const { visibleEvents, visibleRange, locale, onEventClick, labels } =
     useCalendarContext();
 
   const grouped = useMemo(
@@ -77,7 +77,7 @@ export function AgendaView() {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
         <p className="text-[var(--trc-muted-foreground)] text-sm">
-          No events in this period
+          {labels.noEvents}
         </p>
       </div>
     );

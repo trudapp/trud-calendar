@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState, useRef, useEffect } from "react";
 import { useCalendarContext } from "../context/CalendarContext";
 import { useCalendarSlots } from "../context/SlotsContext";
 import { cn } from "../lib/cn";
@@ -11,6 +11,7 @@ import {
   isToday,
   formatWeekdayShort,
   formatDayNumber,
+  formatAgendaDate,
   segmentMultiDayEvent,
   isMultiDayEvent,
   sortEvents,
@@ -27,12 +28,30 @@ interface MonthEventPillProps {
   segment?: EventSegment;
   locale: string;
   onClick?: (event: CalendarEvent) => void;
+  enableDnD?: boolean;
+  draggingId?: string | null;
 }
 
-function MonthEventPill({ event, segment, locale, onClick }: MonthEventPillProps) {
+function MonthEventPill({ event, segment, locale, onClick, enableDnD, draggingId }: MonthEventPillProps) {
   const isStart = segment ? segment.isStart : true;
   const isEnd = segment ? segment.isEnd : true;
   const color = event.color || "var(--trc-event-default)";
+  const isDragging = draggingId === event.id;
+
+  const handleDragStart = useCallback(
+    (e: React.DragEvent) => {
+      if (!enableDnD) return;
+      e.stopPropagation();
+      const payload = JSON.stringify({
+        id: event.id,
+        start: event.start,
+        end: event.end,
+      });
+      e.dataTransfer.setData("application/trud-calendar-event", payload);
+      e.dataTransfer.effectAllowed = "move";
+    },
+    [enableDnD, event.id, event.start, event.end],
+  );
 
   return (
     <button
@@ -46,11 +65,15 @@ function MonthEventPill({ event, segment, locale, onClick }: MonthEventPillProps
           ? "text-white font-medium"
           : "text-[var(--trc-foreground)]",
       )}
+      draggable={!!enableDnD}
+      onDragStart={handleDragStart}
       style={{
         backgroundColor:
           event.allDay || isMultiDayEvent(event) ? color : `${color}20`,
         borderLeft:
           !event.allDay && !isMultiDayEvent(event) ? `2px solid ${color}` : undefined,
+        opacity: isDragging ? 0.4 : undefined,
+        transition: isDragging ? "opacity 150ms" : undefined,
       }}
       onClick={(e) => {
         e.stopPropagation();
@@ -68,6 +91,11 @@ function MonthEventPill({ event, segment, locale, onClick }: MonthEventPillProps
   );
 }
 
+interface MorePopoverState {
+  day: DateString;
+  rect: { top: number; left: number; width: number };
+}
+
 export function MonthView() {
   const {
     state,
@@ -76,8 +104,15 @@ export function MonthView() {
     weekStartsOn,
     onEventClick,
     onSlotClick,
+    onEventDrop,
+    enableDnD,
+    labels,
   } = useCalendarContext();
   const slots = useCalendarSlots();
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const [morePopover, setMorePopover] = useState<MorePopoverState | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const range = useMemo(
     () => getMonthViewRange(state.currentDate, weekStartsOn),
@@ -119,11 +154,83 @@ export function MonthView() {
     return map;
   }, [visibleEvents, days, range]);
 
+  // Close popover on click outside or Escape
+  useEffect(() => {
+    if (!morePopover) return;
+    const handleClick = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setMorePopover(null);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMorePopover(null);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [morePopover]);
+
+  const handleMoreClick = useCallback(
+    (e: React.MouseEvent, day: DateString) => {
+      e.stopPropagation();
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setMorePopover({ day, rect: { top: rect.bottom, left: rect.left, width: rect.width } });
+    },
+    [],
+  );
+
   const handleSlotClick = useCallback(
     (date: DateString) => {
       onSlotClick?.(`${date}T09:00:00`);
     },
     [onSlotClick],
+  );
+
+  const handleMonthDragEnd = useCallback(() => {
+    setDraggingId(null);
+    setDragOverDay(null);
+  }, []);
+
+  const handleDayCellDrop = useCallback(
+    (e: React.DragEvent, targetDay: DateString) => {
+      if (!enableDnD || !onEventDrop) return;
+      e.preventDefault();
+      setDragOverDay(null);
+      setDraggingId(null);
+
+      const raw = e.dataTransfer.getData("application/trud-calendar-event");
+      if (!raw) return;
+
+      try {
+        const data = JSON.parse(raw) as { id: string; start: string; end: string };
+
+        const original = visibleEvents.find((ev) => ev.id === data.id);
+        if (!original) return;
+
+        // Compute duration in ms
+        const durationMs = new Date(data.end).getTime() - new Date(data.start).getTime();
+
+        // Preserve original time, change date
+        const originalTime = data.start.slice(11); // HH:mm:ss
+        const newStartStr = `${targetDay}T${originalTime}`;
+        const newStartMs = new Date(newStartStr).getTime();
+        const newEndDate = new Date(newStartMs + durationMs);
+
+        const endHH = String(newEndDate.getHours()).padStart(2, "0");
+        const endMM = String(newEndDate.getMinutes()).padStart(2, "0");
+        const endSS = String(newEndDate.getSeconds()).padStart(2, "0");
+        const endDay = newEndDate.toISOString().slice(0, 10);
+        const newEndStr = `${endDay}T${endHH}:${endMM}:${endSS}`;
+
+        onEventDrop(original, newStartStr, newEndStr);
+      } catch {
+        // Ignore malformed data
+      }
+    },
+    [enableDnD, onEventDrop, visibleEvents],
   );
 
   const weeks = useMemo(() => {
@@ -157,7 +264,24 @@ export function MonthView() {
       </div>
 
       {/* Week rows */}
-      <div className="flex flex-col flex-1">
+      <div
+        className="flex flex-col flex-1"
+        onDragEnd={handleMonthDragEnd}
+        onDragStartCapture={(e) => {
+          if (!enableDnD) return;
+          // Find which event is being dragged by walking up to the draggable button
+          const target = e.target as HTMLElement;
+          const draggable = target.closest("[draggable='true']");
+          if (draggable) {
+            // Search all visible events for a title match
+            const title = draggable.getAttribute("title");
+            if (title) {
+              const ev = visibleEvents.find((ev) => ev.title === title);
+              if (ev) setDraggingId(ev.id);
+            }
+          }
+        }}
+      >
         {weeks.map((week, weekIdx) => (
           <div
             key={weekIdx}
@@ -178,6 +302,8 @@ export function MonthView() {
               const totalEvents = allEvents.length;
               const visibleEventsSlice = totalEvents > MAX_VISIBLE_EVENTS ? MAX_VISIBLE_EVENTS - 1 : totalEvents;
               const hiddenCount = totalEvents - visibleEventsSlice;
+
+              const isDragOver = enableDnD && dragOverDay === day;
 
               if (slots.dayCell) {
                 const SlotDayCell = slots.dayCell;
@@ -203,7 +329,24 @@ export function MonthView() {
                     "hover:bg-[var(--trc-accent)]/50 transition-colors",
                     !currentMonth && "opacity-40",
                   )}
+                  style={{
+                    backgroundColor: isDragOver ? "var(--trc-accent)" : undefined,
+                    opacity: isDragOver && currentMonth ? 0.6 : undefined,
+                  }}
                   onClick={() => handleSlotClick(day)}
+                  onDragOver={(e) => {
+                    if (!enableDnD) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    setDragOverDay(day);
+                  }}
+                  onDragLeave={(e) => {
+                    const related = e.relatedTarget as Node | null;
+                    const current = e.currentTarget as Node;
+                    if (related && current.contains(related)) return;
+                    setDragOverDay(null);
+                  }}
+                  onDrop={(e) => handleDayCellDrop(e, day)}
                   aria-label={day}
                 >
                   {/* Day number */}
@@ -230,6 +373,8 @@ export function MonthView() {
                         segment={seg}
                         locale={locale}
                         onClick={onEventClick}
+                        enableDnD={enableDnD}
+                        draggingId={draggingId}
                       />
                     ))}
                     {dayData?.singleDay
@@ -240,16 +385,16 @@ export function MonthView() {
                           event={event}
                           locale={locale}
                           onClick={onEventClick}
+                          enableDnD={enableDnD}
+                          draggingId={draggingId}
                         />
                       ))}
                     {hiddenCount > 0 && (
                       <button
                         className="text-xs text-[var(--trc-muted-foreground)] text-left px-1.5 hover:text-[var(--trc-foreground)] transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
+                        onClick={(e) => handleMoreClick(e, day)}
                       >
-                        +{hiddenCount} more
+                        {labels.more(hiddenCount)}
                       </button>
                     )}
                   </div>
@@ -259,6 +404,47 @@ export function MonthView() {
           </div>
         ))}
       </div>
+
+      {/* "+N more" popover */}
+      {morePopover && (() => {
+        const dayData = eventsByDay.get(morePopover.day);
+        const allDayEvents = [
+          ...(dayData?.multiDay.map((s) => s.event) ?? []),
+          ...(dayData?.singleDay ?? []),
+        ];
+        return (
+          <div
+            ref={popoverRef}
+            className={cn(
+              "fixed z-50 min-w-[200px] max-w-[280px] max-h-[300px] overflow-y-auto",
+              "rounded-[var(--trc-radius)] border border-[var(--trc-border)]",
+              "bg-[var(--trc-background)] shadow-lg",
+              "p-2",
+            )}
+            style={{
+              top: morePopover.rect.top + 4,
+              left: morePopover.rect.left,
+            }}
+          >
+            <div className="text-xs font-semibold text-[var(--trc-foreground)] px-1.5 pb-1.5 border-b border-[var(--trc-border)] mb-1.5">
+              {formatAgendaDate(morePopover.day, locale)}
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {allDayEvents.map((event) => (
+                <MonthEventPill
+                  key={event.id}
+                  event={event}
+                  locale={locale}
+                  onClick={(ev) => {
+                    setMorePopover(null);
+                    onEventClick?.(ev);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

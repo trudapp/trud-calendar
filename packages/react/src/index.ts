@@ -9,6 +9,7 @@ export { EventPopoverContent, useEventPopover } from "./components/EventPopover"
 
 // Context
 export { CalendarProvider, useCalendarContext } from "./context/CalendarContext";
+export type { EventDropHandler } from "./context/CalendarContext";
 export { SlotsProvider, useCalendarSlots } from "./context/SlotsContext";
 
 // Hooks
@@ -29,6 +30,7 @@ export type {
   CalendarConfig,
   CalendarSlots,
   CalendarLocale,
+  CalendarLabels,
   DateString,
   DateTimeString,
   PositionedEvent,

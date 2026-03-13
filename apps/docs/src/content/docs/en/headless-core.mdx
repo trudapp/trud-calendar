@@ -1,0 +1,182 @@
+---
+title: Headless Core
+description: Use trud-calendar-core for framework-agnostic calendar logic.
+---
+
+The `trud-calendar-core` package provides all calendar logic with **zero dependencies** and **zero React dependency**. Use it to build calendar UIs in any framework — Vue, Svelte, Angular, vanilla JS, or server-side.
+
+## Installation
+
+```bash
+npm install trud-calendar-core
+```
+
+## What's included
+
+### Types
+
+All TypeScript interfaces and type definitions:
+
+```ts
+import type {
+  CalendarEvent,
+  CalendarView,
+  CalendarState,
+  CalendarAction,
+  CalendarConfig,
+  CalendarSlots,
+  CalendarLocale,
+  CalendarLabels,
+  DateString,
+  DateTimeString,
+  PositionedEvent,
+  EventSegment,
+} from "trud-calendar-core";
+```
+
+### Date utilities
+
+Pure functions for date math — no side effects, fully tree-shakeable:
+
+```ts
+import {
+  parseDate,
+  toDateString,
+  toDateTimeString,
+  addDays,
+  addMonths,
+  addWeeks,
+  startOfWeek,
+  startOfMonth,
+  endOfMonth,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  isBefore,
+  isAfter,
+  rangesOverlap,
+  dateInRange,
+  daysBetween,
+  eachDayOfRange,
+  getWeekDays,
+  getMonthViewRange,
+  getWeekViewRange,
+  getVisibleRange,
+  getTimeOfDay,
+  getDurationHours,
+  getHourLabels,
+} from "trud-calendar-core";
+```
+
+### Formatting
+
+Locale-aware formatting via the `Intl` API (memoized formatters):
+
+```ts
+import {
+  formatToolbarTitle,
+  formatWeekdayShort,
+  formatWeekdayNarrow,
+  formatDayNumber,
+  formatTime,
+  formatTimeRange,
+  formatAgendaDate,
+  formatMonthDay,
+} from "trud-calendar-core";
+
+formatTime("2026-03-13T14:30:00", "en-US");     // "2:30 PM"
+formatTime("2026-03-13T14:30:00", "de-DE");     // "14:30"
+formatAgendaDate("2026-03-13", "es-ES");         // "viernes, 13 de marzo"
+formatToolbarTitle("2026-03-13", "month", "ja-JP"); // "2026年3月"
+```
+
+### Event utilities
+
+Sorting, filtering, layout algorithms:
+
+```ts
+import {
+  sortEvents,
+  filterEventsInRange,
+  getEventsForDay,
+  isMultiDayEvent,
+  partitionEvents,
+  segmentMultiDayEvent,
+  getEventSegments,
+  buildOverlapGroups,
+  assignColumns,
+  computeTimePositions,
+  groupEventsByDate,
+} from "trud-calendar-core";
+```
+
+### State management
+
+A reducer for calendar navigation state:
+
+```ts
+import {
+  calendarReducer,
+  createInitialState,
+} from "trud-calendar-core";
+
+const state = createInitialState("2026-03-13", "month");
+// { currentDate: "2026-03-13", view: "month" }
+
+const next = calendarReducer(state, { type: "NAVIGATE_NEXT" });
+// { currentDate: "2026-04-13", view: "month" }
+```
+
+Actions: `NAVIGATE_PREV`, `NAVIGATE_NEXT`, `NAVIGATE_TODAY`, `SET_DATE`, `SET_VIEW`.
+
+### Constants
+
+```ts
+import {
+  DEFAULT_LABELS,
+  DEFAULT_LOCALE,
+  DEFAULT_VIEW,
+  VIEWS,               // ["month", "week", "day", "agenda"]
+  DEFAULT_DAY_START_HOUR,  // 0
+  DEFAULT_DAY_END_HOUR,    // 24
+  HOURS_IN_DAY,         // 24
+  MINUTES_IN_HOUR,      // 60
+  MINUTES_IN_DAY,       // 1440
+} from "trud-calendar-core";
+```
+
+## Example: Build a calendar in vanilla JS
+
+```ts
+import {
+  getVisibleRange,
+  filterEventsInRange,
+  computeTimePositions,
+  eachDayOfRange,
+  formatTime,
+  formatWeekdayShort,
+} from "trud-calendar-core";
+
+// Get the visible date range for a week view starting Monday
+const range = getVisibleRange("2026-03-13", "week", 1);
+const days = eachDayOfRange(range.start, range.end);
+
+// Filter events
+const visible = filterEventsInRange(myEvents, range.start, range.end);
+
+// Compute time-grid positions for a day
+const dayEvents = visible.filter(e => e.start.startsWith("2026-03-13"));
+const positioned = computeTimePositions(dayEvents, 8, 20);
+
+// Render
+for (const { event, top, height, column, totalColumns } of positioned) {
+  const el = document.createElement("div");
+  el.textContent = `${formatTime(event.start, "en-US")} ${event.title}`;
+  el.style.position = "absolute";
+  el.style.top = `${top}%`;
+  el.style.height = `${height}%`;
+  el.style.left = `${(column / totalColumns) * 100}%`;
+  el.style.width = `${100 / totalColumns}%`;
+  container.appendChild(el);
+}
+```
