@@ -5,6 +5,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "trud-calendar",
+      customCss: ["./src/styles/custom.css"],
       defaultLocale: "en",
       locales: {
         en: { label: "English", lang: "en" },

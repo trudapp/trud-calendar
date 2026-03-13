@@ -4,6 +4,7 @@ import type { CalendarEvent, CalendarLabels, DateTimeString } from "trud-calenda
 import { useEvents } from "./use-events";
 import { EventModal } from "./EventModal";
 import { Sidebar } from "./Sidebar";
+import { customSlots } from "./custom-slots";
 
 // ── Translated labels per locale ────────────────────────────────────────
 const LOCALE_LABELS: Record<string, Partial<CalendarLabels>> = {
@@ -84,6 +85,7 @@ export function App() {
   const [locale, setLocale] = useState(() => loadPref("trc-locale", "en-US"));
   const [weekStartsOn, setWeekStartsOn] = useState<0 | 1>(() => loadPref("trc-weekStart", 0));
   const [enableDnD, setEnableDnD] = useState(() => loadPref("trc-dnd", true));
+  const [enableSlots, setEnableSlots] = useState(() => loadPref("trc-slots", false));
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Modal state
@@ -113,6 +115,13 @@ export function App() {
   const toggleDnD = useCallback(() => {
     setEnableDnD((v: boolean) => {
       savePref("trc-dnd", !v);
+      return !v;
+    });
+  }, []);
+
+  const toggleSlots = useCallback(() => {
+    setEnableSlots((v: boolean) => {
+      savePref("trc-slots", !v);
       return !v;
     });
   }, []);
@@ -245,6 +254,8 @@ export function App() {
             onWeekStartChange={changeWeekStart}
             enableDnD={enableDnD}
             onToggleDnD={toggleDnD}
+            enableSlots={enableSlots}
+            onToggleSlots={toggleSlots}
             onNewEvent={handleNewEvent}
           />
 
@@ -255,7 +266,8 @@ export function App() {
               defaultView="month"
               locale={{ locale, weekStartsOn, labels: LOCALE_LABELS[locale] }}
               enableDnD={enableDnD}
-              onEventClick={handleEventClick}
+              slots={enableSlots ? customSlots : undefined}
+              onEventClick={enableSlots ? undefined : handleEventClick}
               onSlotClick={handleSlotClick}
               onEventDrop={handleEventDrop}
             />

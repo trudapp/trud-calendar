@@ -3,37 +3,141 @@ title: trud-calendar
 description: A beautiful, fully-featured React calendar component with Google Calendar-level UX.
 template: splash
 hero:
-  tagline: A beautiful, fully-featured React calendar. Google Calendar-level UX, MIT license, shadcn-compatible, zero-config theming.
+  tagline: The open-source React calendar with Google Calendar-level UX. Drag & drop, 4 views, full i18n, shadcn theming — all MIT licensed.
   actions:
     - text: Get Started
       link: /en/getting-started/
       icon: right-arrow
       variant: primary
-    - text: View on GitHub
+    - text: GitHub
       link: https://github.com/trudcalendar/trud-calendar
       icon: external
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+<div class="trc-hero-visual">
+  <div class="trc-cal-mock">
+    <div class="trc-cal-toolbar">
+      <div class="trc-cal-toolbar-nav">
+        <div class="trc-cal-toolbar-btn">&larr;</div>
+        <div class="trc-cal-toolbar-btn">&rarr;</div>
+      </div>
+      <div class="trc-cal-toolbar-title">March 2026</div>
+      <div class="trc-cal-toolbar-views">
+        <div class="trc-cal-view-btn active">Month</div>
+        <div class="trc-cal-view-btn">Week</div>
+        <div class="trc-cal-view-btn">Day</div>
+      </div>
+    </div>
+    <div class="trc-cal-weekheader">
+      <div class="trc-cal-weekday">Sun</div>
+      <div class="trc-cal-weekday">Mon</div>
+      <div class="trc-cal-weekday">Tue</div>
+      <div class="trc-cal-weekday">Wed</div>
+      <div class="trc-cal-weekday">Thu</div>
+      <div class="trc-cal-weekday">Fri</div>
+      <div class="trc-cal-weekday">Sat</div>
+    </div>
+    <div class="trc-cal-grid">
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">1</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">2</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">3</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">4</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">5</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">6</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">7</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">1</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">2</span><div class="trc-cal-event" style="background: hsl(174, 80%, 46%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">3</span><div class="trc-cal-event" style="background: hsl(174, 80%, 46%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">4</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">5</span><div class="trc-cal-event" style="background: hsl(260, 70%, 64%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">6</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">7</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">8</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">9</span><div class="trc-cal-event" style="background: hsl(36, 90%, 56%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">10</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">11</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">12</span><div class="trc-cal-event" style="background: hsl(174, 80%, 46%)"></div><div class="trc-cal-event" style="background: hsl(340, 70%, 56%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num today">13</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">14</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">15</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">16</span><div class="trc-cal-event" style="background: hsl(260, 70%, 64%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">17</span><div class="trc-cal-event" style="background: hsl(260, 70%, 64%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">18</span><div class="trc-cal-event" style="background: hsl(260, 70%, 64%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">19</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">20</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">21</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">22</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">23</span><div class="trc-cal-event" style="background: hsl(174, 80%, 46%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">24</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">25</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">26</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">27</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">28</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">29</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">30</span><div class="trc-cal-event" style="background: hsl(36, 90%, 56%)"></div></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num">31</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">1</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">2</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">3</span></div>
+      <div class="trc-cal-day"><span class="trc-cal-day-num muted">4</span></div>
+    </div>
+  </div>
+</div>
 
-<CardGrid>
-  <Card title="4 Views" icon="open-book">
-    Month, Week, Day, and Agenda views — each with a polished, responsive design.
-  </Card>
-  <Card title="Drag & Drop" icon="rocket">
-    Move events across days and time slots with native HTML5 Drag and Drop. Zero extra dependencies.
-  </Card>
-  <Card title="Full i18n" icon="translate">
-    Native `Intl` API for date formatting + fully translatable UI labels. No moment.js or date-fns.
-  </Card>
-  <Card title="Slots API" icon="puzzle">
-    Replace any sub-component — toolbar, event pills, day cells, popovers — with your own custom components.
-  </Card>
-  <Card title="shadcn Compatible" icon="seti:css">
-    CSS variables auto-inherit from shadcn/ui. Dark mode works out of the box. Zero-config theming.
-  </Card>
-  <Card title="Headless Core" icon="setting">
-    `trud-calendar-core` provides types, date utils, layout algorithms, and state management — framework-agnostic, zero dependencies.
-  </Card>
-</CardGrid>
+<div class="trc-install">
+  <span class="trc-install-prompt">$</span>
+  npm install trud-calendar
+</div>
+
+<div class="trc-features">
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#9776;</div>
+    <h3>4 Views</h3>
+    <p>Month, Week, Day, and Agenda — each with polished, responsive rendering and overlap handling.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#8693;</div>
+    <h3>Drag & Drop</h3>
+    <p>Native HTML5 DnD. Move events across days and time slots. 15-minute snap. Zero extra dependencies.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#127760;</div>
+    <h3>Full i18n</h3>
+    <p>Native Intl API for dates. Translatable UI labels. No moment.js, no date-fns. Just the platform.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#9881;</div>
+    <h3>Slots API</h3>
+    <p>Replace any sub-component — toolbar, event pills, day cells, popovers — with your own React components.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#9790;</div>
+    <h3>Theming</h3>
+    <p>CSS variables with shadcn/ui fallback chain. Dark mode built in. Zero-config when paired with shadcn.</p>
+  </div>
+  <div class="trc-feature">
+    <div class="trc-feature-icon">&#9881;</div>
+    <h3>Headless Core</h3>
+    <p>trud-calendar-core: types, date math, layout algorithms, state — zero deps, any framework.</p>
+  </div>
+</div>
+
+<div class="trc-stats">
+  <div class="trc-stat">
+    <div class="trc-stat-value">0</div>
+    <div class="trc-stat-label">Runtime deps (core)</div>
+  </div>
+  <div class="trc-stat">
+    <div class="trc-stat-value">4</div>
+    <div class="trc-stat-label">Built-in views</div>
+  </div>
+  <div class="trc-stat">
+    <div class="trc-stat-value">MIT</div>
+    <div class="trc-stat-label">License</div>
+  </div>
+  <div class="trc-stat">
+    <div class="trc-stat-value">7</div>
+    <div class="trc-stat-label">Slot overrides</div>
+  </div>
+</div>

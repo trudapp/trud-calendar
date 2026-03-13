@@ -9,6 +9,8 @@ interface SidebarProps {
   onWeekStartChange: (v: 0 | 1) => void;
   enableDnD: boolean;
   onToggleDnD: () => void;
+  enableSlots: boolean;
+  onToggleSlots: () => void;
   onNewEvent: () => void;
 }
 
@@ -41,6 +43,8 @@ export function Sidebar({
   onWeekStartChange,
   enableDnD,
   onToggleDnD,
+  enableSlots,
+  onToggleSlots,
   onNewEvent,
 }: SidebarProps) {
   return (
@@ -123,6 +127,15 @@ export function Sidebar({
               options={["Off", "On"]}
               active={enableDnD ? 1 : 0}
               onChange={(i) => { if ((i === 1) !== enableDnD) onToggleDnD(); }}
+            />
+          </ControlRow>
+
+          {/* Custom Slots */}
+          <ControlRow label="Custom Slots">
+            <TogglePill
+              options={["Default", "Custom"]}
+              active={enableSlots ? 1 : 0}
+              onChange={(i) => { if ((i === 1) !== enableSlots) onToggleSlots(); }}
             />
           </ControlRow>
         </div>
