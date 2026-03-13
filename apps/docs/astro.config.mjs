@@ -12,9 +12,8 @@ export default defineConfig({
     starlight({
       title: "trud-calendar",
       customCss: ["./src/styles/custom.css"],
-      defaultLocale: "en",
       locales: {
-        en: { label: "English", lang: "en" },
+        root: { label: "English", lang: "en" },
         es: { label: "Espanol", lang: "es" },
       },
       social: [
