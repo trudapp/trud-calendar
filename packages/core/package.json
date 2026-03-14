@@ -1,6 +1,6 @@
 {
   "name": "trud-calendar-core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Headless calendar engine — types, state, date utils, layout algorithms. Zero dependencies.",
   "license": "MIT",
   "repository": {
