@@ -88,12 +88,12 @@ This repo includes an [Agent Skill](https://agentskills.io) for AI-assisted deve
 - **Using trud-calendar in your own project?** Install the skill so your AI knows how to use the library:
 
   ```bash
-  npx skills add trudcalendar/trud-calendar
+  npx skills add trudapp/trud-calendar
   ```
 
 ## Reporting bugs
 
-Open a [GitHub Issue](https://github.com/trudcalendar/trud-calendar/issues) with:
+Open a [GitHub Issue](https://github.com/trudapp/trud-calendar/issues) with:
 - Steps to reproduce
 - Expected vs actual behavior
 - Browser, OS, and trud-calendar version

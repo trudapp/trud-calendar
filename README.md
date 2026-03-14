@@ -1,5 +1,7 @@
 # trud-calendar
 
+[Documentation](https://trud-calendar-docs.vercel.app/) | [Playground](https://trud-calendar-docs.vercel.app/playground/)
+
 A beautiful, fully-featured React calendar component. Google Calendar-level UX, MIT license, shadcn-compatible, zero-config theming.
 
 - **4 views** — Month, Week, Day, Agenda
@@ -27,6 +29,16 @@ pnpm add trud-calendar
 ```
 
 **Peer dependencies:** `react >=18`, `react-dom >=18`
+
+### AI-assisted setup
+
+Using [Claude Code](https://claude.com/claude-code), [Cursor](https://cursor.com), [Copilot](https://github.com/features/copilot), or any AI coding agent? Install the [Agent Skill](https://agentskills.io) so your AI knows the full trud-calendar API:
+
+```bash
+npx skills add trudapp/trud-calendar
+```
+
+Works with 40+ agents. Your AI will know every prop, slot, hook, and pattern — no need to read the docs.
 
 ### Tailwind v4 setup
 
@@ -696,14 +708,6 @@ const positioned = computeTimePositions(timedEvents, 0, 24);
 ```
 
 ---
-
-## AI skill
-
-If you use [Claude Code](https://claude.com/claude-code) or any agent that supports [Agent Skills](https://agentskills.io), install the skill so your AI knows how to use trud-calendar:
-
-```bash
-npx skills add trudcalendar/trud-calendar
-```
 
 ## Contributing
 

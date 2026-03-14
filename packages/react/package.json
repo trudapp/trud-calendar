@@ -8,7 +8,7 @@
     "url": "https://github.com/trudapp/trud-calendar",
     "directory": "packages/react"
   },
-  "homepage": "https://github.com/trudapp/trud-calendar#readme",
+  "homepage": "https://trud-calendar-docs.vercel.app/",
   "keywords": ["react", "calendar", "drag-and-drop", "typescript", "shadcn", "tailwind", "i18n", "recurrence", "component"],
   "type": "module",
   "main": "./dist/index.cjs",

@@ -8,7 +8,7 @@
     "url": "https://github.com/trudapp/trud-calendar",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/trudapp/trud-calendar#readme",
+  "homepage": "https://trud-calendar-docs.vercel.app/",
   "keywords": ["calendar", "date", "headless", "typescript", "rrule", "recurrence"],
   "type": "module",
   "main": "./dist/index.cjs",
