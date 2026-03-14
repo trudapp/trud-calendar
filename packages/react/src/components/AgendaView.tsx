@@ -178,7 +178,7 @@ export function AgendaView() {
   let itemCounter = 0;
 
   return (
-    <div className="flex-1 overflow-y-auto p-4" role="list" aria-label="Agenda view">
+    <div className="flex-1 overflow-y-auto px-4 pb-4" role="list" aria-label="Agenda view">
       {Array.from(grouped.entries()).map(([date, events]) => {
         const todayFlag = isToday(date);
         return (
@@ -186,7 +186,7 @@ export function AgendaView() {
             <div
               className={cn(
                 "flex items-center gap-2 px-3 py-1.5 mb-1",
-                "sticky top-0 z-10",
+                "sticky top-0",
                 "bg-[var(--trc-background)]",
               )}
             >

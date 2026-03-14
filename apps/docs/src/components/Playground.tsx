@@ -83,6 +83,18 @@ const EVENT_COLORS = [
 
 // ── Create Event Dialog ──────────────────────────────────────────────────
 
+function isoToDateInput(iso: string): string {
+  return iso.slice(0, 10);
+}
+
+function isoToTimeInput(iso: string): string {
+  return iso.slice(11, 16);
+}
+
+function buildISO(date: string, time: string): string {
+  return `${date}T${time}:00`;
+}
+
 function CreateEventDialog({
   start,
   end,
@@ -91,28 +103,31 @@ function CreateEventDialog({
 }: {
   start: string;
   end: string;
-  onSave: (title: string, color: string) => void;
+  onSave: (title: string, color: string, start: string, end: string) => void;
   onCancel: () => void;
 }) {
   const [title, setTitle] = useState("");
   const [color, setColor] = useState(EVENT_COLORS[0].value);
+  const [startDate, setStartDate] = useState(isoToDateInput(start));
+  const [startTime, setStartTime] = useState(isoToTimeInput(start));
+  const [endDate, setEndDate] = useState(isoToDateInput(end));
+  const [endTime, setEndTime] = useState(isoToTimeInput(end));
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const formatDT = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, {
-      weekday: "short", month: "short", day: "numeric",
-      hour: "numeric", minute: "2-digit",
-    });
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (title.trim()) onSave(title.trim(), color);
+    if (title.trim()) onSave(title.trim(), color, buildISO(startDate, startTime), buildISO(endDate, endTime));
+  };
+
+  const inputStyle: React.CSSProperties = {
+    padding: "6px 10px", borderRadius: "6px",
+    border: "1px solid var(--trc-border)", background: "var(--trc-background)",
+    color: "var(--trc-foreground)", fontSize: "0.8rem", outline: "none",
+    boxSizing: "border-box",
   };
 
   return (
@@ -166,26 +181,28 @@ function CreateEventDialog({
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Event title"
               style={{
-                width: "100%", padding: "8px 12px", borderRadius: "8px",
-                border: "1px solid var(--trc-border)", background: "var(--trc-background)",
-                color: "var(--trc-foreground)", fontSize: "0.85rem", outline: "none",
-                boxSizing: "border-box",
+                ...inputStyle, width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.85rem",
               }}
               onFocus={(e) => (e.currentTarget.style.borderColor = "var(--trc-primary)")}
               onBlur={(e) => (e.currentTarget.style.borderColor = "var(--trc-border)")}
             />
           </div>
 
-          {/* Time */}
-          <div style={{
-            padding: "10px 12px", borderRadius: "8px", background: "var(--trc-muted)",
-            display: "flex", flexDirection: "column", gap: "2px",
-          }}>
-            <div style={{ fontSize: "0.8rem", color: "var(--trc-foreground)", fontWeight: 500 }}>
-              {formatDT(start)}
+          {/* Date & Time — editable */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)" }}>
+              Start
+            </label>
+            <div style={{ display: "flex", gap: "6px" }}>
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
+              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} step="900" style={{ ...inputStyle, width: "110px" }} />
             </div>
-            <div style={{ fontSize: "0.72rem", color: "var(--trc-muted-foreground)" }}>
-              to {formatDT(end)}
+            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)" }}>
+              End
+            </label>
+            <div style={{ display: "flex", gap: "6px" }}>
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
+              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} step="900" style={{ ...inputStyle, width: "110px" }} />
             </div>
           </div>
 
@@ -291,16 +308,19 @@ export default function Playground() {
     setCreateDialog({ start, end });
   }, []);
 
-  const handleCreateEvent = useCallback((title: string, color: string) => {
-    if (!createDialog) return;
+  const handleSlotClick = useCallback((dateTime: DateTimeString) => {
+    // Single click on empty slot → open dialog with 1h duration
+    const startDate = new Date(dateTime);
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+    setCreateDialog({ start: dateTime, end: toLocalISO(endDate) });
+  }, []);
+
+  const handleCreateEvent = useCallback((title: string, color: string, start: string, end: string) => {
     const id = String(nextId);
     setNextId((n) => n + 1);
-    setBaseEvents((prev) => [
-      ...prev,
-      { id, title, start: createDialog.start, end: createDialog.end, color },
-    ]);
+    setBaseEvents((prev) => [...prev, { id, title, start, end, color }]);
     setCreateDialog(null);
-  }, [createDialog, nextId]);
+  }, [nextId]);
 
   const locales = [
     { value: "en-US", label: "EN" },
@@ -423,6 +443,7 @@ export default function Playground() {
             }}
             onEventDrop={handleEventDrop}
             onEventResize={handleEventResize}
+            onSlotClick={handleSlotClick}
             onSlotSelect={handleSlotSelect}
             slots={tab === "custom" ? playgroundSlots : undefined}
           />

@@ -76,7 +76,7 @@ export function EventPopoverContent({
       <FloatingPortal>
         <div
           ref={refs.setFloating}
-          style={floatingStyles}
+          style={{ ...floatingStyles, zIndex: 50 }}
           {...getFloatingProps()}
         >
           <SlotPopover event={event} onClose={onClose} />
