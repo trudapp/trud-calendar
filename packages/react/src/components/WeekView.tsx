@@ -167,10 +167,13 @@ function TimeEvent({
         )}
       </div>
 
-      {/* Resize handle — outside the draggable content, inside the outer wrapper */}
+      {/* Resize handle — shrinks for short events so the event remains clickable */}
       {resizeProps && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-3 cursor-s-resize z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+          className={cn(
+            "absolute bottom-0 left-0 right-0 cursor-s-resize z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity",
+            displayHeight < 5 ? "h-1" : "h-3"
+          )}
           style={{ touchAction: "none" }}
           onPointerDown={(e) => {
             e.preventDefault();
@@ -656,58 +659,60 @@ export function WeekView({ singleDay }: WeekViewProps) {
 
   return (
     <div ref={containerRef} className="flex flex-col flex-1 overflow-hidden" role="grid" aria-label="Week view">
-      {/* Day headers */}
-      <div
-        className={cn(
-          "grid border-b border-[var(--trc-border)]",
-          "bg-[var(--trc-muted)]",
-        )}
-        style={{ gridTemplateColumns: `${gutterWidth} repeat(${colCount}, 1fr)` }}
-        role="row"
-      >
-        <div className="border-r border-[var(--trc-border)]" />
-        {days.map((day) => {
-          const todayFlag = isToday(day);
-          return (
-            <div
-              key={day}
-              className={cn(
-                "text-center py-1 @[640px]:py-2 border-r border-[var(--trc-border)] last:border-r-0",
-              )}
-              role="columnheader"
-            >
-              <div className="text-[10px] @[640px]:text-xs font-medium text-[var(--trc-muted-foreground)] uppercase">
-                {formatWeekdayShort(day, locale)}
-              </div>
-              <div
-                className={cn(
-                  "text-base @[640px]:text-xl font-semibold mx-auto w-8 h-8 @[640px]:w-10 @[640px]:h-10 flex items-center justify-center rounded-full",
-                  todayFlag
-                    ? "bg-[var(--trc-today-bg)] text-[var(--trc-today-text)]"
-                    : "text-[var(--trc-foreground)]",
-                )}
-                aria-current={todayFlag ? "date" : undefined}
-              >
-                {formatDayNumber(day, locale)}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* All-day row */}
-      <AllDayRow
-        days={days}
-        events={allDayEvents}
-        locale={locale}
-        allDayLabel={labels.allDay}
-        onEventClick={handleEventClick}
-        isEventSelected={selectionCtx.isSelected}
-        gutterWidth={gutterWidth}
-      />
-
-      {/* Time grid */}
+      {/* Single scroll container — headers + grid share the same width so columns align with scrollbar */}
       <div className="flex-1 overflow-y-auto" ref={gridRef}>
+        {/* Sticky header: day names + all-day row */}
+        <div className="sticky top-0 z-20 bg-[var(--trc-background)]">
+          {/* Day headers */}
+          <div
+            className={cn(
+              "grid border-b border-[var(--trc-border)]",
+              "bg-[var(--trc-muted)]",
+            )}
+            style={{ gridTemplateColumns: `${gutterWidth} repeat(${colCount}, 1fr)` }}
+            role="row"
+          >
+            <div className="border-r border-[var(--trc-border)]" />
+            {days.map((day) => {
+              const todayFlag = isToday(day);
+              return (
+                <div
+                  key={day}
+                  className={cn(
+                    "text-center py-1 @[640px]:py-2 border-r border-[var(--trc-border)] last:border-r-0",
+                  )}
+                  role="columnheader"
+                >
+                  <div className="text-[10px] @[640px]:text-xs font-medium text-[var(--trc-muted-foreground)] uppercase">
+                    {formatWeekdayShort(day, locale)}
+                  </div>
+                  <div
+                    className={cn(
+                      "text-base @[640px]:text-xl font-semibold mx-auto w-8 h-8 @[640px]:w-10 @[640px]:h-10 flex items-center justify-center rounded-full",
+                      todayFlag
+                        ? "bg-[var(--trc-today-bg)] text-[var(--trc-today-text)]"
+                        : "text-[var(--trc-foreground)]",
+                    )}
+                    aria-current={todayFlag ? "date" : undefined}
+                  >
+                    {formatDayNumber(day, locale)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* All-day row */}
+          <AllDayRow
+            days={days}
+            events={allDayEvents}
+            locale={locale}
+            allDayLabel={labels.allDay}
+            onEventClick={handleEventClick}
+            isEventSelected={selectionCtx.isSelected}
+            gutterWidth={gutterWidth}
+          />
+        </div>
         <div
           className="grid relative"
           style={{
@@ -719,12 +724,7 @@ export function WeekView({ singleDay }: WeekViewProps) {
           {hourLabels.map((label, idx) => (
             <div
               key={idx}
-              className={cn(
-                "text-[10px] @[640px]:text-xs text-[var(--trc-muted-foreground)] text-right pr-1 @[640px]:pr-2",
-                "border-r border-[var(--trc-border)]",
-                "border-b border-[var(--trc-border)]",
-                "-mt-2",
-              )}
+              className="text-[10px] @[640px]:text-xs text-[var(--trc-muted-foreground)] text-right pr-1 @[640px]:pr-2 border-r border-[var(--trc-border)] -mt-2"
               style={{ gridColumn: 1, gridRow: idx + 1 }}
             >
               {label}
@@ -748,13 +748,17 @@ export function WeekView({ singleDay }: WeekViewProps) {
 
             // Build positioned events: single-day + multi-day segments
             // For segments, create synthetic events with adjusted times for layout
-            const syntheticEvents: CalendarEvent[] = timedSegments.map((seg) => ({
-              ...seg.event,
-              // Override start/end for positioning within this day
-              id: `${seg.event.id}::seg::${seg.day}`,
-              start: `${seg.day}T${String(Math.floor(seg.startHour)).padStart(2, "0")}:${String(Math.round((seg.startHour % 1) * 60)).padStart(2, "0")}:00`,
-              end: `${seg.day}T${String(Math.floor(seg.endHour)).padStart(2, "0")}:${String(Math.round((seg.endHour % 1) * 60)).padStart(2, "0")}:00`,
-            }));
+            const syntheticEvents: CalendarEvent[] = timedSegments.map((seg) => {
+              const sh = seg.startHour;
+              // Clamp endHour to 23:59 — "T24:00:00" is invalid ISO and getTimeOfDay returns 0
+              const eh = seg.endHour >= 24 ? 23 + 59 / 60 : seg.endHour;
+              return {
+                ...seg.event,
+                id: `${seg.event.id}::seg::${seg.day}`,
+                start: `${seg.day}T${String(Math.floor(sh)).padStart(2, "0")}:${String(Math.round((sh % 1) * 60)).padStart(2, "0")}:00`,
+                end: `${seg.day}T${String(Math.floor(eh)).padStart(2, "0")}:${String(Math.round((eh % 1) * 60)).padStart(2, "0")}:00`,
+              };
+            });
 
             const allTimedEvents = [...singleDayEvents, ...syntheticEvents];
             const positioned = computeTimePositions(

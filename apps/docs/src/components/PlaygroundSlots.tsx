@@ -138,39 +138,30 @@ function CustomDayCell({ date, isToday, isCurrentMonth, events }: DayCellSlotPro
 
 // ── Custom Time Event ────────────────────────────────────────────────────
 
-function CustomTimeEvent({ event, positioned }: TimeEventSlotProps) {
+function CustomTimeEvent({ event }: TimeEventSlotProps) {
   const { onEventClick } = useCalendarContext();
   const c = CATS[cat(event.title)];
 
   return (
-    <div style={{
-      position: "absolute",
-      top: `${positioned.top}%`,
-      height: `${Math.max(positioned.height, 2.5)}%`,
-      left: `${(positioned.column / positioned.totalColumns) * 100}%`,
-      width: `${(1 / positioned.totalColumns) * 100}%`,
-      padding: "1px 2px", boxSizing: "border-box",
-    }}>
-      <button onClick={() => onEventClick?.(event)} style={{
-        width: "100%", height: "100%", borderRadius: "8px",
-        padding: "6px 8px", background: c.grad, color: "#fff",
-        fontSize: "0.72rem", overflow: "hidden", display: "flex",
-        flexDirection: "column", gap: "2px", border: "none",
-        cursor: "pointer", textAlign: "left",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.2)", position: "relative",
-        transition: "transform 0.15s, box-shadow 0.15s",
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.02)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.3)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)"; }}
-      >
-        <div style={{ position: "absolute", inset: 0, borderRadius: "8px", background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ fontWeight: 700, display: "flex", alignItems: "center", gap: "4px", zIndex: 1 }}>
-          <span style={{ fontSize: "0.85rem" }}>{c.emoji}</span>
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{event.title}</span>
-        </div>
-        <div style={{ opacity: 0.85, fontSize: "0.65rem", zIndex: 1 }}>{fmtTime(event.start)}</div>
-      </button>
-    </div>
+    <button onClick={() => onEventClick?.(event)} style={{
+      width: "100%", height: "100%", borderRadius: "8px",
+      padding: "6px 8px", background: c.grad, color: "#fff",
+      fontSize: "0.72rem", overflow: "hidden", display: "flex",
+      flexDirection: "column", gap: "2px", border: "none",
+      cursor: "pointer", textAlign: "left",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.2)", position: "relative",
+      transition: "transform 0.15s, box-shadow 0.15s",
+    }}
+    onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.02)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.3)"; }}
+    onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)"; }}
+    >
+      <div style={{ position: "absolute", inset: 0, borderRadius: "8px", background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ fontWeight: 700, display: "flex", alignItems: "center", gap: "4px", zIndex: 1 }}>
+        <span style={{ fontSize: "0.85rem" }}>{c.emoji}</span>
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{event.title}</span>
+      </div>
+      <div style={{ opacity: 0.85, fontSize: "0.65rem", zIndex: 1 }}>{fmtTime(event.start)}</div>
+    </button>
   );
 }
 
