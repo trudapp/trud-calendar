@@ -79,6 +79,18 @@ chore: update dependencies
 - **Add tests** for new features
 - **Make sure CI passes** — build, lint, and tests must all be green
 
+## AI-assisted development
+
+This repo includes an [Agent Skill](https://agentskills.io) for AI-assisted development:
+
+- **Contributing to trud-calendar?** The skill at `.claude/skills/trud-calendar/SKILL.md` is loaded automatically when you work in this project with [Claude Code](https://claude.com/claude-code). Invoke it with `/trud-calendar` to get a full API reference, usage patterns, and slot examples. The `CLAUDE.md` at the root provides architecture rules that Claude Code loads on every conversation.
+
+- **Using trud-calendar in your own project?** Install the skill so your AI knows how to use the library:
+
+  ```bash
+  npx skills add trudcalendar/trud-calendar
+  ```
+
 ## Reporting bugs
 
 Open a [GitHub Issue](https://github.com/trudcalendar/trud-calendar/issues) with:

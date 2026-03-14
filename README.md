@@ -697,6 +697,18 @@ const positioned = computeTimePositions(timedEvents, 0, 24);
 
 ---
 
+## AI skill
+
+If you use [Claude Code](https://claude.com/claude-code) or any agent that supports [Agent Skills](https://agentskills.io), install the skill so your AI knows how to use trud-calendar:
+
+```bash
+npx skills add trudcalendar/trud-calendar
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, code style, and PR guidelines.
+
 ## License
 
 MIT

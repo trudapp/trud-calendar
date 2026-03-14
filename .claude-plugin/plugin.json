@@ -1,0 +1,13 @@
+{
+  "name": "trud-calendar",
+  "description": "API reference and usage guide for trud-calendar — a modern React calendar component library with drag-and-drop, recurrence, slots, and keyboard navigation.",
+  "version": "1.0.0",
+  "author": {
+    "name": "trud-calendar"
+  },
+  "homepage": "https://github.com/trudcalendar/trud-calendar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trudcalendar/trud-calendar"
+  }
+}
