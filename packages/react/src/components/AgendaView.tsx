@@ -186,7 +186,7 @@ export function AgendaView() {
             <div
               className={cn(
                 "flex items-center gap-2 px-3 py-1.5 mb-1",
-                "sticky top-0",
+                "sticky top-0 z-[5]",
                 "bg-[var(--trc-background)]",
               )}
             >
