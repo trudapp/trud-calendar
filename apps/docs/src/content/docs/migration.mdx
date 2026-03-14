@@ -1,0 +1,193 @@
+---
+title: Migrating from react-big-calendar
+description: A quick guide to migrate from react-big-calendar to trud-calendar.
+---
+
+If you're coming from react-big-calendar, this guide covers the key differences and shows how to migrate your code.
+
+## Why migrate?
+
+| | react-big-calendar | trud-calendar |
+|---|---|---|
+| **Dates** | `Date` objects | ISO 8601 strings |
+| **Locale** | `localizer` + `messages` + `culture` (3 props) | Single `locale` prop |
+| **Styling** | CSS file + Sass variables | CSS variables + Tailwind v4 |
+| **Touch support** | Separate addon | Built-in (Pointer Events API) |
+| **Dark mode** | Manual CSS overrides | `.dark` class, auto-inherits shadcn |
+| **Tree-shaking** | Limited | Full (headless core is framework-agnostic) |
+
+## Quick comparison
+
+### Before (react-big-calendar)
+
+```tsx
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { es } from "date-fns/locale/es";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales: { es },
+});
+
+const messages = {
+  today: "Hoy",
+  previous: "Anterior",
+  next: "Siguiente",
+  month: "Mes",
+  week: "Semana",
+  day: "Dia",
+  agenda: "Agenda",
+  noEventsInRange: "No hay eventos",
+};
+
+function App() {
+  return (
+    <Calendar
+      localizer={localizer}
+      culture="es"
+      messages={messages}
+      events={events.map((e) => ({
+        ...e,
+        start: parseISO(e.start),
+        end: parseISO(e.end),
+      }))}
+      onSelectEvent={(event) => console.log(event)}
+      view={view}
+      onView={setView}
+      date={date}
+      onNavigate={setDate}
+      components={{ toolbar: CustomToolbar }}
+    />
+  );
+}
+```
+
+### After (trud-calendar)
+
+```tsx
+import { Calendar } from "trud-calendar";
+
+function App() {
+  return (
+    <Calendar
+      events={events}
+      locale={{
+        locale: "es-ES",
+        weekStartsOn: 1,
+        labels: {
+          today: "Hoy",
+          month: "Mes",
+          week: "Semana",
+          day: "Dia",
+          agenda: "Agenda",
+          noEvents: "No hay eventos",
+        },
+      }}
+      onEventClick={(event) => console.log(event)}
+      view={view}
+      onViewChange={setView}
+      date={date}
+      onDateChange={setDate}
+      slots={{ toolbar: CustomToolbar }}
+    />
+  );
+}
+```
+
+No localizer, no date conversions, no CSS file import (styles come from CSS variables).
+
+## Prop mapping
+
+| react-big-calendar | trud-calendar | Notes |
+|---|---|---|
+| `events` (with `Date` objects) | `events` (with ISO strings) | No `parseISO()` needed |
+| `onSelectEvent` | `onEventClick` | |
+| `onSelectSlot` | `onSlotClick` / `onSlotSelect` | `onSlotClick` for single click, `onSlotSelect` for drag range |
+| `view` + `onView` | `view` + `onViewChange` | |
+| `date` + `onNavigate` | `date` + `onDateChange` | `date` is a `"YYYY-MM-DD"` string |
+| `defaultView` | `defaultView` | Same |
+| `defaultDate` | `defaultDate` | String instead of Date |
+| `localizer` + `culture` + `messages` | `locale` | Single prop: `{ locale, weekStartsOn, labels }` |
+| `components` | `slots` | Same concept, renamed |
+| `components.toolbar` | `slots.toolbar` | |
+| `components.event` | `slots.event` | |
+| `selectable` | Always enabled | Clicking slots always works |
+| `draggableAccessor` | `enableDnD` | Boolean — all events or none |
+| `onEventDrop` | `onEventDrop` | Signature: `(event, newStart, newEnd)` |
+| `onEventResize` | `onEventResize` | Signature: `(event, newStart, newEnd)` |
+| `min` / `max` | `dayStartHour` / `dayEndHour` | Numbers (0-24) instead of Date objects |
+| `step` / `timeslots` | — | Fixed at 15min intervals |
+
+## Date format
+
+react-big-calendar requires `Date` objects everywhere. trud-calendar uses ISO 8601 strings:
+
+```ts
+// react-big-calendar
+const event = {
+  title: "Meeting",
+  start: new Date(2026, 2, 13, 9, 0),  // Month is 0-indexed!
+  end: new Date(2026, 2, 13, 10, 0),
+};
+
+// trud-calendar
+const event = {
+  id: "1",  // id is required
+  title: "Meeting",
+  start: "2026-03-13T09:00:00",
+  end: "2026-03-13T10:00:00",
+};
+```
+
+**Key difference:** trud-calendar events require an `id` field. If your events already have IDs from your database, use those directly.
+
+## Drag and drop
+
+react-big-calendar uses a separate DnD addon with the HTML5 Drag API. trud-calendar uses the Pointer Events API natively — touch support works out of the box:
+
+```tsx
+// react-big-calendar
+import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
+
+const DnDCalendar = withDragAndDrop(Calendar);
+
+<DnDCalendar
+  onEventDrop={({ event, start, end }) => handleDrop(event, start, end)}
+  onEventResize={({ event, start, end }) => handleResize(event, start, end)}
+/>
+
+// trud-calendar
+<Calendar
+  enableDnD
+  onEventDrop={(event, newStart, newEnd) => handleDrop(event, newStart, newEnd)}
+  onEventResize={(event, newStart, newEnd) => handleResize(event, newStart, newEnd)}
+/>
+```
+
+No HOC wrapper, no addon import, no extra CSS file.
+
+## Styling
+
+react-big-calendar ships a CSS file with class-based overrides. trud-calendar uses CSS variables that integrate with your design system:
+
+```css
+/* react-big-calendar: override specific classes */
+.rbc-toolbar { /* ... */ }
+.rbc-event { /* ... */ }
+
+/* trud-calendar: override CSS variables */
+:root {
+  --trc-primary: #6366f1;
+  --trc-border: hsl(0 0% 92%);
+  --trc-today-bg: hsl(262 80% 95%);
+}
+```
+
+If you use shadcn/ui, the calendar inherits your theme automatically. See [Theming](/theming/) for details.
+

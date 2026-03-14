@@ -17,18 +17,17 @@ yarn add trud-calendar
 
 ## Tailwind v4 setup
 
-Add the package source to your CSS so Tailwind generates the required utility classes:
+Import the theme variables **before** Tailwind, and add the `@source` directive so Tailwind generates the required utility classes:
 
 ```css
+@import "trud-calendar/styles.css";
 @import "tailwindcss";
 @source "../node_modules/trud-calendar/dist";
 ```
 
-Import the theme variables (optional if you already use shadcn — the variables auto-inherit):
-
-```css
-@import "trud-calendar/styles.css";
-```
+:::tip[Why import order matters]
+trud-calendar's variables are defined inside `@layer trc`. Importing the styles **before** Tailwind ensures `@layer trc` is declared first and gets the lowest cascade priority — so your overrides always win. See [Theming > Overriding variables](/theming/#overriding-variables-with-tailwind-v4) for details.
+:::
 
 ## Without Tailwind
 
@@ -46,6 +45,18 @@ import "trud-calendar/styles.css";
 
 ## shadcn/ui projects
 
-If your project already uses shadcn/ui, the calendar inherits your theme automatically. The CSS variables fall back to shadcn's `var(--background)`, `var(--foreground)`, etc. No extra configuration needed.
+### shadcn v2 (Tailwind v4)
 
-Just make sure to add the `@source` directive in your CSS so Tailwind generates the calendar's utility classes.
+If your project uses shadcn v2, the calendar inherits your theme automatically. The CSS variables fall back to shadcn's `var(--background)`, `var(--foreground)`, etc.
+
+Just add the `@source` directive and import the styles:
+
+```css
+@import "trud-calendar/styles.css";
+@import "tailwindcss";
+@source "../node_modules/trud-calendar/dist";
+```
+
+### shadcn v1 (Tailwind v3)
+
+shadcn v1 defines CSS variables as raw HSL numbers (e.g. `--border: 214.3 31.8% 91.4%`), which are not valid CSS colors on their own. You'll need to map them manually with `hsl()` wrappers. See the [Theming > shadcn v1](/theming/#shadcn-v1-tailwind-v3) section for the full snippet.

@@ -19,7 +19,7 @@ export default defineConfig({
       customCss: ["./src/styles/custom.css"],
       locales: {
         root: { label: "English", lang: "en" },
-        es: { label: "Espanol", lang: "es" },
+        es: { label: "Español", lang: "es" },
       },
       social: [
         {
@@ -47,6 +47,11 @@ export default defineConfig({
               slug: "installation",
               label: "Installation",
               translations: { es: "Instalacion" },
+            },
+            {
+              slug: "migration",
+              label: "Migrating from react-big-calendar",
+              translations: { es: "Migracion desde react-big-calendar" },
             },
           ],
         },

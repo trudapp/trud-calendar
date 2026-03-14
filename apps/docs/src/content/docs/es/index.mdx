@@ -89,66 +89,103 @@ hero:
   </div>
 </div>
 
-<div class="trc-install">
+<div class="trc-install" role="button" tabindex="0" title="Click para copiar" onclick="navigator.clipboard.writeText('npm install trud-calendar');var i=this.querySelector('.trc-install-icon');i.classList.add('copied');setTimeout(function(){i.classList.remove('copied')},2000)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
   <span class="trc-install-prompt">$</span>
-  npm install trud-calendar
+  <span class="trc-install-text">npm install trud-calendar</span>
+  <span class="trc-install-icon">
+    <svg class="trc-icon-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+    <svg class="trc-icon-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+  </span>
 </div>
 
-<div class="trc-features">
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#9776;</div>
-    <h3>4 Vistas</h3>
-    <p>Mes, Semana, Dia y Agenda — cada una con renderizado responsive y manejo de solapamiento.</p>
+<div class="trc-fcal">
+  <div class="trc-fcal-toolbar">
+    <div class="trc-fcal-nav">
+      <div class="trc-fcal-btn">&larr;</div>
+      <div class="trc-fcal-btn">&rarr;</div>
+    </div>
+    <div class="trc-fcal-title">Caracteristicas</div>
+    <div class="trc-fcal-pills">
+      <div class="trc-fcal-pill active">Todas</div>
+    </div>
   </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#8693;</div>
-    <h3>Drag & Drop</h3>
-    <p>API Pointer Events. Mueve, redimensiona y arrastra para crear. Funciona con mouse, touch y stylus. Snap de 15 min.</p>
+  <div class="trc-fcal-weekheader">
+    <div>Lun</div><div>Mar</div><div>Mie</div><div>Jue</div><div>Vie</div><div>Sab</div><div>Dom</div>
   </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#127760;</div>
-    <h3>i18n Completo</h3>
-    <p>API nativa Intl para fechas. Etiquetas de UI traducibles. Sin moment.js, sin date-fns. Solo la plataforma.</p>
-  </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#9881;</div>
-    <h3>Slots API</h3>
-    <p>Reemplaza cualquier sub-componente — toolbar, pills, celdas de dia, popovers — con tus propios componentes React.</p>
-  </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#9790;</div>
-    <h3>Temas</h3>
-    <p>Variables CSS con fallback chain de shadcn/ui. Dark mode integrado. Cero config con shadcn.</p>
-  </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#128257;</div>
-    <h3>Recurrencia</h3>
-    <p>Motor RFC 5545 RRULE. Diario, semanal, mensual, anual — con excepciones, intervalos y condiciones de fin.</p>
-  </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#9000;</div>
-    <h3>Teclado y A11y</h3>
-    <p>Patron WAI-ARIA grid. Flechas, Enter/Space, Escape. Roving tabindex. Navegacion completa por teclado.</p>
-  </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#9881;</div>
-    <h3>Core Headless</h3>
-    <p>trud-calendar-core: tipos, matematica de fechas, algoritmos de layout, recurrencia, estado — cero deps, cualquier framework.</p>
-  </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#8634;</div>
-    <h3>Undo / Redo</h3>
-    <p>Stack de undo integrado con atajos Ctrl+Z/Y. Auto-snapshot en drag, resize y cualquier cambio de estado.</p>
-  </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#9745;</div>
-    <h3>Multi-seleccion</h3>
-    <p>Ctrl+click para toggle, Shift+click para rango, Delete para eliminar. API completa de contexto de seleccion.</p>
-  </div>
-  <div class="trc-feature">
-    <div class="trc-feature-icon">&#128241;</div>
-    <h3>Mobile Responsive</h3>
-    <p>Columnas adaptativas (1/3/7 dias), celdas compactas en movil, navegacion por swipe para dispositivos tactiles.</p>
+  <div class="trc-fcal-grid">
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">1</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg></div>
+      <h3>4 Vistas</h3>
+      <p>Mes, Semana, Dia y Agenda. Responsive con manejo de solapamiento.</p>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">2</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9 2 12l3 3"></path><path d="M9 5l3-3 3 3"></path><path d="M15 19l-3 3-3-3"></path><path d="M19 9l3 3-3 3"></path><path d="M2 12h20"></path><path d="M12 2v20"></path></svg></div>
+      <h3>Drag & Drop</h3>
+      <p>Mover, redimensionar, arrastrar para crear. Mouse, touch y stylus.</p>
+      <div class="trc-fcal-bar" style="background: #ff0086"></div>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">3</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg></div>
+      <h3>i18n Completo</h3>
+      <p>API nativa Intl. Etiquetas traducibles. Sin deps de fechas.</p>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">4</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8.5 9 12l-3.5 3.5L2 12l3.5-3.5Z"></path><path d="m12 2 3.5 3.5L12 9 8.5 5.5 12 2Z"></path><path d="M18.5 8.5 22 12l-3.5 3.5L15 12l3.5-3.5Z"></path><path d="m12 15 3.5 3.5L12 22l-3.5-3.5L12 15Z"></path></svg></div>
+      <h3>Slots API</h3>
+      <p>Reemplaza toolbar, eventos, celdas y popovers con los tuyos.</p>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">5</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg></div>
+      <h3>Temas</h3>
+      <p>Variables CSS + fallback shadcn. Dark mode integrado.</p>
+      <div class="trc-fcal-bar" style="background: #ff4241"></div>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">6</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg></div>
+      <h3>Recurrencia</h3>
+      <p>RFC 5545 RRULE. Diario, semanal, mensual, anual.</p>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">7</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="M6 8h.001"></path><path d="M10 8h.001"></path><path d="M14 8h.001"></path><path d="M18 8h.001"></path><path d="M8 12h.001"></path><path d="M12 12h.001"></path><path d="M16 12h.001"></path><path d="M7 16h10"></path></svg></div>
+      <h3>Teclado</h3>
+      <p>WAI-ARIA grid. Flechas, Enter, Escape. Navegacion completa.</p>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">8</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"></rect><rect width="6" height="6" x="9" y="9" rx="1"></rect><path d="M15 2v2"></path><path d="M15 20v2"></path><path d="M2 15h2"></path><path d="M2 9h2"></path><path d="M20 15h2"></path><path d="M20 9h2"></path><path d="M9 2v2"></path><path d="M9 20v2"></path></svg></div>
+      <h3>Core Headless</h3>
+      <p>Core sin deps: fechas, layout, estado. Cualquier framework.</p>
+      <div class="trc-fcal-bar" style="background: #ff0086"></div>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">9</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"></path></svg></div>
+      <h3>Undo / Redo</h3>
+      <p>Ctrl+Z/Y con auto-snapshots en cada cambio.</p>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">10</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"></path><path d="m3 7 2 2 4-4"></path><path d="M13 6h8"></path><path d="M13 12h8"></path><path d="M13 18h8"></path></svg></div>
+      <h3>Multi-seleccion</h3>
+      <p>Ctrl+click, Shift+rango, Delete. API de seleccion.</p>
+    </div>
+    <div class="trc-fcal-cell">
+      <span class="trc-fcal-day">11</span>
+      <div class="trc-fcal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg></div>
+      <h3>Mobile</h3>
+      <p>Columnas adaptativas, celdas compactas, navegacion por swipe.</p>
+      <div class="trc-fcal-bar" style="background: #ff4241"></div>
+    </div>
+    <div class="trc-fcal-cell empty"><span class="trc-fcal-day">12</span></div>
+    <div class="trc-fcal-cell empty"><span class="trc-fcal-day">13</span></div>
+    <div class="trc-fcal-cell empty"><span class="trc-fcal-day">14</span></div>
   </div>
 </div>
 

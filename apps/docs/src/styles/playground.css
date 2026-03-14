@@ -1,10 +1,25 @@
+@import "../../../../packages/react/src/styles/variables.css";
 @import "tailwindcss";
 @source "../../../../packages/react/src/**/*.{ts,tsx}";
-@import "../../../../packages/react/src/styles/variables.css";
 
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--trc-background);
+  color: var(--trc-foreground);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Dialog entrance animation */
+@keyframes pgDialogIn {
+  from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Custom slot popover animation */
+@keyframes pgSlotPopIn {
+  from { opacity: 0; transform: scale(0.92) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }

@@ -17,18 +17,17 @@ yarn add trud-calendar
 
 ## Configuracion con Tailwind v4
 
-Agrega la fuente del paquete a tu CSS para que Tailwind genere las clases de utilidad necesarias:
+Importa las variables de tema **antes** de Tailwind, y agrega la directiva `@source` para que Tailwind genere las clases de utilidad necesarias:
 
 ```css
+@import "trud-calendar/styles.css";
 @import "tailwindcss";
 @source "../node_modules/trud-calendar/dist";
 ```
 
-Importa las variables de tema (opcional si ya usas shadcn — las variables se heredan automaticamente):
-
-```css
-@import "trud-calendar/styles.css";
-```
+:::tip[Por que importa el orden]
+Las variables de trud-calendar estan definidas dentro de `@layer trc`. Importar los estilos **antes** de Tailwind asegura que `@layer trc` se declare primero y obtenga la menor prioridad en la cascada — para que tus sobreescrituras siempre ganen. Ver [Temas > Sobreescribir variables](/es/theming/#sobreescribir-variables-con-tailwind-v4) para mas detalles.
+:::
 
 ## Sin Tailwind
 
@@ -46,6 +45,18 @@ import "trud-calendar/styles.css";
 
 ## Proyectos con shadcn/ui
 
-Si tu proyecto ya usa shadcn/ui, el calendario hereda tu tema automaticamente. Las variables CSS hacen fallback a las de shadcn: `var(--background)`, `var(--foreground)`, etc. No necesitas configuracion extra.
+### shadcn v2 (Tailwind v4)
 
-Solo asegurate de agregar la directiva `@source` en tu CSS para que Tailwind genere las clases de utilidad del calendario.
+Si tu proyecto usa shadcn v2, el calendario hereda tu tema automaticamente. Las variables CSS hacen fallback a las de shadcn: `var(--background)`, `var(--foreground)`, etc.
+
+Solo agrega la directiva `@source` e importa los estilos:
+
+```css
+@import "trud-calendar/styles.css";
+@import "tailwindcss";
+@source "../node_modules/trud-calendar/dist";
+```
+
+### shadcn v1 (Tailwind v3)
+
+shadcn v1 define las variables CSS como numeros HSL crudos (ej. `--border: 214.3 31.8% 91.4%`), que no son colores CSS validos por si solos. Necesitas mapearlas manualmente con wrappers `hsl()`. Ver la seccion [Temas > shadcn v1](/es/theming/#shadcn-v1-tailwind-v3) para el snippet completo.

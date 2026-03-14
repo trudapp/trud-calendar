@@ -1,66 +1,74 @@
 /* trud-calendar CSS variables
  * Uses shadcn variable names with fallbacks — auto-inherits shadcn theme if present,
  * works standalone otherwise.
+ *
+ * Wrapped in @layer trc so consumer overrides always win — whether in @layer base,
+ * @layer theme, or unlayered CSS.
+ *
+ * Import this file BEFORE @import "tailwindcss" so @layer trc is declared first
+ * and gets the lowest cascade priority.
  */
 
-:root {
-  /* Background & Foreground */
-  --trc-background: var(--background, #ffffff);
-  --trc-foreground: var(--foreground, #0a0a0a);
-  --trc-muted: var(--muted, #f5f5f5);
-  --trc-muted-foreground: var(--muted-foreground, #737373);
-  --trc-border: var(--border, #e5e5e5);
+@layer trc {
+  :root {
+    /* Background & Foreground */
+    --trc-background: var(--background, #ffffff);
+    --trc-foreground: var(--foreground, #0a0a0a);
+    --trc-muted: var(--muted, #f5f5f5);
+    --trc-muted-foreground: var(--muted-foreground, #737373);
+    --trc-border: var(--border, #e5e5e5);
 
-  /* Primary (buttons, active states) */
-  --trc-primary: var(--primary, #171717);
-  --trc-primary-foreground: var(--primary-foreground, #fafafa);
+    /* Primary (buttons, active states) */
+    --trc-primary: var(--primary, #171717);
+    --trc-primary-foreground: var(--primary-foreground, #fafafa);
 
-  /* Accent (hover states) */
-  --trc-accent: var(--accent, #f5f5f5);
-  --trc-accent-foreground: var(--accent-foreground, #171717);
+    /* Accent (hover states) */
+    --trc-accent: var(--accent, #f5f5f5);
+    --trc-accent-foreground: var(--accent-foreground, #171717);
 
-  /* Destructive (delete, etc.) */
-  --trc-destructive: var(--destructive, #ef4444);
-  --trc-destructive-foreground: #ffffff;
+    /* Destructive (delete, etc.) */
+    --trc-destructive: var(--destructive, #ef4444);
+    --trc-destructive-foreground: #ffffff;
 
-  /* Card (popover) */
-  --trc-card: var(--card, #ffffff);
-  --trc-card-foreground: var(--card-foreground, #0a0a0a);
+    /* Card (popover) */
+    --trc-card: var(--card, #ffffff);
+    --trc-card-foreground: var(--card-foreground, #0a0a0a);
 
-  /* Ring (focus) */
-  --trc-ring: var(--ring, #171717);
+    /* Ring (focus) */
+    --trc-ring: var(--ring, #171717);
 
-  /* Radius */
-  --trc-radius: var(--radius, 0.5rem);
+    /* Radius */
+    --trc-radius: var(--radius, 0.5rem);
 
-  /* Calendar-specific */
-  --trc-today-bg: #dbeafe;
-  --trc-today-text: #1d4ed8;
-  --trc-event-default: #3b82f6;
-  --trc-current-time: #ef4444;
-  --trc-hour-height: 3rem;
-}
+    /* Calendar-specific */
+    --trc-today-bg: #dbeafe;
+    --trc-today-text: #1d4ed8;
+    --trc-event-default: #3b82f6;
+    --trc-current-time: #ef4444;
+    --trc-hour-height: 3rem;
+  }
 
-.dark {
-  --trc-background: var(--background, #0a0a0a);
-  --trc-foreground: var(--foreground, #fafafa);
-  --trc-muted: var(--muted, #262626);
-  --trc-muted-foreground: var(--muted-foreground, #a3a3a3);
-  --trc-border: var(--border, #262626);
+  .dark {
+    --trc-background: var(--background, #0a0a0a);
+    --trc-foreground: var(--foreground, #fafafa);
+    --trc-muted: var(--muted, #262626);
+    --trc-muted-foreground: var(--muted-foreground, #a3a3a3);
+    --trc-border: var(--border, #262626);
 
-  --trc-primary: var(--primary, #fafafa);
-  --trc-primary-foreground: var(--primary-foreground, #171717);
+    --trc-primary: var(--primary, #fafafa);
+    --trc-primary-foreground: var(--primary-foreground, #171717);
 
-  --trc-accent: var(--accent, #262626);
-  --trc-accent-foreground: var(--accent-foreground, #fafafa);
+    --trc-accent: var(--accent, #262626);
+    --trc-accent-foreground: var(--accent-foreground, #fafafa);
 
-  --trc-card: var(--card, #0a0a0a);
-  --trc-card-foreground: var(--card-foreground, #fafafa);
+    --trc-card: var(--card, #0a0a0a);
+    --trc-card-foreground: var(--card-foreground, #fafafa);
 
-  --trc-ring: var(--ring, #d4d4d4);
+    --trc-ring: var(--ring, #d4d4d4);
 
-  --trc-today-bg: #1e3a5f;
-  --trc-today-text: #93c5fd;
-  --trc-event-default: #60a5fa;
-  --trc-current-time: #f87171;
+    --trc-today-bg: #1e3a5f;
+    --trc-today-text: #93c5fd;
+    --trc-event-default: #60a5fa;
+    --trc-current-time: #f87171;
+  }
 }

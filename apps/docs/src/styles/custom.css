@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   trud-calendar docs — "Obsidian Luxe" theme
-   Deep void-black, electric cyan accents, geometric precision
+   trud-calendar docs — brand theme
+   Deep void-black, #ff0086 pink accents, geometric precision
    ═══════════════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -19,30 +19,31 @@
   --sl-color-gray-6: hsl(220, 16%, 11%);
   --sl-color-black: hsl(225, 20%, 6%);
 
-  --sl-color-accent-low: hsl(174, 60%, 10%);
-  --sl-color-accent: hsl(174, 80%, 46%);
-  --sl-color-accent-high: hsl(174, 70%, 76%);
+  --sl-color-accent-low: hsl(330, 60%, 12%);
+  --sl-color-accent: #ff0086;
+  --sl-color-accent-high: hsl(330, 100%, 58%);
 
-  --sl-color-text-accent: var(--sl-color-accent-high);
+  --sl-color-text-accent: #ff0086;
 
   --sl-color-bg: var(--sl-color-black);
   --sl-color-bg-nav: hsla(225, 20%, 7%, 0.85);
   --sl-color-bg-sidebar: hsla(225, 20%, 7%, 0.6);
-  --sl-color-bg-inline-code: hsla(174, 30%, 14%, 0.5);
+  --sl-color-bg-inline-code: hsla(330, 20%, 14%, 0.5);
 
-  --sl-color-hairline-light: hsla(174, 20%, 30%, 0.15);
-  --sl-color-hairline: hsla(174, 20%, 20%, 0.2);
+  --sl-color-hairline-light: hsla(330, 14%, 30%, 0.15);
+  --sl-color-hairline: hsla(330, 14%, 20%, 0.2);
   --sl-color-hairline-shade: hsla(225, 20%, 4%, 0.6);
 
-  /* Teal-tinted blue for note/info callouts */
-  --sl-hue-blue: 174;
+  /* Starlight callout hues */
+  --sl-hue-blue: 210;
   --sl-hue-purple: 260;
   --sl-hue-orange: 36;
 
   /* Brand color tokens */
-  --trc-glow: hsl(174, 80%, 46%);
-  --trc-glow-dim: hsla(174, 80%, 46%, 0.15);
-  --trc-glow-faint: hsla(174, 80%, 46%, 0.06);
+  --trc-glow: #ff0086;
+  --trc-glow-secondary: #ff4241;
+  --trc-glow-dim: hsla(330, 100%, 50%, 0.15);
+  --trc-glow-faint: hsla(330, 100%, 50%, 0.06);
   --trc-surface-raised: hsla(220, 16%, 12%, 0.8);
   --trc-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
@@ -59,23 +60,24 @@
   --sl-color-gray-7: hsl(220, 18%, 97%);
   --sl-color-black: hsl(0, 0%, 100%);
 
-  --sl-color-accent-high: hsl(174, 70%, 22%);
-  --sl-color-accent: hsl(174, 80%, 36%);
-  --sl-color-accent-low: hsl(174, 50%, 93%);
+  --sl-color-accent-high: hsl(330, 80%, 32%);
+  --sl-color-accent: hsl(330, 100%, 42%);
+  --sl-color-accent-low: hsl(330, 60%, 94%);
 
   --sl-color-text-accent: var(--sl-color-accent);
 
   --sl-color-bg-nav: hsla(220, 18%, 98%, 0.9);
   --sl-color-bg-sidebar: var(--sl-color-bg);
-  --sl-color-bg-inline-code: hsla(174, 20%, 92%, 0.6);
+  --sl-color-bg-inline-code: hsla(330, 16%, 92%, 0.6);
 
   --sl-color-hairline-light: hsla(220, 14%, 80%, 0.4);
   --sl-color-hairline: hsla(220, 14%, 86%, 0.6);
   --sl-color-hairline-shade: hsla(220, 14%, 90%, 0.8);
 
-  --trc-glow: hsl(174, 80%, 36%);
-  --trc-glow-dim: hsla(174, 80%, 36%, 0.12);
-  --trc-glow-faint: hsla(174, 80%, 36%, 0.04);
+  --trc-glow: hsl(330, 100%, 42%);
+  --trc-glow-secondary: #ff4241;
+  --trc-glow-dim: hsla(330, 100%, 42%, 0.12);
+  --trc-glow-faint: hsla(330, 100%, 42%, 0.04);
   --trc-surface-raised: hsla(220, 14%, 96%, 0.9);
 }
 
@@ -110,7 +112,7 @@ nav.sidebar a[aria-current='page'] {
 }
 
 :root[data-theme='light'] nav.sidebar a[aria-current='page'] {
-  color: hsl(174, 70%, 24%) !important;
+  color: hsl(330, 80%, 32%) !important;
 }
 
 /* Smoother scrollbar */
@@ -202,7 +204,7 @@ th {
 
 /* Kill default hero padding — we control it */
 .page .hero {
-  padding-block: 0 !important;
+  padding-block: 3rem 0 !important;
 }
 
 .hero > img,
@@ -211,29 +213,46 @@ th {
 }
 
 /* Fix hero actions so primary button gets the glow treatment */
-.hero .action.primary {
-  background: var(--trc-glow) !important;
-  color: hsl(225, 20%, 6%) !important;
+.hero a.primary {
   border: none !important;
   font-weight: 600;
   border-radius: 8px;
   transition: box-shadow 0.3s, transform 0.2s;
 }
 
-.hero .action.primary:hover {
-  box-shadow: 0 0 28px -4px var(--trc-glow-dim), 0 0 8px var(--trc-glow-dim);
+.hero a.primary:hover {
   transform: translateY(-1px);
 }
 
-.hero .action.minimal {
+/* Dark mode: white button */
+:root[data-theme='dark'] .hero a.primary {
+  background: #ffffff !important;
+  color: #0a0a0a !important;
+}
+
+:root[data-theme='dark'] .hero a.primary:hover {
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+}
+
+/* Light mode: brand color button */
+:root[data-theme='light'] .hero a.primary {
+  background: var(--trc-glow) !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme='light'] .hero a.primary:hover {
+  box-shadow: 0 0 28px -4px var(--trc-glow-dim), 0 0 8px var(--trc-glow-dim);
+}
+
+.hero a.minimal {
   color: var(--sl-color-gray-2) !important;
-  border: 1px solid var(--sl-color-hairline-light) !important;
+  border: 1px solid transparent !important;
   border-radius: 8px;
   transition: border-color 0.3s, color 0.3s;
 }
 
-.hero .action.minimal:hover {
-  border-color: var(--sl-color-gray-3) !important;
+.hero a.minimal:hover {
+  border-color: var(--sl-color-hairline-light) !important;
   color: var(--sl-color-white) !important;
 }
 
@@ -242,10 +261,7 @@ th {
   font-weight: 800 !important;
   letter-spacing: -0.03em;
   line-height: 1.05 !important;
-}
-
-.hero h1 .gradient-text {
-  background: linear-gradient(135deg, var(--trc-glow), hsl(200, 90%, 70%), hsl(260, 80%, 72%));
+  background: linear-gradient(135deg, #ff0086, #ff4241);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -261,56 +277,179 @@ th {
   font-size: var(--sl-text-lg) !important;
 }
 
-/* ── Custom feature grid on landing ─────────────────────────────────── */
+/* ── Features calendar grid on landing ──────────────────────────────── */
 
-.trc-features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1px;
-  background: var(--sl-color-hairline-light);
+.trc-fcal {
   border: 1px solid var(--sl-color-hairline-light);
   border-radius: 16px;
   overflow: hidden;
+  background: var(--trc-surface-raised);
+  backdrop-filter: blur(12px);
   margin-block: 3rem;
 }
 
-.trc-feature {
-  padding: 2rem;
-  background: var(--sl-color-bg);
-  transition: background 0.3s;
-  position: relative;
+/* Reset Starlight styles inside features calendar */
+.trc-fcal *,
+.trc-fcal *::before,
+.trc-fcal *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.trc-feature:hover {
+.trc-fcal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+.trc-fcal-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.trc-fcal-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--sl-color-hairline-light);
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+.trc-fcal-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--sl-color-white);
+  letter-spacing: -0.01em;
+}
+
+.trc-fcal-pills {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--sl-color-hairline-light);
+}
+
+.trc-fcal-pill {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.65rem;
+  color: var(--sl-color-gray-3);
+  background: transparent;
+  font-weight: 500;
+}
+
+.trc-fcal-pill.active {
+  background: var(--trc-glow);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.trc-fcal-weekheader {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: center;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+.trc-fcal-weekheader > div {
+  padding: 0.4rem;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--sl-color-gray-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.trc-fcal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.trc-fcal-cell {
+  position: relative;
+  padding: 1.25rem;
+  border-right: 1px solid var(--sl-color-hairline-light);
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 170px;
+  transition: background 0.2s;
+}
+
+.trc-fcal-cell:nth-child(7n) {
+  border-right: none;
+}
+
+/* Last row — no bottom border */
+.trc-fcal-cell:nth-child(n+8) {
+  border-bottom: none;
+}
+
+.trc-fcal-cell:not(.empty):hover {
   background: var(--trc-glow-faint);
 }
 
-.trc-feature-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+.trc-fcal-day {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.5rem;
+  font-size: 0.55rem;
+  font-weight: 500;
+  color: var(--sl-color-gray-3);
+  opacity: 0.5;
+}
+
+.trc-fcal-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   background: var(--trc-glow-dim);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
   color: var(--trc-glow);
-  font-size: 1.25rem;
+  flex-shrink: 0;
 }
 
-.trc-feature h3 {
-  font-size: 1rem;
+.trc-fcal-icon svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.trc-fcal-cell h3 {
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--sl-color-white);
-  margin: 0 0 0.5rem;
   letter-spacing: -0.01em;
 }
 
-.trc-feature p {
-  font-size: 0.875rem;
+.trc-fcal-cell p {
+  font-size: 0.9rem;
   color: var(--sl-color-gray-2);
-  margin: 0;
   line-height: 1.6;
+}
+
+.trc-fcal-bar {
+  width: 80%;
+  height: 3px;
+  border-radius: 2px;
+  margin-top: auto;
+}
+
+.trc-fcal-cell.empty {
+  opacity: 0.25;
+  min-height: 60px;
 }
 
 /* ── Calendar mockup for hero ───────────────────────────────────────── */
@@ -336,6 +475,15 @@ th {
   animation: trc-float 6s ease-in-out infinite;
 }
 
+/* Reset Starlight's inherited margins/padding on mock calendar children */
+.trc-cal-mock *,
+.trc-cal-mock *::before,
+.trc-cal-mock *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 @keyframes trc-float {
   0%, 100% { transform: rotateX(2deg) rotateY(-2deg) translateY(0); }
   50% { transform: rotateX(1deg) rotateY(-1deg) translateY(-8px); }
@@ -358,6 +506,7 @@ th {
 
 .trc-cal-toolbar-nav {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
 }
 
@@ -376,6 +525,7 @@ th {
 
 .trc-cal-toolbar-views {
   display: flex;
+  align-items: center;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--sl-color-hairline-light);
@@ -392,7 +542,7 @@ th {
 
 .trc-cal-view-btn.active {
   background: var(--trc-glow);
-  color: hsl(225, 20%, 6%);
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -400,6 +550,7 @@ th {
 .trc-cal-weekheader {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  align-items: center;
   border-bottom: 1px solid var(--sl-color-hairline-light);
 }
 
@@ -453,7 +604,7 @@ th {
 
 .trc-cal-day-num.today {
   background: var(--trc-glow);
-  color: hsl(225, 20%, 6%);
+  color: #ffffff;
   font-weight: 700;
 }
 
@@ -471,10 +622,16 @@ th {
 
 .trc-stats {
   display: flex;
+  align-items: center;
   justify-content: center;
   gap: 3rem;
   padding: 2rem 0;
   margin-block: 2rem;
+}
+
+.trc-stats * {
+  margin: 0;
+  padding: 0;
 }
 
 .trc-stat {
@@ -498,6 +655,15 @@ th {
 
 /* ── Install command block ──────────────────────────────────────────── */
 
+/* Reset Starlight styles inside install block */
+.trc-install *,
+.trc-install *::before,
+.trc-install *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .trc-install {
   display: flex;
   align-items: center;
@@ -512,12 +678,74 @@ th {
   color: var(--sl-color-gray-1);
   max-width: fit-content;
   margin: 2rem auto;
-  user-select: all;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.trc-install:hover {
+  border-color: var(--trc-glow);
+  box-shadow: 0 0 16px -4px var(--trc-glow-dim);
+}
+
+.trc-install:active {
+  transform: scale(0.98);
 }
 
 .trc-install-prompt {
   color: var(--trc-glow);
-  user-select: none;
+}
+
+.trc-install-text {
+  user-select: all;
+}
+
+/* Copy/check icon swap */
+.trc-install-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--sl-color-gray-3);
+  transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trc-install:hover .trc-install-icon {
+  color: var(--sl-color-gray-1);
+}
+
+.trc-install-icon svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.trc-install-icon .trc-icon-copy,
+.trc-install-icon .trc-icon-check {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.trc-install-icon .trc-icon-check {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.trc-install-icon.copied {
+  color: var(--trc-glow);
+}
+
+.trc-install-icon.copied .trc-icon-copy {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.trc-install-icon.copied .trc-icon-check {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
@@ -532,12 +760,53 @@ th {
     font-size: 1.25rem;
   }
 
-  .trc-features {
-    grid-template-columns: 1fr;
-  }
-
   .trc-cal-mock {
     transform: none;
     animation: none;
+  }
+
+  /* Features calendar: collapse to 2 columns on mobile */
+  .trc-fcal-weekheader {
+    display: none;
+  }
+
+  .trc-fcal-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .trc-fcal-cell {
+    min-height: auto;
+    padding: 0.75rem;
+  }
+
+  .trc-fcal-cell.empty {
+    display: none;
+  }
+
+  .trc-fcal-day {
+    display: none;
+  }
+
+  .trc-fcal-cell h3 {
+    font-size: 0.8rem;
+  }
+
+  .trc-fcal-cell p {
+    font-size: 0.7rem;
+  }
+
+  /* Last cell in odd count gets full width */
+  .trc-fcal-cell:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* Reset bottom border for mobile layout */
+  .trc-fcal-cell:nth-child(n+8) {
+    border-bottom: 1px solid var(--sl-color-hairline-light);
+  }
+
+  .trc-fcal-cell:last-child,
+  .trc-fcal-cell:nth-last-child(2):nth-child(odd) ~ .trc-fcal-cell {
+    border-bottom: none;
   }
 }

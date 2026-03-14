@@ -7,11 +7,10 @@ trud-calendar uses CSS custom properties for theming. It works out of the box wi
 
 ## CSS variables
 
-Override any variable in your CSS:
+Override any variable in your CSS to customize the calendar's appearance:
 
 ```css
 :root {
-  /* Layout */
   --trc-background: #ffffff;
   --trc-foreground: #0a0a0a;
   --trc-muted: #f5f5f5;
@@ -21,14 +20,10 @@ Override any variable in your CSS:
   --trc-accent-foreground: #171717;
   --trc-card: #ffffff;
   --trc-card-foreground: #0a0a0a;
-
-  /* Interactive */
   --trc-primary: #171717;
   --trc-primary-foreground: #fafafa;
   --trc-ring: #171717;
   --trc-radius: 0.5rem;
-
-  /* Calendar-specific */
   --trc-today-bg: #dbeafe;
   --trc-today-text: #1d4ed8;
   --trc-event-default: #3b82f6;
@@ -36,6 +31,29 @@ Override any variable in your CSS:
   --trc-hour-height: 3rem;
 }
 ```
+
+### Variable reference
+
+| Variable | Controls | Light default | Dark default |
+|----------|----------|--------------|--------------|
+| `--trc-background` | Calendar background | `#ffffff` | `#0a0a0a` |
+| `--trc-foreground` | Text color | `#0a0a0a` | `#fafafa` |
+| `--trc-muted` | Muted backgrounds (disabled, secondary) | `#f5f5f5` | `#262626` |
+| `--trc-muted-foreground` | Muted text (secondary labels) | `#737373` | `#a3a3a3` |
+| `--trc-border` | Grid lines, cell borders | `#e5e5e5` | `#262626` |
+| `--trc-primary` | Active buttons, selected states | `#171717` | `#fafafa` |
+| `--trc-primary-foreground` | Text on primary backgrounds | `#fafafa` | `#171717` |
+| `--trc-accent` | Hover backgrounds | `#f5f5f5` | `#262626` |
+| `--trc-accent-foreground` | Text on hover backgrounds | `#171717` | `#fafafa` |
+| `--trc-card` | Popover/card backgrounds | `#ffffff` | `#0a0a0a` |
+| `--trc-card-foreground` | Popover/card text | `#0a0a0a` | `#fafafa` |
+| `--trc-ring` | Focus ring color | `#171717` | `#d4d4d4` |
+| `--trc-radius` | Border radius | `0.5rem` | `0.5rem` |
+| `--trc-today-bg` | Today cell highlight | `#dbeafe` | `#1e3a5f` |
+| `--trc-today-text` | Today number color | `#1d4ed8` | `#93c5fd` |
+| `--trc-event-default` | Default event color | `#3b82f6` | `#60a5fa` |
+| `--trc-current-time` | Current time indicator line | `#ef4444` | `#f87171` |
+| `--trc-hour-height` | Height of each hour row | `3rem` | `3rem` |
 
 ## Dark mode
 
@@ -47,44 +65,80 @@ Add the `.dark` class to a parent element:
 </div>
 ```
 
-The built-in dark theme uses these values:
+The calendar includes a complete dark theme. All variables switch automatically when `.dark` is present on any ancestor.
+
+## Common customizations
+
+### Softer borders
 
 ```css
+:root {
+  --trc-border: hsl(0 0% 92%);
+}
 .dark {
-  --trc-background: #0a0a0a;
-  --trc-foreground: #fafafa;
-  --trc-muted: #262626;
-  --trc-muted-foreground: #a3a3a3;
-  --trc-border: #262626;
-  --trc-primary: #fafafa;
-  --trc-primary-foreground: #171717;
-  --trc-accent: #262626;
-  --trc-accent-foreground: #fafafa;
-  --trc-card: #0a0a0a;
-  --trc-card-foreground: #fafafa;
-  --trc-ring: #d4d4d4;
-  --trc-today-bg: #1e3a5f;
-  --trc-today-text: #93c5fd;
-  --trc-event-default: #60a5fa;
-  --trc-current-time: #f87171;
+  --trc-border: hsl(215 20% 20%);
 }
 ```
 
-## shadcn/ui compatibility
-
-Each `--trc-*` variable falls back to the corresponding shadcn variable. For example:
+### Brand-colored today highlight
 
 ```css
---trc-background: var(--background, #ffffff);
---trc-foreground: var(--foreground, #0a0a0a);
---trc-primary: var(--primary, #171717);
+:root {
+  --trc-today-bg: hsl(262 80% 95%);
+  --trc-today-text: hsl(262 80% 45%);
+}
+.dark {
+  --trc-today-bg: hsl(262 50% 20%);
+  --trc-today-text: hsl(262 80% 75%);
+}
 ```
 
-If your project uses shadcn/ui, the calendar inherits your theme automatically — no configuration needed.
+### Taller time grid (more room per hour)
+
+```css
+:root {
+  --trc-hour-height: 5rem;
+}
+```
+
+### Compact time grid
+
+```css
+:root {
+  --trc-hour-height: 2rem;
+}
+```
+
+### Rounder corners
+
+```css
+:root {
+  --trc-radius: 0.75rem;
+}
+```
+
+### Sharp corners (no rounding)
+
+```css
+:root {
+  --trc-radius: 0;
+}
+```
+
+### Change default event color
+
+```css
+:root {
+  --trc-event-default: #6366f1; /* Indigo */
+}
+.dark {
+  --trc-event-default: #818cf8;
+}
+```
 
 ## Custom event colors
 
-Each event can have its own color:
+Each event can have its own color via the `color` property:
 
 ```ts
 const events = [
@@ -96,12 +150,77 @@ const events = [
 
 Events without a `color` use `var(--trc-event-default)`.
 
-## Adjusting the time grid
+## shadcn/ui compatibility
 
-Control the height of each hour row:
+trud-calendar is designed to integrate seamlessly with shadcn/ui. Each `--trc-*` variable falls back to the corresponding shadcn variable:
+
+```css
+--trc-background: var(--background, #ffffff);
+--trc-primary: var(--primary, #171717);
+--trc-border: var(--border, #e5e5e5);
+```
+
+### shadcn v2 (Tailwind v4)
+
+If your project uses **shadcn v2** (the default since Tailwind v4), variables use full color values like `oklch(...)` or `hsl(...)`. The calendar inherits your theme automatically — no extra configuration needed.
+
+### shadcn v1 (Tailwind v3)
+
+shadcn v1 defines CSS variables as raw HSL numbers **without** the `hsl()` wrapper:
+
+```css
+/* shadcn v1 defines variables like this */
+:root {
+  --border: 214.3 31.8% 91.4%;
+  --background: 0 0% 100%;
+}
+```
+
+These raw values are not valid CSS colors. Since `var(--border)` resolves to a non-empty string, the fallback never activates — but the value `214.3 31.8% 91.4%` isn't a valid color either.
+
+**Fix:** Map the variables explicitly, wrapping them with `hsl()`:
 
 ```css
 :root {
-  --trc-hour-height: 4rem; /* Taller rows */
+  --trc-background: hsl(var(--background));
+  --trc-foreground: hsl(var(--foreground));
+  --trc-muted: hsl(var(--muted));
+  --trc-muted-foreground: hsl(var(--muted-foreground));
+  --trc-border: hsl(var(--border));
+  --trc-primary: hsl(var(--primary));
+  --trc-primary-foreground: hsl(var(--primary-foreground));
+  --trc-accent: hsl(var(--accent));
+  --trc-accent-foreground: hsl(var(--accent-foreground));
+  --trc-card: hsl(var(--card));
+  --trc-card-foreground: hsl(var(--card-foreground));
+  --trc-ring: hsl(var(--ring));
+}
+.dark {
+  --trc-background: hsl(var(--background));
+  --trc-foreground: hsl(var(--foreground));
+  --trc-muted: hsl(var(--muted));
+  --trc-muted-foreground: hsl(var(--muted-foreground));
+  --trc-border: hsl(var(--border));
+  --trc-primary: hsl(var(--primary));
+  --trc-primary-foreground: hsl(var(--primary-foreground));
+  --trc-accent: hsl(var(--accent));
+  --trc-accent-foreground: hsl(var(--accent-foreground));
+  --trc-card: hsl(var(--card));
+  --trc-card-foreground: hsl(var(--card-foreground));
+  --trc-ring: hsl(var(--ring));
 }
 ```
+
+## Overriding variables with Tailwind v4
+
+trud-calendar's variables are defined inside `@layer trc` — a low-priority cascade layer. This means your overrides always win, whether they're in `@layer base`, `@layer theme`, or unlayered CSS.
+
+For this to work correctly, **import `trud-calendar/styles.css` before `@import "tailwindcss"`** in your CSS:
+
+```css
+@import "trud-calendar/styles.css";  /* @layer trc — declared first = lowest priority */
+@import "tailwindcss";
+@source "../node_modules/trud-calendar/dist";
+```
+
+This ensures `@layer trc` is declared first in the cascade, giving it the lowest priority. Your overrides from any context will take precedence.
