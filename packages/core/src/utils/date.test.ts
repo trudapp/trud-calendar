@@ -24,6 +24,8 @@ import {
   getTimeOfDay,
   getDurationHours,
   getHourLabels,
+  filterHiddenDays,
+  getISOWeekNumber,
 } from "./date";
 
 describe("parseDate", () => {
@@ -240,5 +242,44 @@ describe("getHourLabels", () => {
     expect(labels[0]).toContain("9");
     expect(labels[1]).toContain("10");
     expect(labels[2]).toContain("11");
+  });
+});
+
+describe("filterHiddenDays", () => {
+  it("removes correct days when hiding weekends", () => {
+    // 2024-06-09 is Sunday (0), 2024-06-10 is Monday (1), ..., 2024-06-15 is Saturday (6)
+    const days = eachDayOfRange("2024-06-09", "2024-06-15");
+    const filtered = filterHiddenDays(days, [0, 6]);
+    expect(filtered).toHaveLength(5);
+    expect(filtered).not.toContain("2024-06-09"); // Sunday
+    expect(filtered).not.toContain("2024-06-15"); // Saturday
+    expect(filtered).toContain("2024-06-10"); // Monday
+    expect(filtered).toContain("2024-06-14"); // Friday
+  });
+
+  it("returns all days when hiddenDays is empty", () => {
+    const days = eachDayOfRange("2024-06-09", "2024-06-15");
+    const filtered = filterHiddenDays(days, []);
+    expect(filtered).toEqual(days);
+  });
+});
+
+describe("getISOWeekNumber", () => {
+  it("returns correct week number for Jan 1 2026", () => {
+    // 2026-01-01 is a Thursday — ISO week 1
+    expect(getISOWeekNumber("2026-01-01")).toBe(1);
+  });
+
+  it("returns correct week number for March 25 2026", () => {
+    // 2026-03-25 is a Wednesday — ISO week 13
+    expect(getISOWeekNumber("2026-03-25")).toBe(13);
+  });
+});
+
+describe("getVisibleRange — year view", () => {
+  it("returns Jan 1 to Dec 31 for year view", () => {
+    const range = getVisibleRange("2024-06-15", "year");
+    expect(range.start).toBe("2024-01-01");
+    expect(range.end).toBe("2024-12-31");
   });
 });

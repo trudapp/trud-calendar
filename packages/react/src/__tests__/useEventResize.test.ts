@@ -380,6 +380,75 @@ describe("useEventResize", () => {
     });
   });
 
+  describe("snapDuration option", () => {
+    it("accepts snapDuration option without error", () => {
+      const { result } = renderHook(() =>
+        useEventResize({
+          dayStartHour: 0,
+          dayEndHour: 24,
+          enabled: true,
+          onEventResize: vi.fn(),
+          snapDuration: 30,
+        }),
+      );
+
+      expect(result.current.resizeState).toBeNull();
+    });
+  });
+
+  describe("resize from start edge", () => {
+    it("exposes onResizeStartHandlePointerDown as a function", () => {
+      const { result } = renderHook(() =>
+        useEventResize({
+          dayStartHour: 0,
+          dayEndHour: 24,
+          enabled: true,
+          onEventResize: vi.fn(),
+        }),
+      );
+
+      expect(typeof result.current.onResizeStartHandlePointerDown).toBe("function");
+    });
+  });
+
+  describe("resizeConstraint", () => {
+    it("does not call onEventResize when resizeConstraint returns false", () => {
+      const onEventResize = vi.fn();
+      const { result } = renderHook(() =>
+        useEventResize({
+          dayStartHour: 0,
+          dayEndHour: 24,
+          enabled: true,
+          onEventResize,
+          resizeConstraint: () => false,
+        }),
+      );
+
+      const event = makeEvent("1", "2024-06-15T10:00:00", "2024-06-15T11:00:00");
+      const columnEl = createMockColumnEl();
+
+      act(() => {
+        result.current.onResizeHandlePointerDown(
+          createPointerEvent(),
+          event,
+          "2024-06-15" as DateString,
+          columnEl,
+        );
+      });
+
+      const upHandler = addEventListenerSpy.mock.calls.find(
+        (c) => c[0] === "pointerup",
+      )?.[1] as EventListener;
+
+      // Pointer up at Y=600 -> fractional hour = (600/960)*24 = 15.0
+      act(() => {
+        upHandler(new PointerEvent("pointerup", { clientX: 100, clientY: 600 }));
+      });
+
+      expect(onEventResize).not.toHaveBeenCalled();
+    });
+  });
+
   describe("cleanup", () => {
     it("cleans up after pointer up", () => {
       const onEventResize = vi.fn();

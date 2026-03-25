@@ -430,6 +430,103 @@ describe("useSlotSelection", () => {
     });
   });
 
+  describe("snapDuration option", () => {
+    it("accepts snapDuration option without error", () => {
+      const { result } = renderHook(() =>
+        useSlotSelection({
+          dayStartHour: 0,
+          dayEndHour: 24,
+          snapDuration: 30,
+        }),
+      );
+
+      expect(result.current.selection).toBeNull();
+    });
+  });
+
+  describe("selectConstraint", () => {
+    it("does not call onSlotSelect when selectConstraint returns false", () => {
+      const onSlotSelect = vi.fn();
+      const { result } = renderHook(() =>
+        useSlotSelection({
+          dayStartHour: 0,
+          dayEndHour: 24,
+          onSlotSelect,
+          selectConstraint: () => false,
+        }),
+      );
+
+      const columnEl = createMockColumnEl();
+
+      // Pointer down at Y=400 (10:00)
+      act(() => {
+        result.current.onSlotPointerDown(
+          createPointerEvent({ clientY: 400 } as any),
+          "2024-06-15" as DateString,
+          columnEl,
+        );
+      });
+
+      const moveHandler = addEventListenerSpy.mock.calls.find(
+        (c) => c[0] === "pointermove",
+      )?.[1] as EventListener;
+      const upHandler = addEventListenerSpy.mock.calls.find(
+        (c) => c[0] === "pointerup",
+      )?.[1] as EventListener;
+
+      // Move past threshold to trigger a drag selection
+      act(() => {
+        moveHandler(new PointerEvent("pointermove", { clientX: 100, clientY: 480 }));
+      });
+
+      // Pointer up to finalize
+      act(() => {
+        upHandler(new PointerEvent("pointerup", { clientX: 100, clientY: 480 }));
+      });
+
+      expect(onSlotSelect).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("resource detection on slot click", () => {
+    it("passes resourceId in extra argument when column has dataset.resourceId", () => {
+      const onSlotClick = vi.fn();
+      const { result } = renderHook(() =>
+        useSlotSelection({
+          dayStartHour: 0,
+          dayEndHour: 24,
+          onSlotClick,
+        }),
+      );
+
+      const columnEl = createMockColumnEl();
+      columnEl.dataset.resourceId = "room-a";
+
+      // Pointer down at Y=400 (10:00)
+      act(() => {
+        result.current.onSlotPointerDown(
+          createPointerEvent({ clientY: 400 } as any),
+          "2024-06-15" as DateString,
+          columnEl,
+        );
+      });
+
+      const upHandler = addEventListenerSpy.mock.calls.find(
+        (c) => c[0] === "pointerup",
+      )?.[1] as EventListener;
+
+      // Pointer up without moving (click, not drag)
+      act(() => {
+        upHandler(new PointerEvent("pointerup", { clientX: 100, clientY: 400 }));
+      });
+
+      expect(onSlotClick).toHaveBeenCalled();
+      const dateTime = onSlotClick.mock.calls[0][0];
+      expect(dateTime).toMatch(/2024-06-15T/);
+      expect(onSlotClick.mock.calls[0][1]).toEqual({ resourceId: "room-a" });
+    });
+  });
+
   describe("cleanup", () => {
     it("clears selection on pointer up", () => {
       const { result } = renderHook(() =>

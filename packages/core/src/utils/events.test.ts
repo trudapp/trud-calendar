@@ -106,6 +106,61 @@ describe("partitionEvents", () => {
     expect(allDay).toHaveLength(2);
     expect(timed).toHaveLength(1);
   });
+
+  it("puts display:background events in the background array", () => {
+    const events: CalendarEvent[] = [
+      {
+        ...makeEvent("bg1", "2024-06-15T08:00:00", "2024-06-15T12:00:00"),
+        display: "background",
+      },
+      {
+        ...makeEvent("bg2", "2024-06-15T00:00:00", "2024-06-15T23:59:00", true),
+        display: "background",
+      },
+    ];
+    const { allDay, timed, background } = partitionEvents(events);
+    expect(background).toHaveLength(2);
+    expect(background.map((e) => e.id)).toEqual(["bg1", "bg2"]);
+    expect(allDay).toHaveLength(0);
+    expect(timed).toHaveLength(0);
+  });
+
+  it("does not put background events in timed or allDay", () => {
+    const events: CalendarEvent[] = [
+      {
+        ...makeEvent("bg", "2024-06-15T10:00:00", "2024-06-15T12:00:00"),
+        display: "background",
+      },
+      makeEvent("timed", "2024-06-15T10:00:00", "2024-06-15T12:00:00"),
+      makeEvent("allday", "2024-06-15T00:00:00", "2024-06-15T23:59:00", true),
+    ];
+    const { allDay, timed, background } = partitionEvents(events);
+    expect(background).toHaveLength(1);
+    expect(background[0].id).toBe("bg");
+    expect(timed).toHaveLength(1);
+    expect(timed[0].id).toBe("timed");
+    expect(allDay).toHaveLength(1);
+    expect(allDay[0].id).toBe("allday");
+  });
+
+  it("treats events with display:auto as regular events", () => {
+    const events: CalendarEvent[] = [
+      {
+        ...makeEvent("auto-timed", "2024-06-15T10:00:00", "2024-06-15T12:00:00"),
+        display: "auto",
+      },
+      {
+        ...makeEvent("auto-allday", "2024-06-15T00:00:00", "2024-06-15T23:59:00", true),
+        display: "auto",
+      },
+    ];
+    const { allDay, timed, background } = partitionEvents(events);
+    expect(background).toHaveLength(0);
+    expect(timed).toHaveLength(1);
+    expect(timed[0].id).toBe("auto-timed");
+    expect(allDay).toHaveLength(1);
+    expect(allDay[0].id).toBe("auto-allday");
+  });
 });
 
 describe("segmentMultiDayEvent", () => {

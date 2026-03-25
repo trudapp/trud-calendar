@@ -295,6 +295,135 @@ describe("useEventDrag", () => {
     });
   });
 
+  describe("snapDuration option", () => {
+    it("initializes without error when snapDuration is provided", () => {
+      const { result } = renderHook(() =>
+        useEventDrag({ enabled: true, mode: "time", onEventDrop: vi.fn(), snapDuration: 30 }),
+      );
+
+      expect(result.current.dragState).toBeNull();
+      expect(result.current.isDragging).toBe(false);
+    });
+  });
+
+  describe("dragConstraint", () => {
+    it("does not call onEventDrop when dragConstraint returns false", () => {
+      const onEventDrop = vi.fn();
+
+      // Mock elementsFromPoint to return an element with data-day
+      const mockEl = document.createElement("div");
+      mockEl.dataset.day = "2024-06-20";
+      vi.spyOn(document, "elementsFromPoint").mockReturnValue([mockEl]);
+
+      const { result } = renderHook(() =>
+        useEventDrag({
+          enabled: true,
+          mode: "date",
+          onEventDrop,
+          dragConstraint: () => false,
+        }),
+      );
+
+      const event = makeEvent("1", "2024-06-15T10:00:00", "2024-06-15T11:00:00");
+      const pointerEvent = createPointerEvent("pointerdown", {
+        clientX: 100,
+        clientY: 200,
+      } as any);
+
+      act(() => {
+        result.current.onPointerDown(pointerEvent, event);
+      });
+
+      const moveHandler = addEventListenerSpy.mock.calls.find(
+        (c) => c[0] === "pointermove",
+      )?.[1] as EventListener;
+      const upHandler = addEventListenerSpy.mock.calls.find(
+        (c) => c[0] === "pointerup",
+      )?.[1] as EventListener;
+
+      // Move past threshold
+      act(() => {
+        moveHandler(new PointerEvent("pointermove", { clientX: 110, clientY: 210 }));
+      });
+
+      // Pointer up to complete drag
+      act(() => {
+        upHandler(new PointerEvent("pointerup", { clientX: 110, clientY: 210 }));
+      });
+
+      expect(onEventDrop).not.toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe("resource detection", () => {
+    it("passes resourceId in extra argument when element has dataset.resourceId", () => {
+      const onEventDrop = vi.fn();
+
+      // Mock elementsFromPoint to return an element with both data-day and data-resource-id
+      const mockEl = document.createElement("div");
+      mockEl.dataset.day = "2024-06-20";
+      mockEl.dataset.resourceId = "room-a";
+      vi.spyOn(document, "elementsFromPoint").mockReturnValue([mockEl]);
+
+      const { result } = renderHook(() =>
+        useEventDrag({
+          enabled: true,
+          mode: "date",
+          onEventDrop,
+        }),
+      );
+
+      const event = makeEvent("1", "2024-06-15T10:00:00", "2024-06-15T11:00:00");
+      const pointerEvent = createPointerEvent("pointerdown", {
+        clientX: 100,
+        clientY: 200,
+      } as any);
+
+      act(() => {
+        result.current.onPointerDown(pointerEvent, event);
+      });
+
+      const moveHandler = addEventListenerSpy.mock.calls.find(
+        (c) => c[0] === "pointermove",
+      )?.[1] as EventListener;
+      const upHandler = addEventListenerSpy.mock.calls.find(
+        (c) => c[0] === "pointerup",
+      )?.[1] as EventListener;
+
+      // Move past threshold
+      act(() => {
+        moveHandler(new PointerEvent("pointermove", { clientX: 110, clientY: 210 }));
+      });
+
+      // Pointer up to complete drag
+      act(() => {
+        upHandler(new PointerEvent("pointerup", { clientX: 110, clientY: 210 }));
+      });
+
+      expect(onEventDrop).toHaveBeenCalledWith(
+        event,
+        expect.stringContaining("2024-06-20T10:00:00"),
+        expect.stringContaining("2024-06-20T11:00:00"),
+        { resourceId: "room-a" },
+      );
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe("longPressDelay option", () => {
+    it("initializes without error when longPressDelay is provided", () => {
+      const { result } = renderHook(() =>
+        useEventDrag({ enabled: true, mode: "time", onEventDrop: vi.fn(), longPressDelay: 300 }),
+      );
+
+      expect(result.current.dragState).toBeNull();
+      expect(result.current.isDragging).toBe(false);
+    });
+  });
+
   describe("cleanup", () => {
     it("cleans up drag state on pointer up", () => {
       const onEventDrop = vi.fn();

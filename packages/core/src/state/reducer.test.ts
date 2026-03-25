@@ -64,4 +64,16 @@ describe("calendarReducer", () => {
     });
     expect(result.view).toBe("week");
   });
+
+  it("NAVIGATE_NEXT in year view advances by 12 months", () => {
+    const yearState = createInitialState("2024-06-15", "year");
+    const next = calendarReducer(yearState, { type: "NAVIGATE_NEXT" });
+    expect(next.currentDate).toBe("2025-06-15");
+  });
+
+  it("NAVIGATE_PREV in year view goes back by 12 months", () => {
+    const yearState = createInitialState("2024-06-15", "year");
+    const prev = calendarReducer(yearState, { type: "NAVIGATE_PREV" });
+    expect(prev.currentDate).toBe("2023-06-15");
+  });
 });
