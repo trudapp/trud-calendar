@@ -92,6 +92,11 @@ export default defineConfig({
               slug: "slots",
               label: "Slots API",
             },
+            {
+              slug: "resource-views",
+              label: "Resource Views",
+              translations: { es: "Vistas de Recursos" },
+            },
           ],
         },
         {

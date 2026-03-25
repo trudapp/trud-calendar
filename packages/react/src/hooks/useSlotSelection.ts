@@ -25,8 +25,12 @@ export interface SlotSelection {
 export interface UseSlotSelectionOptions {
   dayStartHour: number;
   dayEndHour: number;
-  onSlotClick?: (date: DateTimeString) => void;
-  onSlotSelect?: (start: DateTimeString, end: DateTimeString) => void;
+  /** Snap increment in minutes (default 15) */
+  snapDuration?: number;
+  onSlotClick?: (date: DateTimeString, extra?: { resourceId?: string }) => void;
+  onSlotSelect?: (start: DateTimeString, end: DateTimeString, extra?: { resourceId?: string }) => void;
+  /** Constraint callback — return false to prevent the selection */
+  selectConstraint?: (start: DateTimeString, end: DateTimeString) => boolean;
 }
 
 export interface UseSlotSelectionReturn {
@@ -41,8 +45,10 @@ export interface UseSlotSelectionReturn {
 export function useSlotSelection({
   dayStartHour,
   dayEndHour,
+  snapDuration = 15,
   onSlotClick,
   onSlotSelect,
+  selectConstraint,
 }: UseSlotSelectionOptions): UseSlotSelectionReturn {
   const [selection, setSelection] = useState<SlotSelection | null>(null);
 
@@ -74,12 +80,12 @@ export function useSlotSelection({
 
       const rect = active.columnEl.getBoundingClientRect();
       let currentHour = yPositionToFractionalHour(e.clientY, rect, dayStartHour, dayEndHour);
-      currentHour = snapToIncrement(currentHour, 15);
+      currentHour = snapToIncrement(currentHour, snapDuration);
       currentHour = Math.max(dayStartHour, Math.min(dayEndHour, currentHour));
 
       const { start, end } = normalizeRange(active.startFractionalHour, currentHour);
       // Ensure minimum 15 min selection
-      const finalEnd = Math.max(start + 0.25, end);
+      const finalEnd = Math.max(start + snapDuration / 60, end);
 
       const startPercent = ((start - dayStartHour) / totalHours) * 100;
       const endPercent = ((finalEnd - dayStartHour) / totalHours) * 100;
@@ -93,7 +99,7 @@ export function useSlotSelection({
         endTime: fractionalHourToDateTime(active.day, finalEnd),
       });
     },
-    [dayStartHour, dayEndHour, totalHours],
+    [dayStartHour, dayEndHour, snapDuration, totalHours],
   );
 
   const handlePointerUp = useCallback(
@@ -101,25 +107,30 @@ export function useSlotSelection({
       const active = activeRef.current;
       if (!active) return;
 
+      const resourceId = active.columnEl.dataset.resourceId;
+      const extra = resourceId ? { resourceId } : undefined;
+
       if (active.isDragging) {
         // Finalize selection
         const rect = active.columnEl.getBoundingClientRect();
         let currentHour = yPositionToFractionalHour(e.clientY, rect, dayStartHour, dayEndHour);
-        currentHour = snapToIncrement(currentHour, 15);
+        currentHour = snapToIncrement(currentHour, snapDuration);
         currentHour = Math.max(dayStartHour, Math.min(dayEndHour, currentHour));
 
         const { start, end } = normalizeRange(active.startFractionalHour, currentHour);
-        const finalEnd = Math.max(start + 0.25, end);
+        const finalEnd = Math.max(start + snapDuration / 60, end);
 
         const startTime = fractionalHourToDateTime(active.day, start);
         const endTime = fractionalHourToDateTime(active.day, finalEnd);
 
-        onSlotSelect?.(startTime, endTime);
+        if (!selectConstraint || selectConstraint(startTime, endTime)) {
+          onSlotSelect?.(startTime, endTime, extra);
+        }
       } else {
         // It was a click, not a drag — fire slot click
-        const snapped = snapToIncrement(active.startFractionalHour, 15);
+        const snapped = snapToIncrement(active.startFractionalHour, snapDuration);
         const dateTime = fractionalHourToDateTime(active.day, snapped);
-        onSlotClick?.(dateTime);
+        onSlotClick?.(dateTime, extra);
       }
 
       // Clean up
@@ -130,7 +141,7 @@ export function useSlotSelection({
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerup", handlePointerUp);
     },
-    [dayStartHour, dayEndHour, onSlotClick, onSlotSelect, handlePointerMove],
+    [dayStartHour, dayEndHour, snapDuration, onSlotClick, onSlotSelect, selectConstraint, handlePointerMove],
   );
 
   const onSlotPointerDown = useCallback(
@@ -145,7 +156,7 @@ export function useSlotSelection({
 
       const rect = columnEl.getBoundingClientRect();
       let startHour = yPositionToFractionalHour(e.clientY, rect, dayStartHour, dayEndHour);
-      startHour = snapToIncrement(startHour, 15);
+      startHour = snapToIncrement(startHour, snapDuration);
       startHour = Math.max(dayStartHour, Math.min(dayEndHour, startHour));
 
       activeRef.current = {
@@ -159,7 +170,7 @@ export function useSlotSelection({
       document.addEventListener("pointermove", handlePointerMove);
       document.addEventListener("pointerup", handlePointerUp);
     },
-    [dayStartHour, dayEndHour, handlePointerMove, handlePointerUp],
+    [dayStartHour, dayEndHour, snapDuration, handlePointerMove, handlePointerUp],
   );
 
   // Cleanup on unmount

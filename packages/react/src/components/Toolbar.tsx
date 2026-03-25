@@ -7,8 +7,11 @@ import { VIEWS, type CalendarView } from "trud-calendar-core";
 
 export function Toolbar() {
   const nav = useNavigation();
-  const { labels } = useCalendarContext();
+  const { labels, validRange, visibleRange } = useCalendarContext();
   const slots = useCalendarSlots();
+
+  const canGoPrev = !validRange?.start || visibleRange.start > validRange.start;
+  const canGoNext = !validRange?.end || visibleRange.end < validRange.end;
 
   const handleViewKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -97,11 +100,13 @@ export function Toolbar() {
         </button>
         <button
           onClick={nav.prev}
+          disabled={!canGoPrev}
           className={cn(
             "rounded-[var(--trc-radius)] p-1 @[640px]:p-1.5",
             "text-[var(--trc-foreground)]",
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
+            !canGoPrev && "opacity-30 cursor-not-allowed",
           )}
           aria-label="Previous"
         >
@@ -121,11 +126,13 @@ export function Toolbar() {
         </button>
         <button
           onClick={nav.next}
+          disabled={!canGoNext}
           className={cn(
             "rounded-[var(--trc-radius)] p-1 @[640px]:p-1.5",
             "text-[var(--trc-foreground)]",
             "hover:bg-[var(--trc-accent)]",
             "transition-colors",
+            !canGoNext && "opacity-30 cursor-not-allowed",
           )}
           aria-label="Next"
         >

@@ -174,9 +174,11 @@ const {
   isDragging,     // boolean
   didDrag,        // React.RefObject<boolean> — true if a drag occurred (suppress click)
 } = useEventDrag({
-  mode: "time",   // "time" for week/day, "date" for month
-  onEventDrop,    // (event, newStart, newEnd) => void
-  enableDnD,      // boolean
+  mode: "time",        // "time" for week/day, "date" for month
+  onEventDrop,         // (event, newStart, newEnd) => void
+  enabled: true,       // boolean
+  snapDuration: 15,    // snap increment in minutes
+  dragConstraint,      // (event, newStart, newEnd) => boolean — optional
 });
 ```
 
@@ -186,6 +188,25 @@ const {
 - `targetDay` — the day column the cursor is over (detected via `data-day` attributes)
 
 Supports both mouse and touch interactions via Pointer Events API.
+
+## useAutoScroll()
+
+Auto-scrolls a container when the pointer approaches its top or bottom edge. Integrated into the week/day view during drag, resize, and slot selection — you only need this hook when building custom scrollable layouts.
+
+```ts
+import { useAutoScroll } from "trud-calendar";
+
+const { handleAutoScroll, stopAutoScroll } = useAutoScroll({
+  containerRef: scrollRef,  // React.RefObject<HTMLElement>
+  enabled: isDragging,      // activate only during interactions
+});
+
+// Call on every pointermove:
+handleAutoScroll(e.clientY);
+
+// Call on pointerup:
+stopAutoScroll();
+```
 
 ## useGridKeyboard()
 
@@ -342,3 +363,72 @@ Pair with `filterVisibleEvents()` from `trud-calendar-core` to cull off-screen e
 import { filterVisibleEvents } from "trud-calendar-core";
 
 const visible = filterVisibleEvents(positioned, viewportTop, viewportBottom);
+```
+
+## useEventSources()
+
+Fetches events from one or more sources based on the visible date range. Caches results per range and deduplicates requests.
+
+```tsx
+import { useEventSources, useCalendar } from "trud-calendar";
+
+const { visibleRange } = useCalendar();
+
+const { events, isLoading, refetch } = useEventSources({
+  sources: [
+    { url: "/api/events" },
+    { fetcher: async (start, end) => {
+      const res = await fetch(`/api/team-events?from=${start}&to=${end}`);
+      return res.json();
+    }},
+  ],
+  start: visibleRange.start,
+  end: visibleRange.end,
+});
+
+// Pass to Calendar
+<Calendar events={events} />
+```
+
+Each source can be a `url` (query params `start` and `end` are appended automatically) or a `fetcher` function. Results from all sources are merged into a single array.
+
+Returns:
+- `events` — merged events from all sources
+- `isLoading` — true while any source is fetching
+- `refetch()` — clears the cache and re-fetches all sources
+
+## useExternalDrag()
+
+Enables dragging items from outside the calendar onto time slots. Uses the native HTML5 Drag and Drop API.
+
+```tsx
+import { useExternalDrag } from "trud-calendar";
+
+const { makeDraggable, dropTargetProps } = useExternalDrag({
+  onExternalDrop: (info) => {
+    console.log(info.day);        // "2026-03-25"
+    console.log(info.start);      // "2026-03-25T10:00:00"
+    console.log(info.resourceId); // "room-a" (if resource view)
+    console.log(info.data);       // { taskId: "123", title: "My Task" }
+  },
+  dayStartHour: 8,
+  dayEndHour: 20,
+  snapDuration: 15,
+});
+
+// Make sidebar items draggable
+<div {...makeDraggable({ taskId: "123", title: "My Task" })}>
+  Drag me to calendar
+</div>
+
+// Wrap calendar to accept drops
+<div {...dropTargetProps}>
+  <Calendar events={events} />
+</div>
+```
+
+`ExternalDropInfo` contains:
+- `day` — the target date
+- `start` — snapped start time
+- `resourceId` — resource ID if dropped on a resource column
+- `data` — the data object you attached via `makeDraggable`

@@ -5,6 +5,7 @@ export { MonthView } from "./components/MonthView";
 export { WeekView } from "./components/WeekView";
 export { DayView } from "./components/DayView";
 export { AgendaView } from "./components/AgendaView";
+export { ResourceTimeGrid, type ResourceTimeGridProps } from "./components/ResourceTimeGrid";
 export { EventPopoverContent, useEventPopover } from "./components/EventPopover";
 
 // Context
@@ -20,7 +21,7 @@ export { useEvents, type UseEventsReturn } from "./hooks/useEvents";
 export { useEventLayout } from "./hooks/useEventLayout";
 export { useCurrentTime, type UseCurrentTimeReturn } from "./hooks/useCurrentTime";
 export { useDateFormat, type UseDateFormatReturn } from "./hooks/useDateFormat";
-export { useEventResize, type UseEventResizeReturn } from "./hooks/useEventResize";
+export { useEventResize, type UseEventResizeReturn, type ResizeEdge, type ResizeState } from "./hooks/useEventResize";
 export { useSlotSelection, type UseSlotSelectionReturn } from "./hooks/useSlotSelection";
 export { useEventDrag, type UseEventDragReturn, type DragState } from "./hooks/useEventDrag";
 export { useGridKeyboard, type UseGridKeyboardReturn } from "./hooks/useGridKeyboard";
@@ -28,6 +29,9 @@ export { useSwipeNavigation, type UseSwipeNavigationOptions } from "./hooks/useS
 export { useResponsiveView } from "./hooks/useResponsiveView";
 export { useEventSelection, type UseEventSelectionReturn } from "./hooks/useEventSelection";
 export { useVirtualScroll, type UseVirtualScrollOptions, type UseVirtualScrollReturn } from "./hooks/useVirtualScroll";
+export { useAutoScroll, type UseAutoScrollOptions, type UseAutoScrollReturn } from "./hooks/useAutoScroll";
+export { useEventSources, type EventSource, type UseEventSourcesOptions, type UseEventSourcesReturn } from "./hooks/useEventSources";
+export { useExternalDrag, type ExternalDragData, type ExternalDropInfo, type UseExternalDragOptions, type UseExternalDragReturn } from "./hooks/useExternalDrag";
 
 export {
   useUndoableEvents,
@@ -61,4 +65,7 @@ export type {
   RecurrenceFrequency,
   RecurrenceDay,
   RecurrenceRule,
+  Resource,
+  ResourceHeaderSlotProps,
+  EventDropExtra,
 } from "trud-calendar-core";

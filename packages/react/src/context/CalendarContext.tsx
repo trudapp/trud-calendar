@@ -22,15 +22,18 @@ import {
   type DateString,
   type DateTimeString,
   type CalendarLabels,
+  type Resource,
+  type EventDropExtra,
   DEFAULT_LOCALE,
   DEFAULT_LABELS,
   DEFAULT_DAY_START_HOUR,
   DEFAULT_DAY_END_HOUR,
+  DEFAULT_SNAP_DURATION,
 } from "trud-calendar-core";
 
-export type EventDropHandler = (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
+export type EventDropHandler = (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString, extra?: EventDropExtra) => void;
 export type EventResizeHandler = (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
-export type SlotSelectHandler = (start: DateTimeString, end: DateTimeString) => void;
+export type SlotSelectHandler = (start: DateTimeString, end: DateTimeString, extra?: { resourceId?: string }) => void;
 
 interface CalendarContextValue {
   state: CalendarState;
@@ -42,8 +45,9 @@ interface CalendarContextValue {
   weekStartsOn: number;
   dayStartHour: number;
   dayEndHour: number;
+  snapDuration: number;
   onEventClick?: (event: CalendarEvent) => void;
-  onSlotClick?: (date: DateTimeString) => void;
+  onSlotClick?: (date: DateTimeString, extra?: { resourceId?: string }) => void;
   onDateChange?: (date: DateString) => void;
   onViewChange?: (view: CalendarView) => void;
   onEventDrop?: EventDropHandler;
@@ -51,6 +55,16 @@ interface CalendarContextValue {
   onSlotSelect?: SlotSelectHandler;
   enableDnD?: boolean;
   enableVirtualization?: boolean;
+  hiddenDays: number[];
+  validRange?: { start?: DateString; end?: DateString };
+  highlightedDates: Set<string>;
+  showWeekNumbers: boolean;
+  longPressDelay: number;
+  slotClickTime: string;
+  resources: Resource[];
+  dragConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
+  resizeConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
+  selectConstraint?: (start: DateTimeString, end: DateTimeString) => boolean;
   labels: CalendarLabels;
 }
 
@@ -74,6 +88,16 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
   const weekStartsOn = config.locale?.weekStartsOn ?? DEFAULT_LOCALE.weekStartsOn;
   const dayStartHour = config.dayStartHour ?? DEFAULT_DAY_START_HOUR;
   const dayEndHour = config.dayEndHour ?? DEFAULT_DAY_END_HOUR;
+  const snapDuration = config.snapDuration ?? DEFAULT_SNAP_DURATION;
+  const hiddenDays = config.hiddenDays ?? [];
+  const highlightedDates = useMemo(
+    () => new Set(config.highlightedDates ?? []),
+    [config.highlightedDates],
+  );
+  const showWeekNumbers = config.showWeekNumbers ?? false;
+  const longPressDelay = config.longPressDelay ?? 0;
+  const slotClickTime = config.slotClickTime ?? "09:00:00";
+  const resources = config.resources ?? [];
   const labels: CalendarLabels = useMemo(
     () => ({ ...DEFAULT_LABELS, ...config.locale?.labels }),
     [config.locale?.labels],
@@ -144,6 +168,7 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       weekStartsOn,
       dayStartHour,
       dayEndHour,
+      snapDuration,
       onEventClick: config.onEventClick,
       onSlotClick: config.onSlotClick,
       onDateChange: config.onDateChange,
@@ -153,6 +178,16 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       onSlotSelect: config.onSlotSelect,
       enableDnD: config.enableDnD,
       enableVirtualization: config.enableVirtualization,
+      hiddenDays,
+      validRange: config.validRange,
+      highlightedDates,
+      showWeekNumbers,
+      longPressDelay,
+      slotClickTime,
+      resources,
+      dragConstraint: config.dragConstraint,
+      resizeConstraint: config.resizeConstraint,
+      selectConstraint: config.selectConstraint,
       labels,
     }),
     [
@@ -165,6 +200,7 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       weekStartsOn,
       dayStartHour,
       dayEndHour,
+      snapDuration,
       config.onEventClick,
       config.onSlotClick,
       config.onDateChange,
@@ -174,6 +210,16 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       config.onSlotSelect,
       config.enableDnD,
       config.enableVirtualization,
+      hiddenDays,
+      config.validRange,
+      highlightedDates,
+      showWeekNumbers,
+      longPressDelay,
+      slotClickTime,
+      resources,
+      config.dragConstraint,
+      config.resizeConstraint,
+      config.selectConstraint,
       labels,
     ],
   );

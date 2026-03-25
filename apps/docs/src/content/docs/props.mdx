@@ -19,6 +19,13 @@ The `<Calendar>` component accepts all fields from `CalendarConfig`, plus `class
 | `enableDnD` | `boolean` | `false` | Enable drag and drop |
 | `dayStartHour` | `number` | `0` | Hour the time grid starts (0-23) |
 | `dayEndHour` | `number` | `24` | Hour the time grid ends (0-24) |
+| `snapDuration` | `number` | `15` | Snap increment in minutes for drag, resize, and slot selection |
+| `hiddenDays` | `number[]` | `[]` | Days of the week to hide (0=Sunday … 6=Saturday) |
+| `validRange` | `{ start?: DateString; end?: DateString }` | — | Restrict navigable date range; prev/next buttons are disabled at bounds |
+| `highlightedDates` | `DateString[]` | `[]` | Dates to visually highlight across all views |
+| `showWeekNumbers` | `boolean` | `false` | Show ISO week numbers in month view |
+| `longPressDelay` | `number` | `0` | Long press delay in ms for touch drag (avoids interfering with scroll) |
+| `resources` | `Resource[]` | `[]` | Resources for resource views (day/week views gain one column per resource) |
 | `className` | `string` | — | Additional CSS classes |
 
 ## Callbacks
@@ -32,6 +39,9 @@ The `<Calendar>` component accepts all fields from `CalendarConfig`, plus `class
 | `onSlotSelect` | `(start: DateTimeString, end: DateTimeString) => void` | Fired when a time range is selected by dragging across empty slots |
 | `onDateChange` | `(date: DateString) => void` | Fired when the visible date changes (navigation) |
 | `onViewChange` | `(view: CalendarView) => void` | Fired when the view changes |
+| `dragConstraint` | `(event, newStart, newEnd) => boolean` | Return `false` to prevent a drop |
+| `resizeConstraint` | `(event, newStart, newEnd) => boolean` | Return `false` to prevent a resize |
+| `selectConstraint` | `(start, end) => boolean` | Return `false` to prevent a slot selection |
 
 ## Type definitions
 
@@ -120,5 +130,6 @@ interface CalendarSlots {
   allDayEvent?: ComponentType<AllDayEventSlotProps>;
   popover?: ComponentType<PopoverSlotProps>;
   agendaEvent?: ComponentType<AgendaEventSlotProps>;
+  resourceHeader?: ComponentType<ResourceHeaderSlotProps>;
 }
 ```

@@ -19,6 +19,13 @@ El componente `<Calendar>` acepta todos los campos de `CalendarConfig`, mas `cla
 | `enableDnD` | `boolean` | `false` | Habilitar drag and drop |
 | `dayStartHour` | `number` | `0` | Hora de inicio de la grilla (0-23) |
 | `dayEndHour` | `number` | `24` | Hora de fin de la grilla (0-24) |
+| `snapDuration` | `number` | `15` | Incremento de snap en minutos para arrastre, redimensionado y seleccion |
+| `hiddenDays` | `number[]` | `[]` | Dias de la semana a ocultar (0=Domingo … 6=Sabado) |
+| `validRange` | `{ start?: DateString; end?: DateString }` | — | Restringe el rango navegable; los botones anterior/siguiente se deshabilitan en los limites |
+| `highlightedDates` | `DateString[]` | `[]` | Fechas a resaltar visualmente en todas las vistas |
+| `showWeekNumbers` | `boolean` | `false` | Muestra numeros de semana ISO en la vista de mes |
+| `longPressDelay` | `number` | `0` | Retardo de presion larga en ms para arrastre tactil (evita interferir con el scroll) |
+| `resources` | `Resource[]` | `[]` | Recursos para las vistas de recursos (las vistas dia/semana ganan una columna por recurso) |
 | `className` | `string` | — | Clases CSS adicionales |
 
 ## Callbacks
@@ -32,6 +39,9 @@ El componente `<Calendar>` acepta todos los campos de `CalendarConfig`, mas `cla
 | `onSlotSelect` | `(start: DateTimeString, end: DateTimeString) => void` | Se dispara al seleccionar un rango de tiempo arrastrando sobre slots vacios |
 | `onDateChange` | `(date: DateString) => void` | Se dispara cuando la fecha visible cambia (navegacion) |
 | `onViewChange` | `(view: CalendarView) => void` | Se dispara cuando la vista cambia |
+| `dragConstraint` | `(event, newStart, newEnd) => boolean` | Devuelve `false` para prevenir un drop |
+| `resizeConstraint` | `(event, newStart, newEnd) => boolean` | Devuelve `false` para prevenir un resize |
+| `selectConstraint` | `(start, end) => boolean` | Devuelve `false` para prevenir una seleccion |
 
 ## Definiciones de tipos
 
@@ -120,5 +130,6 @@ interface CalendarSlots {
   allDayEvent?: ComponentType<AllDayEventSlotProps>;
   popover?: ComponentType<PopoverSlotProps>;
   agendaEvent?: ComponentType<AgendaEventSlotProps>;
+  resourceHeader?: ComponentType<ResourceHeaderSlotProps>;
 }
 ```

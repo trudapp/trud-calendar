@@ -9,6 +9,7 @@ import { useEventDrag } from "../hooks/useEventDrag";
 import { useGridKeyboard } from "../hooks/useGridKeyboard";
 import { useResponsiveView } from "../hooks/useResponsiveView";
 import { useVirtualScroll } from "../hooks/useVirtualScroll";
+import { useAutoScroll } from "../hooks/useAutoScroll";
 import { cn } from "../lib/cn";
 import {
   getWeekViewRange,
@@ -24,7 +25,9 @@ import {
   computeTimePositions,
   segmentTimedMultiDayEvent,
   getHourLabels,
+  getTimeOfDay,
   filterVisibleEvents,
+  filterHiddenDays,
   type CalendarEvent,
   type DateString,
   type PositionedEvent,
@@ -44,8 +47,10 @@ interface TimeEventProps {
   };
   /** Resize handle props — only present when resize is enabled */
   resizeProps?: {
+    topOverride?: number;
     heightOverride?: number;
     onResizeHandlePointerDown: (e: React.PointerEvent) => void;
+    onResizeStartHandlePointerDown: (e: React.PointerEvent) => void;
   };
   /** Ref to suppress click after resize */
   didResize?: React.MutableRefObject<boolean>;
@@ -71,6 +76,7 @@ function TimeEvent({
   const left = (column / totalColumns) * 100;
   const width = 100 / totalColumns;
 
+  const displayTop = resizeProps?.topOverride ?? top;
   const displayHeight = resizeProps?.heightOverride ?? height;
 
   // Determine border radius based on segment position
@@ -84,7 +90,7 @@ function TimeEvent({
         className="absolute px-0.5"
         data-event-id={event.id}
         style={{
-          top: `${top}%`,
+          top: `${displayTop}%`,
           height: `${displayHeight}%`,
           left: `${left}%`,
           width: `${width}%`,
@@ -110,7 +116,7 @@ function TimeEvent({
       )}
       data-event-id={event.id}
       style={{
-        top: `${top}%`,
+        top: `${displayTop}%`,
         height: `${displayHeight}%`,
         left: `${left}%`,
         width: `${width}%`,
@@ -119,6 +125,27 @@ function TimeEvent({
         touchAction: enableDnD ? "none" : undefined,
       }}
     >
+      {/* Top resize handle — changes start time */}
+      {resizeProps && (
+        <div
+          className={cn(
+            "absolute top-0 left-0 right-0 cursor-n-resize z-10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity",
+            displayHeight < 5 ? "h-1" : "h-3"
+          )}
+          style={{ touchAction: "none" }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            resizeProps.onResizeStartHandlePointerDown(e);
+          }}
+        >
+          <div
+            className="w-8 h-[3px] rounded-full"
+            style={{ backgroundColor: color }}
+          />
+        </div>
+      )}
+
       <div
         className={cn(
           "h-full",
@@ -167,7 +194,7 @@ function TimeEvent({
         )}
       </div>
 
-      {/* Resize handle — shrinks for short events so the event remains clickable */}
+      {/* Bottom resize handle — changes end time */}
       {resizeProps && (
         <div
           className={cn(
@@ -252,7 +279,7 @@ function AllDayRow({ days, events, allDayLabel, onEventClick, isEventSelected, g
   );
 }
 
-function CurrentTimeIndicator({
+export function CurrentTimeIndicator({
   timeOfDay,
   dayStartHour,
   dayEndHour,
@@ -280,7 +307,7 @@ function CurrentTimeIndicator({
 }
 
 /** Ghost overlay for slot selection (drag to create) */
-function SelectionGhost({
+export function SelectionGhost({
   startPercent,
   endPercent,
   startTime,
@@ -312,7 +339,7 @@ function SelectionGhost({
 }
 
 /** Floating ghost for event drag */
-function DragGhost({ dragState }: { dragState: DragState }) {
+export function DragGhost({ dragState }: { dragState: DragState }) {
   const color = dragState.event.color || "var(--trc-event-default)";
   return (
     <div
@@ -336,9 +363,11 @@ function DragGhost({ dragState }: { dragState: DragState }) {
   );
 }
 
-interface DayColumnProps {
+export interface DayColumnProps {
   day: DateString;
   dayIdx: number;
+  /** Resource ID for this column (resource views only) */
+  resourceId?: string;
   hourLabels: string[];
   positioned: PositionedEvent[];
   todayFlag: boolean;
@@ -355,8 +384,14 @@ interface DayColumnProps {
   didDrag: React.MutableRefObject<boolean>;
   // Resize
   enableResize: boolean;
-  resizeState: { eventId: string; day: DateString; heightOverride: number } | null;
+  resizeState: { eventId: string; day: DateString; edge: string; topOverride?: number; heightOverride: number } | null;
   onResizeHandlePointerDown: (
+    e: React.PointerEvent,
+    event: CalendarEvent,
+    day: DateString,
+    columnEl: HTMLDivElement,
+  ) => void;
+  onResizeStartHandlePointerDown: (
     e: React.PointerEvent,
     event: CalendarEvent,
     day: DateString,
@@ -373,6 +408,8 @@ interface DayColumnProps {
     endTime: string;
   } | null;
   onSlotPointerDown: (e: React.PointerEvent, day: DateString, columnEl: HTMLDivElement) => void;
+  // Background events
+  backgroundPositions: { event: CalendarEvent; top: number; height: number }[];
   // Keyboard
   gridKeyboard: {
     registerCell: (row: number, col: number, el: HTMLElement | null) => void;
@@ -382,9 +419,10 @@ interface DayColumnProps {
   };
 }
 
-function DayColumn({
+export function DayColumn({
   day,
   dayIdx,
+  resourceId,
   hourLabels,
   positioned,
   todayFlag,
@@ -401,9 +439,11 @@ function DayColumn({
   enableResize,
   resizeState,
   onResizeHandlePointerDown,
+  onResizeStartHandlePointerDown,
   didResize,
   selection,
   onSlotPointerDown,
+  backgroundPositions,
   gridKeyboard,
 }: DayColumnProps) {
   const columnRef = useRef<HTMLDivElement>(null);
@@ -414,6 +454,7 @@ function DayColumn({
       ref={columnRef}
       key={day}
       data-day={day}
+      data-resource-id={resourceId}
       className={cn(
         "relative",
         "border-r border-[var(--trc-border)] last:border-r-0",
@@ -428,6 +469,19 @@ function DayColumn({
         onSlotPointerDown(e, day, columnRef.current);
       }}
     >
+      {/* Background events — colored time blocks behind everything */}
+      {backgroundPositions.map((bg) => (
+        <div
+          key={bg.event.id}
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{
+            top: `${bg.top}%`,
+            height: `${bg.height}%`,
+            backgroundColor: `${bg.event.color || "var(--trc-event-default)"}20`,
+          }}
+        />
+      ))}
+
       {/* Hour slots (visual grid lines) */}
       {hourLabels.map((_, hourIdx) => (
         <div
@@ -472,12 +526,25 @@ function DayColumn({
             resizeProps={
               enableResize
                 ? {
+                    topOverride: isResizing
+                      ? resizeState!.topOverride
+                      : undefined,
                     heightOverride: isResizing
                       ? resizeState!.heightOverride
                       : undefined,
                     onResizeHandlePointerDown: (e: React.PointerEvent) => {
                       if (columnRef.current) {
                         onResizeHandlePointerDown(
+                          e,
+                          p.event,
+                          day,
+                          columnRef.current,
+                        );
+                      }
+                    },
+                    onResizeStartHandlePointerDown: (e: React.PointerEvent) => {
+                      if (columnRef.current) {
+                        onResizeStartHandlePointerDown(
                           e,
                           p.event,
                           day,
@@ -528,12 +595,19 @@ export function WeekView({ singleDay }: WeekViewProps) {
     weekStartsOn,
     dayStartHour,
     dayEndHour,
+    snapDuration,
     onSlotClick,
     onEventDrop,
     onEventResize,
     onSlotSelect,
     enableDnD,
     enableVirtualization,
+    dragConstraint,
+    resizeConstraint,
+    selectConstraint,
+    hiddenDays,
+    highlightedDates,
+    longPressDelay,
     labels,
   } = useCalendarContext();
 
@@ -554,19 +628,23 @@ export function WeekView({ singleDay }: WeekViewProps) {
   });
 
   // Resize hook
-  const { resizeState, didResize, onResizeHandlePointerDown } = useEventResize({
+  const { resizeState, didResize, onResizeHandlePointerDown, onResizeStartHandlePointerDown } = useEventResize({
     dayStartHour,
     dayEndHour,
+    snapDuration,
     enabled: !!onEventResize,
     onEventResize,
+    resizeConstraint,
   });
 
   // Slot selection hook (drag to create)
   const { selection, onSlotPointerDown } = useSlotSelection({
     dayStartHour,
     dayEndHour,
+    snapDuration,
     onSlotClick,
     onSlotSelect,
+    selectConstraint,
   });
 
   // Event drag hook (pointer events based)
@@ -574,17 +652,42 @@ export function WeekView({ singleDay }: WeekViewProps) {
     enabled: !!enableDnD,
     dayStartHour,
     dayEndHour,
+    snapDuration,
     onEventDrop,
+    dragConstraint,
     mode: "time",
     selectedIds: selectionCtx.selectedIds,
     events: visibleEvents,
+    longPressDelay,
   });
+
+  // Auto-scroll during drag, resize, or slot selection
+  const isInteracting = !!(dragState || resizeState || selection);
+  const { handleAutoScroll, stopAutoScroll } = useAutoScroll({
+    containerRef: gridRef,
+    enabled: isInteracting,
+  });
+
+  useEffect(() => {
+    if (!isInteracting) {
+      stopAutoScroll();
+      return;
+    }
+
+    const onPointerMove = (e: PointerEvent) => handleAutoScroll(e.clientY);
+    document.addEventListener("pointermove", onPointerMove);
+    return () => {
+      document.removeEventListener("pointermove", onPointerMove);
+      stopAutoScroll();
+    };
+  }, [isInteracting, handleAutoScroll, stopAutoScroll]);
 
   const allDays = useMemo(() => {
     if (singleDay) return [singleDay];
     const range = getWeekViewRange(state.currentDate, weekStartsOn);
-    return eachDayOfRange(range.start, range.end);
-  }, [state.currentDate, weekStartsOn, singleDay]);
+    const days = eachDayOfRange(range.start, range.end);
+    return filterHiddenDays(days, hiddenDays);
+  }, [state.currentDate, weekStartsOn, singleDay, hiddenDays]);
 
   // Compute which days to show based on responsive day count
   const days = useMemo(() => {
@@ -675,11 +778,13 @@ export function WeekView({ singleDay }: WeekViewProps) {
             <div className="border-r border-[var(--trc-border)]" />
             {days.map((day) => {
               const todayFlag = isToday(day);
+              const isHighlighted = highlightedDates.has(day);
               return (
                 <div
                   key={day}
                   className={cn(
                     "text-center py-1 @[640px]:py-2 border-r border-[var(--trc-border)] last:border-r-0",
+                    isHighlighted && "bg-[var(--trc-accent)]/30",
                   )}
                   role="columnheader"
                 >
@@ -733,14 +838,29 @@ export function WeekView({ singleDay }: WeekViewProps) {
 
           {/* Day columns */}
           {days.map((day, dayIdx) => {
-            // Get single-day timed events
+            // Get single-day timed events (exclude background events)
             const singleDayEvents = getEventsForDay(visibleEvents, day).filter(
-              (e) => !e.allDay && isSameDay(e.start, e.end),
+              (e) => !e.allDay && e.display !== "background" && isSameDay(e.start, e.end),
             );
+
+            // Get background events for this day
+            const bgEventsForDay = getEventsForDay(visibleEvents, day).filter(
+              (e) => e.display === "background" && !e.allDay,
+            );
+            const totalHoursForBg = dayEndHour - dayStartHour;
+            const backgroundPositions = bgEventsForDay.map((e) => {
+              const startH = Math.max(dayStartHour, getTimeOfDay(e.start));
+              const endH = Math.min(dayEndHour, getTimeOfDay(e.end));
+              return {
+                event: e,
+                top: ((startH - dayStartHour) / totalHoursForBg) * 100,
+                height: ((endH - startH) / totalHoursForBg) * 100,
+              };
+            });
 
             // Get multi-day timed event segments for this day
             const multiDayTimedEvents = visibleEvents.filter(
-              (e) => !e.allDay && !isSameDay(e.start, e.end),
+              (e) => !e.allDay && e.display !== "background" && !isSameDay(e.start, e.end),
             );
             const timedSegments = multiDayTimedEvents.flatMap((e) =>
               segmentTimedMultiDayEvent(e, [day], dayStartHour, dayEndHour),
@@ -812,9 +932,11 @@ export function WeekView({ singleDay }: WeekViewProps) {
                 enableResize={!!onEventResize}
                 resizeState={resizeState}
                 onResizeHandlePointerDown={onResizeHandlePointerDown}
+                onResizeStartHandlePointerDown={onResizeStartHandlePointerDown}
                 didResize={didResize}
                 selection={selection}
                 onSlotPointerDown={onSlotPointerDown}
+                backgroundPositions={backgroundPositions}
                 gridKeyboard={gridKeyboard}
               />
             );

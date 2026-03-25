@@ -29,8 +29,8 @@ Una grilla de tiempo con 7 columnas mostrando una semana. Caracteristicas:
 - **Indicador de hora actual** — linea roja mostrando "ahora"
 - **Auto-scroll** — se desplaza a la hora actual al montar
 - **Horas configurables** — usa `dayStartHour` y `dayEndHour`
-- **Drag & Drop** — mueve eventos a cualquier dia/franja horaria (snap de 15 minutos)
-- **Redimensionar** — arrastra el borde inferior de eventos para cambiar duracion
+- **Drag & Drop** — mueve eventos a cualquier dia/franja horaria (snap configurable)
+- **Redimensionar** — arrastra el borde superior o inferior de eventos para cambiar hora de inicio o duracion
 - **Arrastrar para crear** — arrastra sobre slots vacios para seleccionar un rango de tiempo
 - **Navegacion por teclado** — flechas para navegar, Enter/Space para activar
 
@@ -72,3 +72,56 @@ Limita las horas visibles en las vistas de semana y dia:
   dayEndHour={20}    // Termina a las 8 PM
 />
 ```
+
+## Dias ocultos
+
+Oculta dias especificos de la semana en todas las vistas usando `hiddenDays`. Util para calendarios laborales que no necesitan fines de semana:
+
+```tsx
+// Ocultar Sabado (6) y Domingo (0)
+<Calendar
+  events={events}
+  hiddenDays={[0, 6]}
+/>
+```
+
+Los dias ocultos se eliminan de las columnas de la grilla mensual, las columnas de la vista semanal y los grupos de fechas de la vista agenda. Los eventos en dias ocultos se mantienen en los datos — simplemente no se muestran.
+
+## Fechas destacadas
+
+Resalta visualmente fechas especificas (feriados, deadlines, etc.) usando `highlightedDates`:
+
+```tsx
+<Calendar
+  events={events}
+  highlightedDates={["2026-03-25", "2026-12-25", "2026-01-01"]}
+/>
+```
+
+Las fechas destacadas reciben un fondo de acento sutil en las celdas de la grilla mensual y en los encabezados de columna de la vista semanal.
+
+## Numeros de semana
+
+Muestra numeros de semana ISO junto a la grilla mensual:
+
+```tsx
+<Calendar events={events} showWeekNumbers />
+```
+
+Los numeros de semana aparecen como una columna estrecha en el lado izquierdo de la vista mensual.
+
+## Rango de fechas valido
+
+Restringe hasta donde pueden navegar los usuarios con `validRange`. Los botones anterior/siguiente se deshabilitan automaticamente al llegar a los limites:
+
+```tsx
+<Calendar
+  events={events}
+  validRange={{
+    start: "2026-01-01",
+    end: "2026-12-31",
+  }}
+/>
+```
+
+Puedes establecer solo `start`, solo `end`, o ambos.

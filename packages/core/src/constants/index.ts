@@ -26,3 +26,4 @@ export const VIEWS: CalendarView[] = ["month", "week", "day", "agenda"];
 
 export const DEFAULT_DAY_START_HOUR = 0;
 export const DEFAULT_DAY_END_HOUR = 24;
+export const DEFAULT_SNAP_DURATION = 15;

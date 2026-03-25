@@ -18,23 +18,32 @@ export interface DragState {
   ghostY: number;
   /** Target day being hovered over */
   targetDay: DateString | null;
+  /** Target resource being hovered over (resource views only) */
+  targetResourceId?: string | null;
 }
 
 export interface UseEventDragOptions {
   enabled?: boolean;
   dayStartHour?: number;
   dayEndHour?: number;
+  /** Snap increment in minutes (default 15) */
+  snapDuration?: number;
   onEventDrop?: (
     event: CalendarEvent,
     newStart: DateTimeString,
     newEnd: DateTimeString,
+    extra?: { resourceId?: string },
   ) => void;
+  /** Constraint callback — return false to prevent the drop */
+  dragConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
   /** 'time' for week/day views (calculates time from Y position), 'date' for month view (preserves original time) */
   mode: "time" | "date";
   /** Set of selected event IDs for multi-drag */
   selectedIds?: Set<string>;
   /** All visible events (needed to resolve selected events for multi-drag) */
   events?: CalendarEvent[];
+  /** Long press delay in ms for touch devices (default 0 — immediate drag) */
+  longPressDelay?: number;
 }
 
 export interface UseEventDragReturn {
@@ -49,10 +58,13 @@ export function useEventDrag({
   enabled = false,
   dayStartHour = 0,
   dayEndHour = 24,
+  snapDuration = 15,
   onEventDrop,
+  dragConstraint,
   mode,
   selectedIds,
   events,
+  longPressDelay = 0,
 }: UseEventDragOptions): UseEventDragReturn {
   const [dragState, setDragState] = useState<DragState | null>(null);
   const didDrag = useRef(false);
@@ -64,12 +76,31 @@ export function useEventDrag({
     offsetX: number;
     offsetY: number;
     isDragging: boolean;
+    longPressReady: boolean;
   } | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
       const active = activeRef.current;
       if (!active) return;
+
+      // If long press is required but not yet ready, cancel on significant movement
+      if (!active.longPressReady) {
+        const deltaX = Math.abs(e.clientX - active.startX);
+        const deltaY = Math.abs(e.clientY - active.startY);
+        if (Math.max(deltaX, deltaY) > DRAG_THRESHOLD) {
+          // User is scrolling, not long-pressing — cancel
+          if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+          }
+          activeRef.current = null;
+          document.removeEventListener("pointermove", handlePointerMove);
+          document.removeEventListener("pointerup", handlePointerUp);
+        }
+        return;
+      }
 
       const deltaX = Math.abs(e.clientX - active.startX);
       const deltaY = Math.abs(e.clientY - active.startY);
@@ -85,12 +116,16 @@ export function useEventDrag({
       // Find target day column/cell under cursor
       const elementsUnder = document.elementsFromPoint(e.clientX, e.clientY);
       let targetDay: DateString | null = null;
+      let targetResourceId: string | null = null;
       for (const el of elementsUnder) {
-        const day = (el as HTMLElement).dataset?.day;
-        if (day) {
-          targetDay = day as DateString;
-          break;
+        const htmlEl = el as HTMLElement;
+        if (!targetDay && htmlEl.dataset?.day) {
+          targetDay = htmlEl.dataset.day as DateString;
         }
+        if (!targetResourceId && htmlEl.dataset?.resourceId) {
+          targetResourceId = htmlEl.dataset.resourceId;
+        }
+        if (targetDay && (targetResourceId || !htmlEl.dataset?.resourceId)) break;
       }
 
       setDragState({
@@ -98,6 +133,7 @@ export function useEventDrag({
         ghostX: e.clientX - active.offsetX,
         ghostY: e.clientY - active.offsetY,
         targetDay,
+        targetResourceId,
       });
     },
     [],
@@ -109,17 +145,21 @@ export function useEventDrag({
       if (!active) return;
 
       if (active.isDragging && onEventDrop) {
-        // Find target day
+        // Find target day and resource
         const elementsUnder = document.elementsFromPoint(e.clientX, e.clientY);
         let targetDay: DateString | null = null;
         let targetEl: HTMLElement | null = null;
+        let targetResourceId: string | undefined;
         for (const el of elementsUnder) {
-          const day = (el as HTMLElement).dataset?.day;
-          if (day) {
-            targetDay = day as DateString;
-            targetEl = el as HTMLElement;
-            break;
+          const htmlEl = el as HTMLElement;
+          if (!targetDay && htmlEl.dataset?.day) {
+            targetDay = htmlEl.dataset.day as DateString;
+            targetEl = htmlEl;
           }
+          if (!targetResourceId && htmlEl.dataset?.resourceId) {
+            targetResourceId = htmlEl.dataset.resourceId;
+          }
+          if (targetDay) break;
         }
 
         if (targetDay) {
@@ -143,6 +183,7 @@ export function useEventDrag({
             new Date(active.event.start).getTime();
 
           let primaryNewStartMs: number | null = null;
+          const extra = targetResourceId ? { resourceId: targetResourceId } : undefined;
 
           if (mode === "time" && targetEl) {
             const rect = targetEl.getBoundingClientRect();
@@ -152,7 +193,7 @@ export function useEventDrag({
               dayStartHour,
               dayEndHour,
             );
-            fractionalHour = snapToIncrement(fractionalHour, 15);
+            fractionalHour = snapToIncrement(fractionalHour, snapDuration);
             fractionalHour = Math.max(
               dayStartHour,
               Math.min(dayEndHour, fractionalHour),
@@ -166,7 +207,9 @@ export function useEventDrag({
             const newEnd =
               `${endDay}T${pad(newEndDate.getHours())}:${pad(newEndDate.getMinutes())}:${pad(newEndDate.getSeconds())}` as DateTimeString;
 
-            onEventDrop(active.event, newStart, newEnd);
+            if (!dragConstraint || dragConstraint(active.event, newStart, newEnd)) {
+              onEventDrop(active.event, newStart, newEnd, extra);
+            }
           } else if (mode === "date") {
             // Preserve original time, change date
             const originalTime = active.event.start.slice(11);
@@ -179,7 +222,9 @@ export function useEventDrag({
             const newEnd =
               `${endDay}T${pad(newEndDate.getHours())}:${pad(newEndDate.getMinutes())}:${pad(newEndDate.getSeconds())}` as DateTimeString;
 
-            onEventDrop(active.event, newStart, newEnd);
+            if (!dragConstraint || dragConstraint(active.event, newStart, newEnd)) {
+              onEventDrop(active.event, newStart, newEnd, extra);
+            }
           }
 
           // Multi-drag: if the dragged event is in the selection, apply same delta to all other selected events
@@ -214,6 +259,10 @@ export function useEventDrag({
       }
 
       // Clean up
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
       activeRef.current = null;
       setDragState(null);
       document.body.style.userSelect = "";
@@ -221,7 +270,7 @@ export function useEventDrag({
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerup", handlePointerUp);
     },
-    [onEventDrop, mode, dayStartHour, dayEndHour, handlePointerMove, selectedIds, events],
+    [onEventDrop, dragConstraint, mode, dayStartHour, dayEndHour, snapDuration, handlePointerMove, selectedIds, events],
   );
 
   const onPointerDown = useCallback(
@@ -234,6 +283,9 @@ export function useEventDrag({
       const target = e.currentTarget as HTMLElement;
       const rect = target.getBoundingClientRect();
 
+      const isTouch = e.pointerType === "touch";
+      const needsLongPress = isTouch && longPressDelay > 0;
+
       activeRef.current = {
         event,
         startX: e.clientX,
@@ -241,7 +293,17 @@ export function useEventDrag({
         offsetX: e.clientX - rect.left,
         offsetY: e.clientY - rect.top,
         isDragging: false,
+        longPressReady: !needsLongPress,
       };
+
+      if (needsLongPress) {
+        longPressTimerRef.current = setTimeout(() => {
+          if (activeRef.current) {
+            activeRef.current.longPressReady = true;
+          }
+          longPressTimerRef.current = null;
+        }, longPressDelay);
+      }
 
       document.addEventListener("pointermove", handlePointerMove);
       document.addEventListener("pointerup", handlePointerUp);

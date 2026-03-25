@@ -7,6 +7,28 @@ export type DateTimeString = string;
 /** Calendar view types */
 export type CalendarView = "month" | "week" | "day" | "agenda";
 
+// ── Resource types ──────────────────────────────────────────────
+
+/** A resource (room, person, equipment, etc.) */
+export interface Resource {
+  /** Unique identifier */
+  id: string;
+  /** Display name */
+  title: string;
+  /** Optional color for resource header/events */
+  color?: string;
+  /** Nested child resources (for grouping) */
+  children?: Resource[];
+  /** Arbitrary metadata */
+  [key: string]: unknown;
+}
+
+/** Extra information passed when an event is dropped (e.g., resource changes) */
+export interface EventDropExtra {
+  /** New resource ID if the event was dropped on a different resource */
+  resourceId?: string;
+}
+
 // ── Recurrence types ────────────────────────────────────────────
 
 export type RecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
@@ -52,6 +74,10 @@ export interface CalendarEvent {
   recurringEventId?: string;
   /** Original date of this recurring instance (YYYY-MM-DD) */
   originalDate?: DateString;
+  /** Display mode: "auto" (default) renders as a normal event, "background" renders as a colored time block */
+  display?: "auto" | "background";
+  /** Resource this event belongs to (for resource views) */
+  resourceId?: string;
   /** Arbitrary metadata */
   [key: string]: unknown;
 }
@@ -110,6 +136,7 @@ export interface CalendarSlots {
   allDayEvent?: ComponentType<AllDayEventSlotProps>;
   popover?: ComponentType<PopoverSlotProps>;
   agendaEvent?: ComponentType<AgendaEventSlotProps>;
+  resourceHeader?: ComponentType<ResourceHeaderSlotProps>;
 }
 
 export interface ToolbarSlotProps {
@@ -150,6 +177,10 @@ export interface PopoverSlotProps {
 
 export interface AgendaEventSlotProps {
   event: CalendarEvent;
+}
+
+export interface ResourceHeaderSlotProps {
+  resource: Resource;
 }
 
 /** UI label strings — provide your own for i18n */
@@ -193,7 +224,7 @@ export interface CalendarConfig {
   /** Callback when an event is clicked */
   onEventClick?: (event: CalendarEvent) => void;
   /** Callback when an empty slot is clicked */
-  onSlotClick?: (date: DateTimeString) => void;
+  onSlotClick?: (date: DateTimeString, extra?: { resourceId?: string }) => void;
   /** Callback when date changes */
   onDateChange?: (date: DateString) => void;
   /** Callback when view changes */
@@ -203,11 +234,11 @@ export interface CalendarConfig {
   /** Hour the time grid ends (0-24), default 24 */
   dayEndHour?: number;
   /** Callback when an event is dropped on a new time slot (drag & drop) */
-  onEventDrop?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
+  onEventDrop?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString, extra?: EventDropExtra) => void;
   /** Callback when an event is resized (drag bottom edge) */
   onEventResize?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
   /** Callback when a time range is selected by dragging on empty slots */
-  onSlotSelect?: (start: DateTimeString, end: DateTimeString) => void;
+  onSlotSelect?: (start: DateTimeString, end: DateTimeString, extra?: { resourceId?: string }) => void;
   /** Enable drag and drop */
   enableDnD?: boolean;
   /** Enable multi-select events (Ctrl+click, Shift+click, Ctrl+A) */
@@ -216,6 +247,28 @@ export interface CalendarConfig {
   onEventsDelete?: (events: CalendarEvent[]) => void;
   /** Enable virtual scrolling for time grid events (opt-in, default false) */
   enableVirtualization?: boolean;
+  /** Snap duration in minutes for drag, resize, and slot selection (default 15) */
+  snapDuration?: number;
+  /** Days of the week to hide (0=Sunday, 1=Monday, ..., 6=Saturday) */
+  hiddenDays?: number[];
+  /** Restrict navigable date range. Prev/next buttons are disabled at bounds. */
+  validRange?: { start?: DateString; end?: DateString };
+  /** Dates to visually highlight across all views */
+  highlightedDates?: DateString[];
+  /** Show ISO week numbers in month and week views */
+  showWeekNumbers?: boolean;
+  /** Long press delay in ms for touch drag (default 0 — immediate). Set to e.g. 300 to avoid interfering with scroll. */
+  longPressDelay?: number;
+  /** Default time (HH:mm:ss) used when clicking an empty day in month view (default "09:00:00") */
+  slotClickTime?: string;
+  /** Resources for resource views (day/week views gain one column per resource) */
+  resources?: Resource[];
+  /** Constraint callback for drag-and-drop. Return false to prevent the drop. */
+  dragConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
+  /** Constraint callback for event resize. Return false to prevent the resize. */
+  resizeConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
+  /** Constraint callback for slot selection. Return false to prevent the selection. */
+  selectConstraint?: (start: DateTimeString, end: DateTimeString) => boolean;
 }
 
 /** Calendar state */

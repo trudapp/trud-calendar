@@ -56,17 +56,20 @@ export function isMultiDayEvent(event: CalendarEvent): boolean {
 /** Separate events into all-day and timed categories */
 export function partitionEvents(
   events: CalendarEvent[],
-): { allDay: CalendarEvent[]; timed: CalendarEvent[] } {
+): { allDay: CalendarEvent[]; timed: CalendarEvent[]; background: CalendarEvent[] } {
   const allDay: CalendarEvent[] = [];
   const timed: CalendarEvent[] = [];
+  const background: CalendarEvent[] = [];
   for (const event of events) {
-    if (event.allDay || isMultiDayEvent(event)) {
+    if (event.display === "background") {
+      background.push(event);
+    } else if (event.allDay || isMultiDayEvent(event)) {
       allDay.push(event);
     } else {
       timed.push(event);
     }
   }
-  return { allDay, timed };
+  return { allDay, timed, background };
 }
 
 // ── Multi-day segmentation ───────────────────────────────────────

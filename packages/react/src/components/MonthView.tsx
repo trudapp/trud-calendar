@@ -19,6 +19,8 @@ import {
   isMultiDayEvent,
   sortEvents,
   formatTime,
+  filterHiddenDays,
+  getISOWeekNumber,
   type CalendarEvent,
   type DateString,
   type EventSegment,
@@ -122,6 +124,12 @@ export function MonthView() {
     onSlotClick,
     onEventDrop,
     enableDnD,
+    dragConstraint,
+    longPressDelay,
+    slotClickTime,
+    hiddenDays,
+    highlightedDates,
+    showWeekNumbers,
     labels,
   } = useCalendarContext();
   const slots = useCalendarSlots();
@@ -137,9 +145,11 @@ export function MonthView() {
   } = useEventDrag({
     enabled: !!enableDnD,
     onEventDrop,
+    dragConstraint,
     mode: "date",
     selectedIds: selectionCtx.selectedIds,
     events: visibleEvents,
+    longPressDelay,
   });
 
   // Selection-aware click handler
@@ -159,16 +169,16 @@ export function MonthView() {
 
   const weekDayHeaders = useMemo(() => {
     const weekStart = startOfWeek(range.start, weekStartsOn);
-    return getWeekDays(weekStart);
-  }, [range.start, weekStartsOn]);
+    return filterHiddenDays(getWeekDays(weekStart), hiddenDays);
+  }, [range.start, weekStartsOn, hiddenDays]);
 
   const weeks = useMemo(() => {
     const result: DateString[][] = [];
     for (let i = 0; i < days.length; i += 7) {
-      result.push(days.slice(i, i + 7));
+      result.push(filterHiddenDays(days.slice(i, i + 7), hiddenDays));
     }
     return result;
-  }, [days]);
+  }, [days, hiddenDays]);
 
   // Build event segments by day for multi-day events + single day events
   const eventsByDay = useMemo(() => {
@@ -206,10 +216,10 @@ export function MonthView() {
       (row: number, col: number) => {
         const day = weeks[row]?.[col];
         if (day) {
-          onSlotClick?.(`${day}T09:00:00`);
+          onSlotClick?.(`${day}T${slotClickTime}`);
         }
       },
-      [weeks, onSlotClick],
+      [weeks, onSlotClick, slotClickTime],
     ),
     onEscape: useCallback(() => {
       setMorePopover(null);
@@ -246,22 +256,35 @@ export function MonthView() {
 
   const handleSlotClick = useCallback(
     (date: DateString) => {
-      onSlotClick?.(`${date}T09:00:00`);
+      onSlotClick?.(`${date}T${slotClickTime}`);
     },
-    [onSlotClick],
+    [onSlotClick, slotClickTime],
   );
+
+  const visibleColCount = weekDayHeaders.length;
+  const weekNumCol = showWeekNumbers ? "2rem " : "";
+  const gridColsStyle = { gridTemplateColumns: `${weekNumCol}repeat(${visibleColCount}, minmax(0, 1fr))` };
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden" role="grid" aria-label="Month view">
       {/* Weekday headers */}
       <div
         className={cn(
-          "grid grid-cols-7",
+          "grid",
           "border-b border-[var(--trc-border)]",
           "bg-[var(--trc-muted)]",
         )}
+        style={gridColsStyle}
         role="row"
       >
+        {showWeekNumbers && (
+          <div
+            className="py-1 @[640px]:py-2 text-center text-[10px] @[640px]:text-xs font-medium text-[var(--trc-muted-foreground)]"
+            role="columnheader"
+          >
+            W
+          </div>
+        )}
         {weekDayHeaders.map((day) => (
           <div
             key={day}
@@ -279,11 +302,17 @@ export function MonthView() {
           <div
             key={weekIdx}
             className={cn(
-              "grid grid-cols-7 flex-1 min-h-0",
+              "grid flex-1 min-h-0",
               weekIdx < weeks.length - 1 && "border-b border-[var(--trc-border)]",
             )}
+            style={gridColsStyle}
             role="row"
           >
+            {showWeekNumbers && week.length > 0 && (
+              <div className="flex items-start justify-center pt-1 text-[10px] @[640px]:text-xs text-[var(--trc-muted-foreground)] border-r border-[var(--trc-border)]">
+                {getISOWeekNumber(week[0])}
+              </div>
+            )}
             {week.map((day, colIdx) => {
               const todayFlag = isToday(day);
               const currentMonth = isSameMonth(day, state.currentDate);
@@ -297,6 +326,7 @@ export function MonthView() {
               const hiddenCount = totalEvents - visibleEventsSlice;
 
               const isDragOver = dragState?.targetDay === day;
+              const isHighlighted = highlightedDates.has(day);
 
               if (slots.dayCell) {
                 const SlotDayCell = slots.dayCell;
@@ -329,7 +359,11 @@ export function MonthView() {
                     "outline-none focus-visible:ring-2 focus-visible:ring-[var(--trc-primary)] focus-visible:ring-inset",
                   )}
                   style={{
-                    backgroundColor: isDragOver ? "var(--trc-accent)" : undefined,
+                    backgroundColor: isDragOver
+                      ? "var(--trc-accent)"
+                      : isHighlighted
+                        ? "var(--trc-accent)"
+                        : undefined,
                     opacity: isDragOver && currentMonth ? 0.6 : undefined,
                   }}
                   onClick={() => handleSlotClick(day)}

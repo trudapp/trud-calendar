@@ -10,7 +10,9 @@ import {
   formatTimeRange,
   isToday,
   isMultiDayEvent,
+  parseDate,
   type CalendarEvent,
+  type DateString,
 } from "trud-calendar-core";
 
 interface AgendaEventItemProps {
@@ -90,15 +92,22 @@ function AgendaEventItem({
 }
 
 export function AgendaView() {
-  const { visibleEvents, visibleRange, locale, labels } =
+  const { visibleEvents, visibleRange, locale, hiddenDays, labels } =
     useCalendarContext();
   const selectionCtx = useSelectionContext();
 
-  const grouped = useMemo(
-    () =>
-      groupEventsByDate(visibleEvents, visibleRange.start, visibleRange.end),
-    [visibleEvents, visibleRange],
-  );
+  const grouped = useMemo(() => {
+    const all = groupEventsByDate(visibleEvents, visibleRange.start, visibleRange.end);
+    if (hiddenDays.length === 0) return all;
+    const hiddenSet = new Set(hiddenDays);
+    const filtered = new Map<DateString, CalendarEvent[]>();
+    for (const [date, events] of all) {
+      if (!hiddenSet.has(parseDate(date as DateString).getDay())) {
+        filtered.set(date as DateString, events);
+      }
+    }
+    return filtered;
+  }, [visibleEvents, visibleRange, hiddenDays]);
 
   // Flatten all events for keyboard navigation
   const allItems = useMemo(() => {

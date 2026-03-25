@@ -9,9 +9,16 @@ import {
   getTimeOfDay,
 } from "trud-calendar-core";
 
+/** Which edge of the event is being resized */
+export type ResizeEdge = "start" | "end";
+
 export interface ResizeState {
   eventId: string;
   day: DateString;
+  /** Which edge is being resized */
+  edge: ResizeEdge;
+  /** Override top position as percentage of the day column (only for start-edge resize) */
+  topOverride?: number;
   /** Override height as percentage of the day column */
   heightOverride: number;
 }
@@ -19,16 +26,27 @@ export interface ResizeState {
 export interface UseEventResizeOptions {
   dayStartHour: number;
   dayEndHour: number;
+  /** Snap increment in minutes (default 15) */
+  snapDuration?: number;
   enabled?: boolean;
   onEventResize?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
+  /** Constraint callback — return false to prevent the resize */
+  resizeConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
 }
 
 export interface UseEventResizeReturn {
   resizeState: ResizeState | null;
   /** Did a resize just finish? Used to suppress click. */
   didResize: React.MutableRefObject<boolean>;
-  /** Start resizing from a handle pointerdown */
+  /** Start resizing from a handle pointerdown (bottom edge — changes end time) */
   onResizeHandlePointerDown: (
+    e: React.PointerEvent,
+    event: CalendarEvent,
+    day: DateString,
+    columnEl: HTMLDivElement,
+  ) => void;
+  /** Start resizing from the top handle pointerdown (top edge — changes start time) */
+  onResizeStartHandlePointerDown: (
     e: React.PointerEvent,
     event: CalendarEvent,
     day: DateString,
@@ -39,19 +57,22 @@ export interface UseEventResizeReturn {
 export function useEventResize({
   dayStartHour,
   dayEndHour,
+  snapDuration = 15,
   enabled = false,
   onEventResize,
+  resizeConstraint,
 }: UseEventResizeOptions): UseEventResizeReturn {
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
   const didResize = useRef(false);
 
-  // Store mutable refs for the active resize
   const activeRef = useRef<{
     event: CalendarEvent;
     day: DateString;
     columnEl: HTMLDivElement;
-    startTop: number; // top% of event (constant during resize)
+    edge: ResizeEdge;
   } | null>(null);
+
+  const minDurationHours = snapDuration / 60;
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
@@ -61,25 +82,41 @@ export function useEventResize({
       const rect = active.columnEl.getBoundingClientRect();
       const totalHours = dayEndHour - dayStartHour;
 
-      // Get the fractional hour at cursor Y
       let fractionalHour = yPositionToFractionalHour(e.clientY, rect, dayStartHour, dayEndHour);
-      fractionalHour = snapToIncrement(fractionalHour, 15);
+      fractionalHour = snapToIncrement(fractionalHour, snapDuration);
 
-      // Clamp: min is event start + 15 min, max is dayEnd
-      const eventStart = getTimeOfDay(active.event.start);
-      const minEnd = eventStart + 0.25; // 15 min minimum
-      fractionalHour = Math.max(minEnd, Math.min(dayEndHour, fractionalHour));
+      if (active.edge === "end") {
+        const eventStart = getTimeOfDay(active.event.start);
+        const minEnd = eventStart + minDurationHours;
+        fractionalHour = Math.max(minEnd, Math.min(dayEndHour, fractionalHour));
 
-      // Compute new height as percentage
-      const newHeight = ((fractionalHour - eventStart) / totalHours) * 100;
+        const newHeight = ((fractionalHour - eventStart) / totalHours) * 100;
 
-      setResizeState({
-        eventId: active.event.id,
-        day: active.day,
-        heightOverride: newHeight,
-      });
+        setResizeState({
+          eventId: active.event.id,
+          day: active.day,
+          edge: "end",
+          heightOverride: newHeight,
+        });
+      } else {
+        // start edge
+        const eventEnd = getTimeOfDay(active.event.end);
+        const maxStart = eventEnd - minDurationHours;
+        fractionalHour = Math.max(dayStartHour, Math.min(maxStart, fractionalHour));
+
+        const newTop = ((fractionalHour - dayStartHour) / totalHours) * 100;
+        const newHeight = ((eventEnd - fractionalHour) / totalHours) * 100;
+
+        setResizeState({
+          eventId: active.event.id,
+          day: active.day,
+          edge: "start",
+          topOverride: newTop,
+          heightOverride: newHeight,
+        });
+      }
     },
-    [dayStartHour, dayEndHour],
+    [dayStartHour, dayEndHour, snapDuration, minDurationHours],
   );
 
   const handlePointerUp = useCallback(
@@ -89,18 +126,29 @@ export function useEventResize({
 
       const rect = active.columnEl.getBoundingClientRect();
 
-      // Final position
       let fractionalHour = yPositionToFractionalHour(e.clientY, rect, dayStartHour, dayEndHour);
-      fractionalHour = snapToIncrement(fractionalHour, 15);
+      fractionalHour = snapToIncrement(fractionalHour, snapDuration);
 
-      const eventStart = getTimeOfDay(active.event.start);
-      const minEnd = eventStart + 0.25;
-      fractionalHour = Math.max(minEnd, Math.min(dayEndHour, fractionalHour));
+      if (active.edge === "end") {
+        const eventStart = getTimeOfDay(active.event.start);
+        const minEnd = eventStart + minDurationHours;
+        fractionalHour = Math.max(minEnd, Math.min(dayEndHour, fractionalHour));
 
-      const newEnd = fractionalHourToDateTime(active.day, fractionalHour);
+        const newEnd = fractionalHourToDateTime(active.day, fractionalHour);
+        if (!resizeConstraint || resizeConstraint(active.event, active.event.start, newEnd)) {
+          onEventResize?.(active.event, active.event.start, newEnd);
+        }
+      } else {
+        // start edge
+        const eventEnd = getTimeOfDay(active.event.end);
+        const maxStart = eventEnd - minDurationHours;
+        fractionalHour = Math.max(dayStartHour, Math.min(maxStart, fractionalHour));
 
-      // Fire callback
-      onEventResize?.(active.event, active.event.start, newEnd);
+        const newStart = fractionalHourToDateTime(active.day, fractionalHour);
+        if (!resizeConstraint || resizeConstraint(active.event, newStart, active.event.end)) {
+          onEventResize?.(active.event, newStart, active.event.end);
+        }
+      }
 
       // Clean up
       activeRef.current = null;
@@ -108,17 +156,39 @@ export function useEventResize({
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
 
-      // Set didResize to prevent click, reset after a tick
       didResize.current = true;
       requestAnimationFrame(() => {
         didResize.current = false;
       });
 
-      // Remove listeners
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerup", handlePointerUp);
     },
-    [dayStartHour, dayEndHour, onEventResize, handlePointerMove],
+    [dayStartHour, dayEndHour, snapDuration, minDurationHours, onEventResize, resizeConstraint, handlePointerMove],
+  );
+
+  const startResize = useCallback(
+    (
+      e: React.PointerEvent,
+      event: CalendarEvent,
+      day: DateString,
+      columnEl: HTMLDivElement,
+      edge: ResizeEdge,
+    ) => {
+      if (!enabled || !onEventResize) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      activeRef.current = { event, day, columnEl, edge };
+
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = edge === "end" ? "s-resize" : "n-resize";
+
+      document.addEventListener("pointermove", handlePointerMove);
+      document.addEventListener("pointerup", handlePointerUp);
+    },
+    [enabled, onEventResize, handlePointerMove, handlePointerUp],
   );
 
   const onResizeHandlePointerDown = useCallback(
@@ -127,26 +197,18 @@ export function useEventResize({
       event: CalendarEvent,
       day: DateString,
       columnEl: HTMLDivElement,
-    ) => {
-      if (!enabled || !onEventResize) return;
+    ) => startResize(e, event, day, columnEl, "end"),
+    [startResize],
+  );
 
-      e.preventDefault();
-      e.stopPropagation();
-
-      const totalHours = dayEndHour - dayStartHour;
-      const eventStart = getTimeOfDay(event.start);
-      const startTop = ((eventStart - dayStartHour) / totalHours) * 100;
-
-      activeRef.current = { event, day, columnEl, startTop };
-
-      // Prevent text selection during resize
-      document.body.style.userSelect = "none";
-      document.body.style.cursor = "s-resize";
-
-      document.addEventListener("pointermove", handlePointerMove);
-      document.addEventListener("pointerup", handlePointerUp);
-    },
-    [enabled, onEventResize, dayStartHour, dayEndHour, handlePointerMove, handlePointerUp],
+  const onResizeStartHandlePointerDown = useCallback(
+    (
+      e: React.PointerEvent,
+      event: CalendarEvent,
+      day: DateString,
+      columnEl: HTMLDivElement,
+    ) => startResize(e, event, day, columnEl, "start"),
+    [startResize],
   );
 
   // Cleanup on unmount
@@ -163,5 +225,6 @@ export function useEventResize({
     resizeState,
     didResize,
     onResizeHandlePointerDown,
+    onResizeStartHandlePointerDown,
   };
 }

@@ -1,0 +1,99 @@
+---
+title: Resource Views
+description: Display events grouped by resources (rooms, people, equipment) in day and week views.
+---
+
+When you pass a `resources` array, the day and week views automatically display one column per resource. No new view types — just add resources and the calendar adapts.
+
+## Basic usage
+
+```tsx
+const resources = [
+  { id: "room-a", title: "Room A", color: "#3b82f6" },
+  { id: "room-b", title: "Room B", color: "#22c55e" },
+  { id: "room-c", title: "Room C", color: "#f59e0b" },
+];
+
+const events = [
+  { id: "1", title: "Meeting", start: "2026-03-25T09:00:00", end: "2026-03-25T10:00:00", resourceId: "room-a" },
+  { id: "2", title: "Workshop", start: "2026-03-25T10:00:00", end: "2026-03-25T12:00:00", resourceId: "room-b" },
+];
+
+<Calendar
+  events={events}
+  resources={resources}
+  defaultView="day"
+/>
+```
+
+## Day mode vs. week mode
+
+- **Day view** (`defaultView="day"`): One column per resource for the current day.
+- **Week view** (`defaultView="week"`): Columns are grouped by day, with sub-columns per resource within each day. Day headers span the resource columns below them.
+
+When `resources` is empty or not provided, the calendar renders the standard day/week views.
+
+## Drag between resources
+
+Enable `enableDnD` to drag events between resources. The `onEventDrop` callback receives an optional `extra` parameter with the new `resourceId`:
+
+```tsx
+<Calendar
+  events={events}
+  resources={resources}
+  defaultView="day"
+  enableDnD
+  onEventDrop={(event, newStart, newEnd, extra) => {
+    const newResourceId = extra?.resourceId;
+    console.log(`Moved to resource: ${newResourceId}`);
+    // Update your state/API
+  }}
+  onSlotClick={(dateTime, extra) => {
+    console.log(`Clicked slot in resource: ${extra?.resourceId}`);
+  }}
+  onSlotSelect={(start, end, extra) => {
+    console.log(`Selected range in resource: ${extra?.resourceId}`);
+  }}
+/>
+```
+
+## Custom resource header
+
+Use the `resourceHeader` slot to customize how resource names are displayed:
+
+```tsx
+<Calendar
+  events={events}
+  resources={resources}
+  defaultView="day"
+  slots={{
+    resourceHeader: ({ resource }) => (
+      <div className="flex items-center gap-2 p-2">
+        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: resource.color }} />
+        <span className="font-semibold">{resource.title}</span>
+      </div>
+    ),
+  }}
+/>
+```
+
+## Resource type
+
+```ts
+interface Resource {
+  id: string;
+  title: string;
+  color?: string;       // Color for the resource header
+  children?: Resource[]; // Nested child resources
+  [key: string]: unknown; // Custom metadata
+}
+```
+
+Events reference resources via the `resourceId` field:
+
+```ts
+interface CalendarEvent {
+  // ...existing fields
+  resourceId?: string;  // Matches a Resource.id
+}
+```

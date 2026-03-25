@@ -29,8 +29,8 @@ A 7-column time grid showing one week. Features:
 - **Current time indicator** — red line showing "now"
 - **Auto-scroll** — scrolls to the current hour on mount
 - **Configurable hours** — set `dayStartHour` and `dayEndHour`
-- **Drag & Drop** — move events to any day/time slot (15-minute snap)
-- **Resize** — drag the bottom edge of events to change duration
+- **Drag & Drop** — move events to any day/time slot (configurable snap)
+- **Resize** — drag the top or bottom edge of events to change start time or duration
 - **Drag-to-create** — drag across empty slots to select a time range
 - **Keyboard navigation** — arrow keys to navigate, Enter/Space to activate
 
@@ -72,3 +72,56 @@ Limit the visible hours in the week and day views:
   dayEndHour={20}    // End at 8 PM
 />
 ```
+
+## Hidden days
+
+Hide specific days of the week from all views using `hiddenDays`. This is useful for business calendars that don't need weekends:
+
+```tsx
+// Hide Saturday (6) and Sunday (0)
+<Calendar
+  events={events}
+  hiddenDays={[0, 6]}
+/>
+```
+
+Hidden days are removed from the month grid columns, the week view day columns, and the agenda view date groups. Events on hidden days are still included in the data — they're just not displayed.
+
+## Highlighted dates
+
+Visually accent specific dates (holidays, deadlines, etc.) using `highlightedDates`:
+
+```tsx
+<Calendar
+  events={events}
+  highlightedDates={["2026-03-25", "2026-12-25", "2026-01-01"]}
+/>
+```
+
+Highlighted dates get a subtle accent background in the month grid cells and week view column headers.
+
+## Week numbers
+
+Show ISO week numbers alongside the month grid:
+
+```tsx
+<Calendar events={events} showWeekNumbers />
+```
+
+Week numbers appear as a narrow column on the left side of the month view.
+
+## Valid date range
+
+Restrict how far users can navigate with `validRange`. The prev/next buttons automatically disable when at bounds:
+
+```tsx
+<Calendar
+  events={events}
+  validRange={{
+    start: "2026-01-01",
+    end: "2026-12-31",
+  }}
+/>
+```
+
+You can set only `start`, only `end`, or both.

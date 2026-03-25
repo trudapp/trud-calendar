@@ -288,6 +288,7 @@ describe("useEventDrag", () => {
         event,
         "2024-06-20T10:00:00",
         expect.stringContaining("2024-06-20T11:00:00"),
+        undefined,
       );
 
       vi.restoreAllMocks();

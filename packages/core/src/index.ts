@@ -23,6 +23,9 @@ export type {
   RecurrenceFrequency,
   RecurrenceDay,
   RecurrenceRule,
+  Resource,
+  ResourceHeaderSlotProps,
+  EventDropExtra,
 } from "./types";
 
 // Constants
@@ -36,6 +39,7 @@ export {
   VIEWS,
   DEFAULT_DAY_START_HOUR,
   DEFAULT_DAY_END_HOUR,
+  DEFAULT_SNAP_DURATION,
 } from "./constants";
 
 // Date utilities
@@ -65,6 +69,8 @@ export {
   getTimeOfDay,
   getDurationHours,
   getHourLabels,
+  filterHiddenDays,
+  getISOWeekNumber,
 } from "./utils/date";
 
 // Formatting utilities
@@ -121,6 +127,13 @@ export { filterVisibleEvents, scrollToViewportRange } from "./utils/virtualize";
 
 // Undo/redo utilities
 export type { UndoStack } from "./utils/undo";
+// Resource utilities
+export {
+  flattenResources,
+  getEventsForResource,
+  groupEventsByResource,
+} from "./utils/resources";
+
 export {
   createUndoStack,
   pushState,

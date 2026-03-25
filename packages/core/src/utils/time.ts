@@ -69,9 +69,10 @@ export function computeDropPosition(
   dayStartHour: number,
   dayEndHour: number,
   durationMs: number,
+  snapMinutes: number = 15,
 ): { newStart: DateTimeString; newEnd: DateTimeString } {
   const fractionalHour = yPositionToFractionalHour(clientY, columnRect, dayStartHour, dayEndHour);
-  const snapped = snapToIncrement(fractionalHour, 15);
+  const snapped = snapToIncrement(fractionalHour, snapMinutes);
   const clamped = Math.max(dayStartHour, Math.min(dayEndHour - (durationMs / 3600000), snapped));
 
   const newStart = fractionalHourToDateTime(day, clamped);

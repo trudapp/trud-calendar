@@ -9,6 +9,7 @@ import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
 import { DayView } from "./DayView";
 import { AgendaView } from "./AgendaView";
+import { ResourceTimeGrid } from "./ResourceTimeGrid";
 import { EventPopoverContent } from "./EventPopover";
 import { cn } from "../lib/cn";
 import type { CalendarConfig, CalendarEvent } from "trud-calendar-core";
@@ -96,7 +97,18 @@ function CalendarShell({
 }
 
 function ViewRenderer() {
-  const { state } = useCalendarContext();
+  const { state, resources } = useCalendarContext();
+
+  // When resources are provided, day/week views use the resource time grid
+  if (resources.length > 0) {
+    if (state.view === "day") {
+      return <ResourceTimeGrid singleDay={state.currentDate} />;
+    }
+    if (state.view === "week") {
+      return <ResourceTimeGrid />;
+    }
+  }
+
   switch (state.view) {
     case "month":
       return <MonthView />;

@@ -30,18 +30,21 @@ Establece `enableDnD={true}` y proporciona handlers:
 
 ### Mover evento
 - **Vista de Mes**: Arrastra una pill de evento de una celda a otra. La fecha cambia pero la hora original se preserva.
-- **Vista de Semana/Dia**: Arrastra un evento de una franja horaria a otra. Tanto la fecha como la hora cambian, ajustandose a incrementos de 15 minutos.
+- **Vista de Semana/Dia**: Arrastra un evento de una franja horaria a otra. Tanto la fecha como la hora cambian, ajustandose al incremento configurado.
 - La duracion del evento siempre se mantiene.
 
 ### Redimensionar evento
-- En las vistas de Semana/Dia, arrastra el **borde inferior** de un evento para cambiar su duracion.
-- Se ajusta a **incrementos de 15 minutos**.
+- En las vistas de Semana/Dia, arrastra el **borde superior** de un evento para cambiar su hora de inicio, o el **borde inferior** para cambiar su hora de fin.
+- Se ajusta al incremento configurado (por defecto 15 minutos).
 - Dispara `onEventResize` con los tiempos de inicio/fin actualizados.
 
 ### Arrastrar para crear (seleccion de slot)
 - Arrastra sobre **slots de tiempo vacios** en la vista de Semana/Dia para seleccionar un rango de tiempo.
 - Dispara `onSlotSelect(start, end)` con el rango seleccionado.
 - Ideal para flujos de "crear evento" — el usuario arrastra para seleccionar cuando, luego llena los detalles.
+
+### Auto-scroll
+Al arrastrar, redimensionar o seleccionar cerca del borde superior o inferior de la grilla de tiempo, el contenedor hace scroll automaticamente para revelar mas contenido. No requiere configuracion — se activa durante cualquier interaccion.
 
 ## Soporte tactil
 
@@ -51,6 +54,21 @@ Todas las interacciones funcionan en dispositivos tactiles sin configuracion adi
 - **Toca y arrastra** sobre slots vacios para seleccionar un rango de tiempo
 
 El calendario usa `touch-action: none` en elementos interactivos para evitar que el navegador haga scroll durante las operaciones de arrastre. Un umbral de movimiento de 5px distingue toques de arrastres.
+
+## Retardo de presion larga
+
+En dispositivos tactiles, puedes requerir una presion larga antes de que el arrastre comience, para evitar interferir con el scroll:
+
+```tsx
+<Calendar
+  events={events}
+  enableDnD
+  longPressDelay={300}  // 300ms de mantenimiento antes de activar el arrastre en touch
+  onEventDrop={handleDrop}
+/>
+```
+
+Esto solo afecta interacciones tactiles — el arrastre con mouse y stylus permanece inmediato.
 
 ## Callbacks
 
@@ -82,6 +100,75 @@ onSlotSelect?: (
   end: DateTimeString,    // "2026-03-15T11:00:00"
 ) => void;
 ```
+
+## Duracion de snap
+
+Por defecto, todas las interacciones se ajustan a incrementos de 15 minutos. Cambialo con `snapDuration`:
+
+```tsx
+<Calendar
+  events={events}
+  enableDnD
+  snapDuration={30}  // Ajustar a incrementos de 30 minutos
+  onEventDrop={handleDrop}
+  onEventResize={handleResize}
+/>
+```
+
+Valores comunes: `5`, `10`, `15`, `30`, `60`.
+
+## Restricciones
+
+Controla donde se pueden soltar, redimensionar o seleccionar eventos con callbacks de restriccion. Devuelve `false` para prevenir la accion:
+
+```tsx
+<Calendar
+  events={events}
+  enableDnD
+  // Solo permitir drops en horario laboral
+  dragConstraint={(event, newStart, newEnd) => {
+    const hour = new Date(newStart).getHours();
+    return hour >= 8 && hour < 18;
+  }}
+  // Prevenir redimensionar mas de 2 horas
+  resizeConstraint={(event, newStart, newEnd) => {
+    const ms = new Date(newEnd).getTime() - new Date(newStart).getTime();
+    return ms <= 2 * 60 * 60 * 1000;
+  }}
+  // Solo permitir seleccion en horario laboral
+  selectConstraint={(start, end) => {
+    const hour = new Date(start).getHours();
+    return hour >= 8 && hour < 18;
+  }}
+  onEventDrop={handleDrop}
+  onEventResize={handleResize}
+  onSlotSelect={handleSelect}
+/>
+```
+
+Cuando una restriccion devuelve `false`, la interaccion se revierte silenciosamente — el evento vuelve a su posicion original y no se dispara ningun callback.
+
+## Eventos de fondo
+
+Usa `display: "background"` en eventos para renderizarlos como bloques de tiempo coloreados detras de los eventos normales. Ideal para mostrar horario laboral, disponibilidad o tiempo bloqueado:
+
+```tsx
+const events = [
+  {
+    id: "horario-laboral",
+    title: "Horario Laboral",
+    start: "2026-03-25T08:00:00",
+    end: "2026-03-25T18:00:00",
+    display: "background",
+    color: "#22c55e",
+  },
+  // ... eventos normales
+];
+
+<Calendar events={events} />
+```
+
+Los eventos de fondo no son interactivos — no se pueden arrastrar, redimensionar ni hacer click.
 
 ## Ejemplo: Handler de interaccion completo
 

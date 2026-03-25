@@ -189,6 +189,32 @@ export function getVisibleRange(
   }
 }
 
+/**
+ * Get the ISO 8601 week number for a date.
+ * Week 1 is the week containing the first Thursday of the year.
+ */
+export function getISOWeekNumber(date: DateString): number {
+  const d = parseDate(date);
+  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  // Set to nearest Thursday: current date + 4 - current day number (Monday=1, Sunday=7)
+  const dayNum = target.getDay() || 7; // Convert Sunday from 0 to 7
+  target.setDate(target.getDate() + 4 - dayNum);
+  const yearStart = new Date(target.getFullYear(), 0, 1);
+  return Math.ceil(((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
+/**
+ * Filter out dates that fall on hidden days of the week.
+ * @param days Array of date strings
+ * @param hiddenDays Array of day-of-week numbers to hide (0=Sunday, 6=Saturday)
+ * @returns Filtered array with hidden days removed
+ */
+export function filterHiddenDays(days: DateString[], hiddenDays: number[]): DateString[] {
+  if (hiddenDays.length === 0) return days;
+  const hiddenSet = new Set(hiddenDays);
+  return days.filter((d) => !hiddenSet.has(parseDate(d).getDay()));
+}
+
 // ── Time helpers ─────────────────────────────────────────────────
 
 /** Get the fractional hour from a datetime string (e.g., "2024-01-01T14:30:00" -> 14.5) */

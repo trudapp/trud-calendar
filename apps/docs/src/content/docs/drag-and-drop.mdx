@@ -30,18 +30,43 @@ Set `enableDnD={true}` and provide handlers:
 
 ### Event move
 - **Month view**: Drag an event pill from one day cell to another. The date changes but the original time is preserved.
-- **Week/Day view**: Drag an event from one time slot to another. Both date and time change, snapping to 15-minute increments.
+- **Week/Day view**: Drag an event from one time slot to another. Both date and time change, snapping to the configured increment.
 - Event duration is always preserved.
 
 ### Event resize
-- In Week/Day view, drag the **bottom edge** of an event to change its duration.
-- Snaps to **15-minute increments**.
+- In Week/Day view, drag the **top edge** of an event to change its start time, or the **bottom edge** to change its end time.
+- Snaps to the configured increment (default 15 minutes).
 - Fires `onEventResize` with the updated start/end times.
 
 ### Drag-to-create (slot selection)
 - Drag across **empty time slots** in Week/Day view to select a time range.
 - Fires `onSlotSelect(start, end)` with the selected range.
 - Great for "create event" flows — the user drags to select when, then fills in the details.
+
+### Background events
+
+Use `display: "background"` on events to render them as colored time blocks behind regular events. Great for showing business hours, availability, or blocked time:
+
+```tsx
+const events = [
+  {
+    id: "business-hours",
+    title: "Business Hours",
+    start: "2026-03-25T08:00:00",
+    end: "2026-03-25T18:00:00",
+    display: "background",
+    color: "#22c55e",
+  },
+  // ... regular events
+];
+
+<Calendar events={events} />
+```
+
+Background events are non-interactive — they cannot be dragged, resized, or clicked.
+
+### Auto-scroll
+When dragging, resizing, or selecting near the top or bottom edge of the time grid, the container automatically scrolls to reveal more content. No configuration needed — it activates during any pointer interaction.
 
 ## Touch support
 
@@ -51,6 +76,21 @@ All interactions work on touch devices out of the box:
 - **Touch and drag** across empty slots to select a time range
 
 The calendar uses `touch-action: none` on interactive elements to prevent the browser from scrolling during drag operations. A 5px movement threshold distinguishes taps from drags.
+
+## Long press delay
+
+On touch devices, you may want to require a long press before drag starts, to avoid interfering with scrolling:
+
+```tsx
+<Calendar
+  events={events}
+  enableDnD
+  longPressDelay={300}  // 300ms hold before drag activates on touch
+  onEventDrop={handleDrop}
+/>
+```
+
+This only affects touch interactions — mouse and stylus dragging remains immediate.
 
 ## Callbacks
 
@@ -82,6 +122,53 @@ onSlotSelect?: (
   end: DateTimeString,    // "2026-03-15T11:00:00"
 ) => void;
 ```
+
+## Snap duration
+
+By default, all interactions snap to 15-minute increments. Change it with `snapDuration`:
+
+```tsx
+<Calendar
+  events={events}
+  enableDnD
+  snapDuration={30}  // Snap to 30-minute increments
+  onEventDrop={handleDrop}
+  onEventResize={handleResize}
+/>
+```
+
+Common values: `5`, `10`, `15`, `30`, `60`.
+
+## Constraints
+
+Control where events can be dropped, resized, or selected by providing constraint callbacks. Return `false` to prevent the action:
+
+```tsx
+<Calendar
+  events={events}
+  enableDnD
+  // Only allow drops within business hours
+  dragConstraint={(event, newStart, newEnd) => {
+    const hour = new Date(newStart).getHours();
+    return hour >= 8 && hour < 18;
+  }}
+  // Prevent resizing past 2 hours
+  resizeConstraint={(event, newStart, newEnd) => {
+    const ms = new Date(newEnd).getTime() - new Date(newStart).getTime();
+    return ms <= 2 * 60 * 60 * 1000;
+  }}
+  // Only allow selecting within business hours
+  selectConstraint={(start, end) => {
+    const hour = new Date(start).getHours();
+    return hour >= 8 && hour < 18;
+  }}
+  onEventDrop={handleDrop}
+  onEventResize={handleResize}
+  onSlotSelect={handleSelect}
+/>
+```
+
+When a constraint returns `false`, the interaction is silently reverted — the event returns to its original position and no callback fires.
 
 ## Example: Full interaction handler
 
