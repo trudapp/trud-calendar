@@ -73,6 +73,21 @@ Limita las horas visibles en las vistas de semana y dia:
 />
 ```
 
+## Limites de tiempo flexibles
+
+Cuando `flexibleSlotTimeLimits` esta habilitado, la grilla de tiempo se expande automaticamente para mostrar eventos que caen fuera del `dayStartHour`/`dayEndHour` configurado:
+
+```tsx
+<Calendar
+  events={events}
+  dayStartHour={9}
+  dayEndHour={17}
+  flexibleSlotTimeLimits
+/>
+```
+
+Si un evento empieza a las 7 AM, la grilla se expande para mostrar desde las 7 AM en vez de las 9 AM.
+
 ## Dias ocultos
 
 Oculta dias especificos de la semana en todas las vistas usando `hiddenDays`. Util para calendarios laborales que no necesitan fines de semana:
@@ -125,3 +140,16 @@ Restringe hasta donde pueden navegar los usuarios con `validRange`. Los botones 
 ```
 
 Puedes establecer solo `start`, solo `end`, o ambos.
+
+## Vista de Ano
+
+Una vista general de 12 meses mostrando el ano completo. Caracteristicas:
+
+- **Puntos de eventos** — los dias con eventos muestran un indicador
+- **Click para navegar** — hacer click en cualquier dia cambia a la vista de dia
+- **Fechas destacadas** — el estilo de `highlightedDates` se aplica en la grilla anual
+- **Grilla responsiva** — 2 columnas en movil, 3 en tablet, 4 en desktop
+
+```tsx
+<Calendar events={events} defaultView="year" />
+```

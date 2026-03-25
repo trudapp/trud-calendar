@@ -21,6 +21,8 @@ function navigateByView(date: string, view: CalendarView, direction: 1 | -1): st
       return addDays(date, direction);
     case "agenda":
       return addMonths(date, direction);
+    case "year":
+      return addMonths(date, 12 * direction);
   }
 }
 

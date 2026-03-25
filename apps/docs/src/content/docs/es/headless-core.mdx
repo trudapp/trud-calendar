@@ -225,6 +225,22 @@ import {
 } from "trud-calendar-core";
 ```
 
+### Exportar iCal
+
+Exporta eventos al formato estandar `.ics`:
+
+```ts
+import { eventsToICal, downloadICal } from "trud-calendar-core";
+
+// Obtener string .ics
+const icsContent = eventsToICal(events, "Mi Calendario");
+
+// Descargar en el navegador
+downloadICal(events, "mis-eventos.ics");
+```
+
+Soporta eventos de dia completo, reglas de recurrencia (RRULE) y fechas de excepcion (EXDATE).
+
 ## Ejemplo: Construir un calendario en vanilla JS
 
 ```ts

@@ -10,6 +10,7 @@ import { WeekView } from "./WeekView";
 import { DayView } from "./DayView";
 import { AgendaView } from "./AgendaView";
 import { ResourceTimeGrid } from "./ResourceTimeGrid";
+import { YearView } from "./YearView";
 import { EventPopoverContent } from "./EventPopover";
 import { cn } from "../lib/cn";
 import type { CalendarConfig, CalendarEvent } from "trud-calendar-core";
@@ -118,5 +119,7 @@ function ViewRenderer() {
       return <DayView />;
     case "agenda":
       return <AgendaView />;
+    case "year":
+      return <YearView />;
   }
 }

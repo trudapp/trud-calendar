@@ -225,6 +225,22 @@ import {
 } from "trud-calendar-core";
 ```
 
+### iCal Export
+
+Export events to standard `.ics` format:
+
+```ts
+import { eventsToICal, downloadICal } from "trud-calendar-core";
+
+// Get .ics string
+const icsContent = eventsToICal(events, "My Calendar");
+
+// Trigger browser download
+downloadICal(events, "my-events.ics");
+```
+
+Supports all-day events, recurrence rules (RRULE), and exception dates (EXDATE).
+
 ## Example: Build a calendar in vanilla JS
 
 ```ts

@@ -6,6 +6,7 @@ export const DEFAULT_LABELS: CalendarLabels = {
   week: "Week",
   day: "Day",
   agenda: "Agenda",
+  year: "Year",
   allDay: "all-day",
   noEvents: "No events in this period",
   more: (n: number) => `+${n} more`,
@@ -22,7 +23,7 @@ export const HOURS_IN_DAY = 24;
 export const MINUTES_IN_HOUR = 60;
 export const MINUTES_IN_DAY = HOURS_IN_DAY * MINUTES_IN_HOUR;
 
-export const VIEWS: CalendarView[] = ["month", "week", "day", "agenda"];
+export const VIEWS: CalendarView[] = ["month", "week", "day", "agenda", "year"];
 
 export const DEFAULT_DAY_START_HOUR = 0;
 export const DEFAULT_DAY_END_HOUR = 24;

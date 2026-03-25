@@ -88,18 +88,28 @@ These features are already implemented and tested:
 
 ---
 
+## Phase 5 — World-Class Completeness
+
+> Goal: Fill remaining gaps to match or exceed every competitor.
+
+| # | Feature | Status | Package | Description |
+|---|---------|--------|---------|-------------|
+| 5.1 | Year view | `done` | core + react | Full 12-month grid, click day to navigate to day view. Event dots on days with events. |
+| 5.2 | Flexible slot time limits | `done` | react | `flexibleSlotTimeLimits` auto-expands dayStartHour/dayEndHour when events fall outside range. |
+| 5.3 | Custom toolbar buttons | `done` | core + react | `customButtons` prop injects buttons after the view switcher. |
+| 5.4 | Print styling | `done` | react | `@media print` CSS hides toolbar, resize handles; makes content overflow visible. |
+| 5.5 | RTL support | `done` | react | Auto-detected from `dir="rtl"` on parent. Flips borders, padding, text alignment. |
+| 5.6 | iCal export | `done` | core | `eventsToICal()` and `downloadICal()` generate valid .ics files with RRULE support. |
+
+---
+
 ## Backlog (not scheduled)
 
 These are on the radar but not prioritized yet:
 
 - **Timezone support** — Named timezone handling (America/New_York, etc.)
-- **Print styling** — Print-optimized CSS with `@media print`
-- **RTL support** — Right-to-left layout for Arabic, Hebrew, etc.
-- **Year view** — Full year calendar grid
+- **ResourceTimeline view** — Horizontal timeline with resources as rows, time on X axis
 - **Multi-calendar** — Drag events between separate calendar instances
-- **Flexible slot time limits** — Auto-expand time axis for out-of-bounds events
-- **Custom toolbar buttons** — Inject arbitrary buttons into the toolbar
-- **iCal export** — Export events to `.ics` format
 
 ---
 

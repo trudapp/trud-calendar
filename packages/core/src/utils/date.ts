@@ -1,4 +1,4 @@
-import type { DateString, DateTimeString } from "../types";
+import type { CalendarView, DateString, DateTimeString } from "../types";
 
 // ── Parsing helpers ──────────────────────────────────────────────
 
@@ -174,7 +174,7 @@ export function getWeekViewRange(
 /** Get the visible date range for a given view */
 export function getVisibleRange(
   date: DateString,
-  view: "month" | "week" | "day" | "agenda",
+  view: CalendarView,
   weekStartsOn: number = 0,
 ): { start: DateString; end: DateString } {
   switch (view) {
@@ -186,6 +186,12 @@ export function getVisibleRange(
       return { start: date, end: date };
     case "agenda":
       return { start: date, end: addDays(date, 30) };
+    case "year": {
+      const d = parseDate(date);
+      const yearStart = `${d.getFullYear()}-01-01` as DateString;
+      const yearEnd = `${d.getFullYear()}-12-31` as DateString;
+      return { start: yearStart, end: yearEnd };
+    }
   }
 }
 

@@ -71,4 +71,73 @@
     --trc-event-default: #60a5fa;
     --trc-current-time: #f87171;
   }
+
+  /* RTL support — auto-detected from dir="rtl" on parent */
+  [dir="rtl"] [data-trc-calendar],
+  [data-trc-calendar][dir="rtl"] {
+    direction: rtl;
+  }
+
+  [dir="rtl"] [data-trc-calendar] .border-l-2 {
+    border-left-width: 0;
+    border-right-width: 2px;
+  }
+
+  [dir="rtl"] [data-trc-calendar] .text-right {
+    text-align: left;
+  }
+
+  [dir="rtl"] [data-trc-calendar] .pr-1 {
+    padding-right: 0;
+    padding-left: 0.25rem;
+  }
+
+  [dir="rtl"] [data-trc-calendar] .pr-2 {
+    padding-right: 0;
+    padding-left: 0.5rem;
+  }
+
+  /* Print-optimized styles */
+  @media print {
+    [data-trc-calendar] {
+      border: none !important;
+      overflow: visible !important;
+      height: auto !important;
+    }
+
+    /* Hide interactive elements */
+    [data-trc-calendar] [role="toolbar"] {
+      display: none !important;
+    }
+
+    /* Make scrollable areas visible */
+    [data-trc-calendar] .overflow-y-auto,
+    [data-trc-calendar] .overflow-hidden {
+      overflow: visible !important;
+      height: auto !important;
+    }
+
+    /* Hide drag ghosts and resize handles */
+    [data-trc-calendar] [style*="pointer-events: none"][style*="position: fixed"],
+    [data-trc-calendar] .cursor-s-resize,
+    [data-trc-calendar] .cursor-n-resize {
+      display: none !important;
+    }
+
+    /* Remove background colors for ink saving, keep borders */
+    [data-trc-calendar] {
+      --trc-background: #ffffff;
+      --trc-foreground: #000000;
+      --trc-muted: #f5f5f5;
+      --trc-muted-foreground: #666666;
+      --trc-border: #cccccc;
+      --trc-accent: transparent;
+    }
+
+    /* Ensure events are visible with good contrast */
+    [data-trc-calendar] [data-event-id] {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
 }

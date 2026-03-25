@@ -26,6 +26,7 @@ export type {
   Resource,
   ResourceHeaderSlotProps,
   EventDropExtra,
+  CustomButton,
 } from "./types";
 
 // Constants
@@ -127,6 +128,9 @@ export { filterVisibleEvents, scrollToViewportRange } from "./utils/virtualize";
 
 // Undo/redo utilities
 export type { UndoStack } from "./utils/undo";
+// iCal export
+export { eventsToICal, downloadICal } from "./utils/ical";
+
 // Resource utilities
 export {
   flattenResources,

@@ -5,7 +5,7 @@ export type DateString = string;
 export type DateTimeString = string;
 
 /** Calendar view types */
-export type CalendarView = "month" | "week" | "day" | "agenda";
+export type CalendarView = "month" | "week" | "day" | "agenda" | "year";
 
 // ── Resource types ──────────────────────────────────────────────
 
@@ -21,6 +21,18 @@ export interface Resource {
   children?: Resource[];
   /** Arbitrary metadata */
   [key: string]: unknown;
+}
+
+/** A custom button to inject into the toolbar */
+export interface CustomButton {
+  /** Unique key */
+  key: string;
+  /** Button text */
+  text: string;
+  /** Click handler */
+  onClick: () => void;
+  /** Optional CSS class */
+  className?: string;
 }
 
 /** Extra information passed when an event is dropped (e.g., resource changes) */
@@ -190,6 +202,7 @@ export interface CalendarLabels {
   week: string;
   day: string;
   agenda: string;
+  year: string;
   allDay: string;
   noEvents: string;
   more: (count: number) => string;
@@ -263,6 +276,10 @@ export interface CalendarConfig {
   slotClickTime?: string;
   /** Resources for resource views (day/week views gain one column per resource) */
   resources?: Resource[];
+  /** Auto-expand dayStartHour/dayEndHour when events fall outside the configured range */
+  flexibleSlotTimeLimits?: boolean;
+  /** Custom buttons to inject into the toolbar (rendered after the view switcher) */
+  customButtons?: CustomButton[];
   /** Constraint callback for drag-and-drop. Return false to prevent the drop. */
   dragConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
   /** Constraint callback for event resize. Return false to prevent the resize. */

@@ -73,6 +73,21 @@ Limit the visible hours in the week and day views:
 />
 ```
 
+## Flexible time limits
+
+When `flexibleSlotTimeLimits` is enabled, the time grid automatically expands to show events that fall outside the configured `dayStartHour`/`dayEndHour`:
+
+```tsx
+<Calendar
+  events={events}
+  dayStartHour={9}
+  dayEndHour={17}
+  flexibleSlotTimeLimits
+/>
+```
+
+If an event starts at 7 AM, the grid expands to show from 7 AM instead of 9 AM.
+
 ## Hidden days
 
 Hide specific days of the week from all views using `hiddenDays`. This is useful for business calendars that don't need weekends:
@@ -125,3 +140,16 @@ Restrict how far users can navigate with `validRange`. The prev/next buttons aut
 ```
 
 You can set only `start`, only `end`, or both.
+
+## Year view
+
+A 12-month overview showing the entire year. Features:
+
+- **Event dots** — days with events show a small indicator dot
+- **Click to navigate** — clicking any day switches to the day view for that date
+- **Highlighted dates** — `highlightedDates` styling applies in the year grid
+- **Responsive grid** — 2 columns on mobile, 3 on tablet, 4 on desktop
+
+```tsx
+<Calendar events={events} defaultView="year" />
+```

@@ -14,6 +14,7 @@ import {
   filterEventsInRange,
   sortEvents,
   expandRecurringEvents,
+  getTimeOfDay,
   type CalendarEvent,
   type CalendarView,
   type CalendarState,
@@ -24,6 +25,7 @@ import {
   type CalendarLabels,
   type Resource,
   type EventDropExtra,
+  type CustomButton,
   DEFAULT_LOCALE,
   DEFAULT_LABELS,
   DEFAULT_DAY_START_HOUR,
@@ -62,6 +64,8 @@ interface CalendarContextValue {
   longPressDelay: number;
   slotClickTime: string;
   resources: Resource[];
+  customButtons: CustomButton[];
+  flexibleSlotTimeLimits: boolean;
   dragConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
   resizeConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
   selectConstraint?: (start: DateTimeString, end: DateTimeString) => boolean;
@@ -98,6 +102,8 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
   const longPressDelay = config.longPressDelay ?? 0;
   const slotClickTime = config.slotClickTime ?? "09:00:00";
   const resources = config.resources ?? [];
+  const customButtons = config.customButtons ?? [];
+  const flexibleSlotTimeLimits = config.flexibleSlotTimeLimits ?? false;
   const labels: CalendarLabels = useMemo(
     () => ({ ...DEFAULT_LABELS, ...config.locale?.labels }),
     [config.locale?.labels],
@@ -157,6 +163,29 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
     [config.events, visibleRange.start, visibleRange.end],
   );
 
+  // Compute effective time limits when flexibleSlotTimeLimits is enabled
+  const effectiveDayStartHour = useMemo(() => {
+    if (!flexibleSlotTimeLimits) return dayStartHour;
+    let min = dayStartHour;
+    for (const ev of visibleEvents) {
+      if (ev.allDay || ev.display === "background") continue;
+      const h = Math.floor(getTimeOfDay(ev.start));
+      if (h < min) min = h;
+    }
+    return min;
+  }, [flexibleSlotTimeLimits, dayStartHour, visibleEvents]);
+
+  const effectiveDayEndHour = useMemo(() => {
+    if (!flexibleSlotTimeLimits) return dayEndHour;
+    let max = dayEndHour;
+    for (const ev of visibleEvents) {
+      if (ev.allDay || ev.display === "background") continue;
+      const h = Math.ceil(getTimeOfDay(ev.end));
+      if (h > max) max = Math.min(24, h);
+    }
+    return max;
+  }, [flexibleSlotTimeLimits, dayEndHour, visibleEvents]);
+
   const value = useMemo<CalendarContextValue>(
     () => ({
       state,
@@ -166,8 +195,8 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       visibleRange,
       locale,
       weekStartsOn,
-      dayStartHour,
-      dayEndHour,
+      dayStartHour: effectiveDayStartHour,
+      dayEndHour: effectiveDayEndHour,
       snapDuration,
       onEventClick: config.onEventClick,
       onSlotClick: config.onSlotClick,
@@ -185,6 +214,8 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       longPressDelay,
       slotClickTime,
       resources,
+      customButtons,
+      flexibleSlotTimeLimits,
       dragConstraint: config.dragConstraint,
       resizeConstraint: config.resizeConstraint,
       selectConstraint: config.selectConstraint,
@@ -198,8 +229,8 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       visibleRange,
       locale,
       weekStartsOn,
-      dayStartHour,
-      dayEndHour,
+      effectiveDayStartHour,
+      effectiveDayEndHour,
       snapDuration,
       config.onEventClick,
       config.onSlotClick,
@@ -217,6 +248,8 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       longPressDelay,
       slotClickTime,
       resources,
+      customButtons,
+      flexibleSlotTimeLimits,
       config.dragConstraint,
       config.resizeConstraint,
       config.selectConstraint,

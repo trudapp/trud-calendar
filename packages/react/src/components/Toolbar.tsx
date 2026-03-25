@@ -7,7 +7,7 @@ import { VIEWS, type CalendarView } from "trud-calendar-core";
 
 export function Toolbar() {
   const nav = useNavigation();
-  const { labels, validRange, visibleRange } = useCalendarContext();
+  const { labels, validRange, visibleRange, customButtons } = useCalendarContext();
   const slots = useCalendarSlots();
 
   const canGoPrev = !validRange?.start || visibleRange.start > validRange.start;
@@ -72,6 +72,7 @@ export function Toolbar() {
     week: labels.week,
     day: labels.day,
     agenda: labels.agenda,
+    year: labels.year,
   };
 
   return (
@@ -183,6 +184,28 @@ export function Toolbar() {
           </button>
         ))}
       </div>
+
+      {/* Custom buttons */}
+      {customButtons.length > 0 && (
+        <div className="flex items-center gap-1">
+          {customButtons.map((btn) => (
+            <button
+              key={btn.key}
+              onClick={btn.onClick}
+              className={cn(
+                "rounded-[var(--trc-radius)] border border-[var(--trc-border)]",
+                "px-2 @[640px]:px-3 py-1 @[640px]:py-1.5 text-xs @[640px]:text-sm font-medium",
+                "text-[var(--trc-foreground)] bg-[var(--trc-background)]",
+                "hover:bg-[var(--trc-accent)]",
+                "transition-colors",
+                btn.className,
+              )}
+            >
+              {btn.text}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

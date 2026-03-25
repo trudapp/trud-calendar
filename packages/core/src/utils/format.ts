@@ -47,6 +47,8 @@ export function formatToolbarTitle(
       }).format(d);
     case "agenda":
       return getFormatter(locale, { month: "long", year: "numeric" }).format(d);
+    case "year":
+      return getFormatter(locale, { year: "numeric" }).format(d);
   }
 }
 
