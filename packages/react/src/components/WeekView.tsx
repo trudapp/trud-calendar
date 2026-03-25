@@ -343,21 +343,26 @@ export function DragGhost({ dragState }: { dragState: DragState }) {
   const color = dragState.event.color || "var(--trc-event-default)";
   return (
     <div
-      className="fixed z-50 pointer-events-none opacity-80"
+      className="fixed z-50 pointer-events-none"
       style={{
         left: dragState.ghostX,
         top: dragState.ghostY,
-        width: 150,
+        width: 180,
+        opacity: 0.85,
       }}
     >
       <div
-        className="rounded-sm border-l-2 px-1.5 py-0.5 text-xs font-medium truncate shadow-md"
+        className="rounded-[calc(var(--trc-radius)*0.5)] border-l-2 px-1.5 py-1 text-xs font-medium truncate shadow-lg backdrop-blur-sm"
         style={{
-          backgroundColor: `${color}20`,
+          backgroundColor: `${color}30`,
           borderLeftColor: color,
+          color: "var(--trc-foreground)",
         }}
       >
-        {dragState.event.title}
+        <div className="truncate">{dragState.event.title}</div>
+        {dragState.previewTime && (
+          <div className="text-[10px] opacity-70 mt-0.5">{dragState.previewTime}</div>
+        )}
       </div>
     </div>
   );
@@ -496,8 +501,6 @@ export function DayColumn({
           onFocus={() => gridKeyboard.handleFocus(hourIdx, dayIdx)}
           style={{
             height: "var(--trc-hour-height)",
-            backgroundColor: isDragTarget ? "var(--trc-accent)" : undefined,
-            opacity: isDragTarget ? 0.3 : undefined,
           }}
         />
       ))}
@@ -568,6 +571,24 @@ export function DayColumn({
           endTime={selection.endTime}
           locale={locale}
         />
+      )}
+
+      {/* Drop preview phantom — shows where the event will land */}
+      {isDragTarget && dragState?.previewTop !== undefined && dragState.previewHeight !== undefined && (
+        <div
+          className="absolute left-0 right-0 pointer-events-none z-10 border-2 border-dashed border-[var(--trc-primary)] rounded-[calc(var(--trc-radius)*0.5)]"
+          style={{
+            top: `${dragState.previewTop}%`,
+            height: `${dragState.previewHeight}%`,
+            backgroundColor: `${dragState.event.color || "var(--trc-event-default)"}15`,
+          }}
+        >
+          {dragState.previewTime && (
+            <div className="text-[10px] font-medium text-[var(--trc-primary)] px-1 pt-0.5">
+              {dragState.previewTime}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Current time indicator */}

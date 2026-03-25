@@ -20,6 +20,12 @@ export interface DragState {
   targetDay: DateString | null;
   /** Target resource being hovered over (resource views only) */
   targetResourceId?: string | null;
+  /** Snapped preview top position as % of the target column (for time mode) */
+  previewTop?: number;
+  /** Preview height as % of the target column */
+  previewHeight?: number;
+  /** Formatted snapped time label for the preview */
+  previewTime?: string;
 }
 
 export interface UseEventDragOptions {
@@ -128,15 +134,47 @@ export function useEventDrag({
         if (targetDay && (targetResourceId || !htmlEl.dataset?.resourceId)) break;
       }
 
+      // Compute snapped preview position for time mode
+      let previewTop: number | undefined;
+      let previewHeight: number | undefined;
+      let previewTime: string | undefined;
+
+      if (mode === "time" && targetDay) {
+        // Find the target column element for position calculation
+        for (const el of elementsUnder) {
+          const htmlEl = el as HTMLElement;
+          if (htmlEl.dataset?.day === targetDay) {
+            const rect = htmlEl.getBoundingClientRect();
+            const totalHours = dayEndHour - dayStartHour;
+            let fractionalHour = yPositionToFractionalHour(e.clientY, rect, dayStartHour, dayEndHour);
+            fractionalHour = snapToIncrement(fractionalHour, snapDuration);
+            fractionalHour = Math.max(dayStartHour, Math.min(dayEndHour, fractionalHour));
+
+            previewTop = ((fractionalHour - dayStartHour) / totalHours) * 100;
+            const durationHours = (new Date(active.event.end).getTime() - new Date(active.event.start).getTime()) / 3600000;
+            previewHeight = (durationHours / totalHours) * 100;
+
+            // Format time label
+            const h = Math.floor(fractionalHour);
+            const m = Math.round((fractionalHour % 1) * 60);
+            previewTime = `${h}:${String(m).padStart(2, "0")}`;
+            break;
+          }
+        }
+      }
+
       setDragState({
         event: active.event,
         ghostX: e.clientX - active.offsetX,
         ghostY: e.clientY - active.offsetY,
         targetDay,
         targetResourceId,
+        previewTop,
+        previewHeight,
+        previewTime,
       });
     },
-    [],
+    [mode, dayStartHour, dayEndHour, snapDuration],
   );
 
   const handlePointerUp = useCallback(
