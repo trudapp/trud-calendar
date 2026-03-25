@@ -38,6 +38,34 @@ describe("flattenResources", () => {
   it("returns empty array for empty input", () => {
     expect(flattenResources([])).toEqual([]);
   });
+
+  it("flattens deeply nested resources (3 levels)", () => {
+    const resources: Resource[] = [
+      {
+        id: "building",
+        title: "Building",
+        children: [
+          {
+            id: "floor-1",
+            title: "Floor 1",
+            children: [
+              { id: "room-101", title: "Room 101" },
+              { id: "room-102", title: "Room 102" },
+            ],
+          },
+          { id: "floor-2", title: "Floor 2" },
+        ],
+      },
+    ];
+    const flat = flattenResources(resources);
+    expect(flat.map((r) => r.id)).toEqual([
+      "building",
+      "floor-1",
+      "room-101",
+      "room-102",
+      "floor-2",
+    ]);
+  });
 });
 
 describe("getEventsForResource", () => {
@@ -60,6 +88,10 @@ describe("getEventsForResource", () => {
 
   it("does not return events without resourceId", () => {
     expect(getEventsForResource(events, "room-a").every((e) => e.resourceId === "room-a")).toBe(true);
+  });
+
+  it("returns empty array for empty events array", () => {
+    expect(getEventsForResource([], "room-a")).toEqual([]);
   });
 });
 
@@ -90,6 +122,13 @@ describe("groupEventsByResource", () => {
     const events = [makeEvent("1", "unknown")];
     const grouped = groupEventsByResource(events, resources);
     expect(grouped.get("room-a")).toEqual([]);
+    expect(grouped.get("room-b")).toEqual([]);
+  });
+
+  it("does not include events without resourceId in any group", () => {
+    const events = [makeEvent("1"), makeEvent("2"), makeEvent("3", "room-a")];
+    const grouped = groupEventsByResource(events, resources);
+    expect(grouped.get("room-a")).toEqual([events[2]]);
     expect(grouped.get("room-b")).toEqual([]);
   });
 });
