@@ -59,6 +59,38 @@ export function useEvents() {
 
   const moveEvent = useCallback(
     (event: CalendarEvent, newStart: string, newEnd: string, resourceId?: string) => {
+      // If this is a recurring instance, we need to create an exception
+      if (event.recurringEventId) {
+        const parentId = event.recurringEventId;
+        const exDate = event.originalDate as DateString;
+        if (!parentId || !exDate) return;
+
+        setEvents((prev) => {
+          // Add exDate to parent so this occurrence is skipped
+          const next = prev.map((e) => {
+            if (e.id === parentId) {
+              return { ...e, exDates: [...(e.exDates ?? []), exDate] };
+            }
+            return e;
+          });
+          // Create standalone event with the new times
+          const standalone: CalendarEvent = {
+            ...event,
+            id: `${parentId}::moved::${exDate}`,
+            start: newStart,
+            end: newEnd,
+            recurringEventId: undefined,
+            originalDate: undefined,
+            recurrence: undefined,
+            exDates: undefined,
+          };
+          if (resourceId !== undefined) standalone.resourceId = resourceId;
+          return [...next, standalone];
+        });
+        return;
+      }
+
+      // Regular event — update in place
       setEvents((prev) =>
         prev.map((e) => {
           if (e.id !== event.id) return e;
