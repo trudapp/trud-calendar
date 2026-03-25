@@ -170,13 +170,13 @@ export function App() {
     [enableBackgroundEvents],
   );
 
-  // Assign resourceId to events when resources are enabled
+  // Assign resourceId to events when resources are enabled (preserve existing assignments)
   const eventsWithResources = useMemo(() => {
     if (!enableResources) return [...events, ...backgroundEvents];
     return [
       ...events.map((e, i) => ({
         ...e,
-        resourceId: DEMO_RESOURCES[i % DEMO_RESOURCES.length].id,
+        resourceId: e.resourceId || DEMO_RESOURCES[i % DEMO_RESOURCES.length].id,
       })),
       ...backgroundEvents,
     ];
@@ -280,10 +280,7 @@ export function App() {
 
   const handleEventDrop = useCallback(
     (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString, extra?: { resourceId?: string }) => {
-      moveEvent(event, newStart, newEnd);
-      if (extra?.resourceId) {
-        console.log(`[Demo] Event "${event.title}" moved to resource: ${extra.resourceId}`);
-      }
+      moveEvent(event, newStart, newEnd, extra?.resourceId);
     },
     [moveEvent],
   );

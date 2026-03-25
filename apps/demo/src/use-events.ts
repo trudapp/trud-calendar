@@ -58,11 +58,14 @@ export function useEvents() {
   }, []);
 
   const moveEvent = useCallback(
-    (event: CalendarEvent, newStart: string, newEnd: string) => {
+    (event: CalendarEvent, newStart: string, newEnd: string, resourceId?: string) => {
       setEvents((prev) =>
-        prev.map((e) =>
-          e.id === event.id ? { ...e, start: newStart, end: newEnd } : e,
-        ),
+        prev.map((e) => {
+          if (e.id !== event.id) return e;
+          const updated = { ...e, start: newStart, end: newEnd };
+          if (resourceId !== undefined) updated.resourceId = resourceId;
+          return updated;
+        }),
       );
     },
     [],
