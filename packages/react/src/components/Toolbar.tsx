@@ -63,6 +63,9 @@ export function Toolbar() {
         onToday={nav.today}
         onViewChange={nav.setView}
         formattedDate={nav.formattedDate}
+        customButtons={customButtons}
+        canGoPrev={canGoPrev}
+        canGoNext={canGoNext}
       />
     );
   }

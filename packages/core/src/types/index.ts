@@ -159,6 +159,12 @@ export interface ToolbarSlotProps {
   onToday: () => void;
   onViewChange: (view: CalendarView) => void;
   formattedDate: string;
+  /** Custom buttons passed via CalendarConfig — render these in your custom toolbar */
+  customButtons: CustomButton[];
+  /** Whether the prev button should be disabled (validRange reached) */
+  canGoPrev: boolean;
+  /** Whether the next button should be disabled (validRange reached) */
+  canGoNext: boolean;
 }
 
 export interface EventSlotProps {

@@ -35,8 +35,8 @@ function fmtTime(iso: string) {
 
 // ── Custom Toolbar ───────────────────────────────────────────────────────
 
-function CustomToolbar({ view, onPrev, onNext, onToday, onViewChange, formattedDate }: ToolbarSlotProps) {
-  const views = ["month", "week", "day", "agenda"] as const;
+function CustomToolbar({ view, onPrev, onNext, onToday, onViewChange, formattedDate, customButtons, canGoPrev, canGoNext }: ToolbarSlotProps) {
+  const views = ["month", "week", "day", "agenda", "year"] as const;
   const icons: Record<string, string> = { month: "▦", week: "▤", day: "▥", agenda: "☰" };
 
   return (
@@ -47,14 +47,14 @@ function CustomToolbar({ view, onPrev, onNext, onToday, onViewChange, formattedD
       background: "var(--trc-background)", gap: "8px", flexWrap: "wrap",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-        <RoundBtn onClick={onPrev}>‹</RoundBtn>
+        <RoundBtn onClick={onPrev} style={{ opacity: canGoPrev ? 1 : 0.3 }}>‹</RoundBtn>
         <button onClick={onToday} style={{
           padding: "5px 14px", borderRadius: "20px", border: "none",
           background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
           color: "#fff", cursor: "pointer", fontSize: "0.78rem", fontWeight: 700,
           letterSpacing: "0.03em", textTransform: "uppercase",
         }}>Today</button>
-        <RoundBtn onClick={onNext}>›</RoundBtn>
+        <RoundBtn onClick={onNext} style={{ opacity: canGoNext ? 1 : 0.3 }}>›</RoundBtn>
       </div>
       <span style={{
         fontWeight: 800, fontSize: "1.1rem",
@@ -62,22 +62,31 @@ function CustomToolbar({ view, onPrev, onNext, onToday, onViewChange, formattedD
         WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
         letterSpacing: "-0.02em",
       }}>{formattedDate}</span>
-      <div style={{ display: "flex", gap: "2px", background: "var(--trc-muted)", borderRadius: "10px", padding: "3px" }}>
-        {views.map((v) => (
-          <button key={v} onClick={() => onViewChange(v)} style={{
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <div style={{ display: "flex", gap: "2px", background: "var(--trc-muted)", borderRadius: "10px", padding: "3px" }}>
+          {views.map((v) => (
+            <button key={v} onClick={() => onViewChange(v)} style={{
+              padding: "5px 12px", borderRadius: "8px", border: "none",
+              background: view === v ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "transparent",
+              color: view === v ? "#fff" : "var(--trc-muted-foreground)",
+              cursor: "pointer", fontSize: "0.75rem", fontWeight: view === v ? 700 : 500,
+              transition: "all 0.2s",
+            }}>{icons[v]} {v[0].toUpperCase() + v.slice(1)}</button>
+          ))}
+        </div>
+        {customButtons.length > 0 && customButtons.map((btn) => (
+          <button key={btn.key} onClick={btn.onClick} style={{
             padding: "5px 12px", borderRadius: "8px", border: "none",
-            background: view === v ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "transparent",
-            color: view === v ? "#fff" : "var(--trc-muted-foreground)",
-            cursor: "pointer", fontSize: "0.75rem", fontWeight: view === v ? 700 : 500,
-            transition: "all 0.2s",
-          }}>{icons[v]} {v[0].toUpperCase() + v.slice(1)}</button>
+            background: "linear-gradient(135deg, #10b981, #059669)",
+            color: "#fff", cursor: "pointer", fontSize: "0.75rem", fontWeight: 600,
+          }}>{btn.text}</button>
         ))}
       </div>
     </div>
   );
 }
 
-function RoundBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+function RoundBtn({ onClick, children, style }: { onClick: () => void; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <button onClick={onClick} style={{
       width: "30px", height: "30px", borderRadius: "50%",
@@ -85,6 +94,7 @@ function RoundBtn({ onClick, children }: { onClick: () => void; children: React.
       color: "var(--trc-foreground)", cursor: "pointer", fontSize: "1.1rem",
       display: "flex", alignItems: "center", justifyContent: "center",
       transition: "background 0.15s",
+      ...style,
     }}
     onMouseEnter={(e) => (e.currentTarget.style.background = "var(--trc-muted)")}
     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
