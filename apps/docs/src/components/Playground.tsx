@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { Calendar } from "trud-calendar";
-import type { CalendarEvent, DateTimeString } from "trud-calendar-core";
-import { expandRecurringEvents } from "trud-calendar-core";
+import type { CalendarEvent, DateTimeString, Resource, CustomButton } from "trud-calendar-core";
+import { expandRecurringEvents, downloadICal, toDateString } from "trud-calendar-core";
 import { playgroundSlots } from "./PlaygroundSlots";
 
 // ── Sample events ───────────────────────────────────────────────────────
@@ -66,6 +66,32 @@ function makeSampleEvents(): CalendarEvent[] {
       recurrence: { freq: "weekly" as const, byDay: ["MO" as const, "WE" as const, "FR" as const] },
     },
   ];
+}
+
+const DEMO_RESOURCES: Resource[] = [
+  { id: "room-a", title: "Room A", color: "#3b82f6" },
+  { id: "room-b", title: "Room B", color: "#22c55e" },
+  { id: "room-c", title: "Room C", color: "#f59e0b" },
+];
+
+function generateBackgroundEvents(): CalendarEvent[] {
+  const now = new Date();
+  const days: CalendarEvent[] = [];
+  for (let i = -7; i <= 14; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i);
+    if (d.getDay() === 0 || d.getDay() === 6) continue;
+    const dateStr = toDateString(d);
+    days.push({
+      id: `bg-${dateStr}`,
+      title: "Business Hours",
+      start: `${dateStr}T09:00:00`,
+      end: `${dateStr}T17:00:00`,
+      display: "background",
+      color: "#22c55e",
+    });
+  }
+  return days;
 }
 
 // ── Color palette for create dialog ──────────────────────────────────────
@@ -149,7 +175,6 @@ function CreateEventDialog({
           animation: "pgDialogIn 0.15s ease-out",
         }}
       >
-        {/* Header */}
         <div style={{
           padding: "14px 18px", borderBottom: "1px solid var(--trc-border)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -166,58 +191,32 @@ function CreateEventDialog({
             </svg>
           </button>
         </div>
-
-        {/* Body */}
         <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: "14px" }}>
-          {/* Title */}
           <div>
-            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)", display: "block", marginBottom: "6px" }}>
-              Title
-            </label>
-            <input
-              ref={inputRef}
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Event title"
-              style={{
-                ...inputStyle, width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.85rem",
-              }}
+            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)", display: "block", marginBottom: "6px" }}>Title</label>
+            <input ref={inputRef} type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Event title"
+              style={{ ...inputStyle, width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.85rem" }}
               onFocus={(e) => (e.currentTarget.style.borderColor = "var(--trc-primary)")}
               onBlur={(e) => (e.currentTarget.style.borderColor = "var(--trc-border)")}
             />
           </div>
-
-          {/* Date & Time — editable */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)" }}>
-              Start
-            </label>
+            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)" }}>Start</label>
             <div style={{ display: "flex", gap: "6px" }}>
               <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
               <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} step="900" style={{ ...inputStyle, width: "110px" }} />
             </div>
-            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)" }}>
-              End
-            </label>
+            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)" }}>End</label>
             <div style={{ display: "flex", gap: "6px" }}>
               <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
               <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} step="900" style={{ ...inputStyle, width: "110px" }} />
             </div>
           </div>
-
-          {/* Color */}
           <div>
-            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)", display: "block", marginBottom: "8px" }}>
-              Color
-            </label>
+            <label style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--trc-muted-foreground)", display: "block", marginBottom: "8px" }}>Color</label>
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               {EVENT_COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setColor(c.value)}
-                  title={c.label}
+                <button key={c.value} type="button" onClick={() => setColor(c.value)} title={c.label}
                   style={{
                     width: "26px", height: "26px", borderRadius: "50%",
                     border: color === c.value ? "2px solid var(--trc-foreground)" : "2px solid transparent",
@@ -230,11 +229,7 @@ function CreateEventDialog({
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <div style={{
-          padding: "10px 18px 14px", display: "flex", justifyContent: "flex-end", gap: "8px",
-        }}>
+        <div style={{ padding: "10px 18px 14px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
           <button type="button" onClick={onCancel} style={{
             padding: "7px 16px", borderRadius: "8px",
             border: "1px solid var(--trc-border)", background: "transparent",
@@ -253,6 +248,28 @@ function CreateEventDialog({
   );
 }
 
+// ── Pill button ─────────────────────────────────────────────────────────
+
+function PillGroup({ options, active, onChange }: { options: { value: string; label: string }[]; active: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex rounded-[var(--trc-radius)] border border-[var(--trc-border)] overflow-hidden">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          className={`px-2 py-1 text-[10px] font-medium transition-colors ${
+            active === o.value
+              ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
+              : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── Playground ──────────────────────────────────────────────────────────
 
 export default function Playground() {
@@ -264,44 +281,110 @@ export default function Playground() {
   const [createDialog, setCreateDialog] = useState<{ start: string; end: string } | null>(null);
   const [nextId, setNextId] = useState(100);
 
-  // Detect system preference
+  // New feature toggles
+  const [snapDuration, setSnapDuration] = useState(15);
+  const [hiddenDays, setHiddenDays] = useState<number[]>([]);
+  const [showWeekNumbers, setShowWeekNumbers] = useState(false);
+  const [enableResources, setEnableResources] = useState(false);
+  const [enableBgEvents, setEnableBgEvents] = useState(false);
+  const [enableConstraints, setEnableConstraints] = useState(false);
+  const [flexibleLimits, setFlexibleLimits] = useState(false);
+
   useEffect(() => {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     setDarkMode(prefersDark);
   }, []);
 
-  // Apply dark mode to entire page
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
     return () => { document.documentElement.classList.remove("dark"); };
   }, [darkMode]);
 
-  // Expand recurring events
+  const bgEvents = useMemo(() => enableBgEvents ? generateBackgroundEvents() : [], [enableBgEvents]);
+
   const events = useMemo(() => {
     const now = new Date();
     const rangeStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0);
     const pad = (n: number) => String(n).padStart(2, "0");
     const toDate = (dt: Date) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
-    return expandRecurringEvents(baseEvents, toDate(rangeStart), toDate(rangeEnd));
-  }, [baseEvents]);
+    const expanded = expandRecurringEvents(baseEvents, toDate(rangeStart), toDate(rangeEnd));
+    const withResources = enableResources
+      ? expanded.map((e, i) => ({ ...e, resourceId: e.resourceId || DEMO_RESOURCES[i % DEMO_RESOURCES.length].id }))
+      : expanded;
+    return [...withResources, ...bgEvents];
+  }, [baseEvents, enableResources, bgEvents]);
+
+  const businessHoursConstraint = useCallback(
+    (_event: CalendarEvent, newStart: DateTimeString) => {
+      const hour = new Date(newStart).getHours();
+      return hour >= 9 && hour < 17;
+    },
+    [],
+  );
+
+  const customButtons: CustomButton[] = useMemo(() => [
+    { key: "ical", text: ".ics", onClick: () => downloadICal(baseEvents, "playground.ics") },
+  ], [baseEvents]);
+
+  const highlightedDates = useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 3 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() + i);
+      return toDateString(d);
+    });
+  }, []);
 
   const handleEventDrop = useCallback(
-    (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => {
-      setBaseEvents((prev) =>
-        prev.map((e) => (e.id === event.id ? { ...e, start: newStart, end: newEnd } : e))
-      );
+    (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString, extra?: { resourceId?: string }) => {
+      setBaseEvents((prev) => {
+        if (event.recurringEventId) {
+          const parentId = event.recurringEventId;
+          const exDate = event.originalDate;
+          if (!parentId || !exDate) return prev;
+          const next = prev.map((e) =>
+            e.id === parentId ? { ...e, exDates: [...(e.exDates ?? []), exDate] } : e,
+          );
+          const standalone: CalendarEvent = {
+            ...event, id: `${parentId}::moved::${exDate}`,
+            start: newStart, end: newEnd,
+            recurringEventId: undefined, originalDate: undefined, recurrence: undefined, exDates: undefined,
+          };
+          if (extra?.resourceId) standalone.resourceId = extra.resourceId;
+          return [...next, standalone];
+        }
+        return prev.map((e) => {
+          if (e.id !== event.id) return e;
+          const updated = { ...e, start: newStart, end: newEnd };
+          if (extra?.resourceId) updated.resourceId = extra.resourceId;
+          return updated;
+        });
+      });
     },
-    []
+    [],
   );
 
   const handleEventResize = useCallback(
     (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => {
-      setBaseEvents((prev) =>
-        prev.map((e) => (e.id === event.id ? { ...e, start: newStart, end: newEnd } : e))
-      );
+      setBaseEvents((prev) => {
+        if (event.recurringEventId) {
+          const parentId = event.recurringEventId;
+          const exDate = event.originalDate;
+          if (!parentId || !exDate) return prev;
+          const next = prev.map((e) =>
+            e.id === parentId ? { ...e, exDates: [...(e.exDates ?? []), exDate] } : e,
+          );
+          return [...next, {
+            ...event, id: `${parentId}::resized::${exDate}`,
+            start: newStart, end: newEnd,
+            recurringEventId: undefined, originalDate: undefined, recurrence: undefined, exDates: undefined,
+          }];
+        }
+        return prev.map((e) => (e.id === event.id ? { ...e, start: newStart, end: newEnd } : e));
+      });
     },
-    []
+    [],
   );
 
   const handleSlotSelect = useCallback((start: DateTimeString, end: DateTimeString) => {
@@ -309,7 +392,6 @@ export default function Playground() {
   }, []);
 
   const handleSlotClick = useCallback((dateTime: DateTimeString) => {
-    // Single click on empty slot → open dialog with 1h duration
     const startDate = new Date(dateTime);
     const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
     setCreateDialog({ start: dateTime, end: toLocalISO(endDate) });
@@ -333,7 +415,7 @@ export default function Playground() {
 
   const localeLabels: Record<string, Record<string, string | ((n: number) => string)>> = {
     "es-ES": {
-      today: "Hoy", month: "Mes", week: "Semana", day: "Dia", agenda: "Agenda",
+      today: "Hoy", month: "Mes", week: "Semana", day: "Dia", agenda: "Agenda", year: "Ano",
       allDay: "Todo el dia", noEvents: "No hay eventos", more: (n: number) => `+${n} mas`,
     },
   };
@@ -341,98 +423,67 @@ export default function Playground() {
   return (
     <>
       <div className={`${darkMode ? "dark" : ""} flex flex-col h-full`}>
-        {/* Controls bar */}
-        <div className="flex items-center justify-center gap-3 px-4 py-2 border-b border-[var(--trc-border)] bg-[var(--trc-background)] flex-shrink-0 flex-wrap">
+        {/* Controls bar — wraps on smaller screens */}
+        <div className="flex items-center justify-center gap-2 px-3 py-2 border-b border-[var(--trc-border)] bg-[var(--trc-background)] flex-shrink-0 flex-wrap">
           {/* Dark mode */}
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="rounded-[var(--trc-radius)] border border-[var(--trc-border)] px-2.5 py-1.5 text-xs text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)] transition-colors flex items-center gap-1.5"
+            className="rounded-[var(--trc-radius)] border border-[var(--trc-border)] px-2 py-1 text-[10px] text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)] transition-colors flex items-center gap-1"
           >
-            {darkMode ? (
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
             {darkMode ? "Light" : "Dark"}
           </button>
 
-          {/* Locale pills */}
-          <div className="flex rounded-[var(--trc-radius)] border border-[var(--trc-border)] overflow-hidden">
-            {locales.map((l) => (
-              <button
-                key={l.value}
-                onClick={() => setLocale(l.value)}
-                className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                  locale === l.value
-                    ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
-                    : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
+          <PillGroup options={locales} active={locale} onChange={setLocale} />
 
-          {/* Week start pills */}
-          <div className="flex rounded-[var(--trc-radius)] border border-[var(--trc-border)] overflow-hidden">
-            <button
-              onClick={() => setWeekStartsOn(0)}
-              className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                weekStartsOn === 0
-                  ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
-                  : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
-              }`}
-            >
-              Sun
-            </button>
-            <button
-              onClick={() => setWeekStartsOn(1)}
-              className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                weekStartsOn === 1
-                  ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
-                  : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
-              }`}
-            >
-              Mon
-            </button>
-          </div>
+          <PillGroup
+            options={[{ value: "0", label: "Sun" }, { value: "1", label: "Mon" }]}
+            active={String(weekStartsOn)}
+            onChange={(v) => setWeekStartsOn(Number(v) as 0 | 1)}
+          />
 
-          {/* Separator */}
-          <div className="w-px h-5 bg-[var(--trc-border)]" />
+          <div className="w-px h-4 bg-[var(--trc-border)]" />
 
-          {/* Tab: Default | Custom Slots */}
-          <div className="flex rounded-[var(--trc-radius)] border border-[var(--trc-border)] overflow-hidden">
+          <PillGroup
+            options={[{ value: "default", label: "Default" }, { value: "custom", label: "Custom Slots" }]}
+            active={tab}
+            onChange={(v) => setTab(v as "default" | "custom")}
+          />
+
+          <PillGroup
+            options={[{ value: "15", label: "15m" }, { value: "30", label: "30m" }, { value: "60", label: "1h" }]}
+            active={String(snapDuration)}
+            onChange={(v) => setSnapDuration(Number(v))}
+          />
+
+          <div className="w-px h-4 bg-[var(--trc-border)]" />
+
+          {/* Toggle buttons */}
+          {[
+            { label: "Wk#", active: showWeekNumbers, toggle: () => setShowWeekNumbers((v) => !v) },
+            { label: "Hide Wknd", active: hiddenDays.length > 0, toggle: () => setHiddenDays((v) => v.length > 0 ? [] : [0, 6]) },
+            { label: "Resources", active: enableResources, toggle: () => setEnableResources((v) => !v) },
+            { label: "Bg Events", active: enableBgEvents, toggle: () => setEnableBgEvents((v) => !v) },
+            { label: "9-5 Only", active: enableConstraints, toggle: () => setEnableConstraints((v) => !v) },
+            { label: "Flex Hours", active: flexibleLimits, toggle: () => setFlexibleLimits((v) => !v) },
+          ].map((t) => (
             <button
-              onClick={() => setTab("default")}
-              className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                tab === "default"
-                  ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
-                  : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
+              key={t.label}
+              onClick={t.toggle}
+              className={`rounded-[var(--trc-radius)] border px-2 py-1 text-[10px] font-medium transition-colors ${
+                t.active
+                  ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)] border-[var(--trc-primary)]"
+                  : "border-[var(--trc-border)] text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
               }`}
             >
-              Default
+              {t.label}
             </button>
-            <button
-              onClick={() => setTab("custom")}
-              className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                tab === "custom"
-                  ? "bg-[var(--trc-primary)] text-[var(--trc-primary-foreground)]"
-                  : "text-[var(--trc-foreground)] hover:bg-[var(--trc-accent)]"
-              }`}
-            >
-              Custom Slots
-            </button>
-          </div>
+          ))}
         </div>
 
-        {/* Calendar fills the rest */}
+        {/* Calendar */}
         <div className="flex-1 min-h-0">
           <Calendar
-            key={tab}
+            key={`${tab}-${enableResources}`}
             events={events}
             defaultView="week"
             enableDnD
@@ -446,11 +497,21 @@ export default function Playground() {
             onSlotClick={handleSlotClick}
             onSlotSelect={handleSlotSelect}
             slots={tab === "custom" ? playgroundSlots : undefined}
+            snapDuration={snapDuration}
+            hiddenDays={hiddenDays}
+            showWeekNumbers={showWeekNumbers}
+            highlightedDates={highlightedDates}
+            flexibleSlotTimeLimits={flexibleLimits}
+            resources={enableResources ? DEMO_RESOURCES : undefined}
+            dragConstraint={enableConstraints ? businessHoursConstraint : undefined}
+            resizeConstraint={enableConstraints ? businessHoursConstraint : undefined}
+            customButtons={customButtons}
+            dayStartHour={8}
+            dayEndHour={20}
           />
         </div>
       </div>
 
-      {/* Create Event Dialog */}
       {createDialog && (
         <CreateEventDialog
           start={createDialog.start}
