@@ -33,6 +33,7 @@ Pass your custom components via the `slots` prop:
 | `allDayEvent` | `AllDayEventSlotProps` | Week/Day view |
 | `popover` | `PopoverSlotProps` | All views |
 | `agendaEvent` | `AgendaEventSlotProps` | Agenda view |
+| `resourceHeader` | `ResourceHeaderSlotProps` | Resource views (day/week with resources) |
 
 ## Slot props reference
 
@@ -46,7 +47,10 @@ interface ToolbarSlotProps {
   onNext: () => void;
   onToday: () => void;
   onViewChange: (view: CalendarView) => void;
-  formattedDate: string;  // Locale-aware title, e.g., "March 2026"
+  formattedDate: string;      // Locale-aware title, e.g., "March 2026"
+  customButtons: CustomButton[]; // Buttons from the customButtons prop
+  canGoPrev: boolean;          // false when validRange start is reached
+  canGoNext: boolean;          // false when validRange end is reached
 }
 ```
 
@@ -103,12 +107,23 @@ interface AgendaEventSlotProps {
 }
 ```
 
+### ResourceHeaderSlotProps
+
+```ts
+interface ResourceHeaderSlotProps {
+  resource: Resource;
+  // resource.id: unique identifier
+  // resource.title: display name
+  // resource.color: optional color
+}
+```
+
 ## Examples
 
 ### Custom toolbar
 
 ```tsx
-import type { ToolbarSlotProps } from "trud-calendar";
+import type { ToolbarSlotProps, CalendarView } from "trud-calendar";
 
 function MyToolbar({
   formattedDate,
@@ -117,24 +132,35 @@ function MyToolbar({
   onNext,
   onToday,
   onViewChange,
+  customButtons,
+  canGoPrev,
+  canGoNext,
 }: ToolbarSlotProps) {
   return (
     <div className="flex items-center justify-between p-4 border-b">
       <div className="flex gap-2">
-        <button onClick={onPrev}>Back</button>
+        <button onClick={onPrev} disabled={!canGoPrev}>Back</button>
         <button onClick={onToday}>Today</button>
-        <button onClick={onNext}>Forward</button>
+        <button onClick={onNext} disabled={!canGoNext}>Forward</button>
       </div>
       <h2 className="text-lg font-bold">{formattedDate}</h2>
-      <select
-        value={view}
-        onChange={(e) => onViewChange(e.target.value as CalendarView)}
-      >
-        <option value="month">Month</option>
-        <option value="week">Week</option>
-        <option value="day">Day</option>
-        <option value="agenda">Agenda</option>
-      </select>
+      <div className="flex gap-2">
+        <select
+          value={view}
+          onChange={(e) => onViewChange(e.target.value as CalendarView)}
+        >
+          <option value="month">Month</option>
+          <option value="week">Week</option>
+          <option value="day">Day</option>
+          <option value="agenda">Agenda</option>
+          <option value="year">Year</option>
+        </select>
+        {customButtons.map((btn) => (
+          <button key={btn.key} onClick={btn.onClick}>
+            {btn.text}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
