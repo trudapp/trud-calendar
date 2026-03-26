@@ -25,6 +25,7 @@ The `<Calendar>` component accepts all fields from `CalendarConfig`, plus `class
 | `highlightedDates` | `DateString[]` | `[]` | Dates to visually highlight across all views |
 | `showWeekNumbers` | `boolean` | `false` | Show ISO week numbers in month view |
 | `longPressDelay` | `number` | `0` | Long press delay in ms for touch drag (avoids interfering with scroll) |
+| `slotClickTime` | `string` | `"09:00:00"` | Default time used when clicking an empty day in month view |
 | `resources` | `Resource[]` | `[]` | Resources for resource views (day/week views gain one column per resource) |
 | `flexibleSlotTimeLimits` | `boolean` | `false` | Auto-expand time grid when events fall outside dayStartHour/dayEndHour |
 | `customButtons` | `CustomButton[]` | `[]` | Custom buttons injected into the toolbar |
@@ -35,10 +36,10 @@ The `<Calendar>` component accepts all fields from `CalendarConfig`, plus `class
 | Callback | Signature | Description |
 |----------|-----------|-------------|
 | `onEventClick` | `(event: CalendarEvent) => void` | Fired when an event is clicked |
-| `onSlotClick` | `(dateTime: DateTimeString) => void` | Fired when an empty time slot is clicked |
-| `onEventDrop` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Fired when an event is dropped after dragging |
+| `onSlotClick` | `(dateTime: DateTimeString, extra?: { resourceId?: string }) => void` | Fired when an empty time slot is clicked. `extra.resourceId` set in resource views. |
+| `onEventDrop` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString, extra?: EventDropExtra) => void` | Fired when an event is dropped after dragging. `extra.resourceId` set in resource views. |
 | `onEventResize` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Fired when an event is resized (week/day view) |
-| `onSlotSelect` | `(start: DateTimeString, end: DateTimeString) => void` | Fired when a time range is selected by dragging across empty slots |
+| `onSlotSelect` | `(start: DateTimeString, end: DateTimeString, extra?: { resourceId?: string }) => void` | Fired when a time range is selected by dragging. `extra.resourceId` set in resource views. |
 | `onDateChange` | `(date: DateString) => void` | Fired when the visible date changes (navigation) |
 | `onViewChange` | `(view: CalendarView) => void` | Fired when the view changes |
 | `dragConstraint` | `(event, newStart, newEnd) => boolean` | Return `false` to prevent a drop |
@@ -84,7 +85,7 @@ interface RecurrenceRule {
 ### CalendarView
 
 ```ts
-type CalendarView = "month" | "week" | "day" | "agenda";
+type CalendarView = "month" | "week" | "day" | "agenda" | "year";
 ```
 
 ### CalendarLocale

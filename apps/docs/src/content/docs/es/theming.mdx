@@ -224,3 +224,27 @@ Para que esto funcione correctamente, **importa `trud-calendar/styles.css` antes
 ```
 
 Esto asegura que `@layer trc` se declare primero en la cascada, dandole la menor prioridad. Tus sobreescrituras desde cualquier contexto tendran precedencia.
+
+## Estilos de impresion
+
+El calendario incluye CSS optimizado para impresion via `@media print`:
+
+- El toolbar se oculta automaticamente
+- Las areas scrollables se hacen completamente visibles
+- Los handles de arrastre y redimensionado se ocultan
+- Los colores de fondo se simplifican para ahorrar tinta
+- Los colores de eventos se preservan con `print-color-adjust: exact`
+
+No requiere configuracion — solo usa `Ctrl+P` (o `Cmd+P` en Mac) para imprimir.
+
+## Soporte RTL
+
+trud-calendar soporta automaticamente layouts de derecha a izquierda. Agrega `dir="rtl"` a un elemento padre:
+
+```tsx
+<div dir="rtl">
+  <Calendar events={events} />
+</div>
+```
+
+El calendario invierte bordes, padding y alineacion de texto automaticamente. No requiere configuracion adicional.

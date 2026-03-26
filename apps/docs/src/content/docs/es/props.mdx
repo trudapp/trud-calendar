@@ -25,6 +25,7 @@ El componente `<Calendar>` acepta todos los campos de `CalendarConfig`, mas `cla
 | `highlightedDates` | `DateString[]` | `[]` | Fechas a resaltar visualmente en todas las vistas |
 | `showWeekNumbers` | `boolean` | `false` | Muestra numeros de semana ISO en la vista de mes |
 | `longPressDelay` | `number` | `0` | Retardo de presion larga en ms para arrastre tactil (evita interferir con el scroll) |
+| `slotClickTime` | `string` | `"09:00:00"` | Tiempo por defecto al hacer click en un dia vacio en vista de mes |
 | `resources` | `Resource[]` | `[]` | Recursos para las vistas de recursos (las vistas dia/semana ganan una columna por recurso) |
 | `flexibleSlotTimeLimits` | `boolean` | `false` | Expandir automaticamente la grilla cuando los eventos caen fuera del rango horario |
 | `customButtons` | `CustomButton[]` | `[]` | Botones personalizados inyectados en el toolbar |
@@ -35,10 +36,10 @@ El componente `<Calendar>` acepta todos los campos de `CalendarConfig`, mas `cla
 | Callback | Firma | Descripcion |
 |----------|-------|-------------|
 | `onEventClick` | `(event: CalendarEvent) => void` | Se dispara al hacer click en un evento |
-| `onSlotClick` | `(dateTime: DateTimeString) => void` | Se dispara al hacer click en un slot vacio |
-| `onEventDrop` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Se dispara al soltar un evento despues de arrastrarlo |
+| `onSlotClick` | `(dateTime: DateTimeString, extra?: { resourceId?: string }) => void` | Se dispara al hacer click en un slot vacio. `extra.resourceId` presente en vistas de recursos. |
+| `onEventDrop` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString, extra?: EventDropExtra) => void` | Se dispara al soltar un evento. `extra.resourceId` presente en vistas de recursos. |
 | `onEventResize` | `(event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void` | Se dispara al redimensionar un evento (vista semana/dia) |
-| `onSlotSelect` | `(start: DateTimeString, end: DateTimeString) => void` | Se dispara al seleccionar un rango de tiempo arrastrando sobre slots vacios |
+| `onSlotSelect` | `(start: DateTimeString, end: DateTimeString, extra?: { resourceId?: string }) => void` | Se dispara al seleccionar un rango de tiempo. `extra.resourceId` presente en vistas de recursos. |
 | `onDateChange` | `(date: DateString) => void` | Se dispara cuando la fecha visible cambia (navegacion) |
 | `onViewChange` | `(view: CalendarView) => void` | Se dispara cuando la vista cambia |
 | `dragConstraint` | `(event, newStart, newEnd) => boolean` | Devuelve `false` para prevenir un drop |
@@ -84,7 +85,7 @@ interface RecurrenceRule {
 ### CalendarView
 
 ```ts
-type CalendarView = "month" | "week" | "day" | "agenda";
+type CalendarView = "month" | "week" | "day" | "agenda" | "year";
 ```
 
 ### CalendarLocale
