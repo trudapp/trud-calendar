@@ -117,7 +117,5 @@ These are on the radar but not prioritized yet:
 
 | Milestone | Target version |
 |-----------|---------------|
-| Phase 1 complete | v0.2.0 |
-| Phase 2 complete | v0.3.0 |
-| Phase 3 complete | v0.4.0 (or v1.0.0-beta) |
-| Phase 4 complete | v1.0.0 |
+| Phases 1-5 complete | **v0.4.0** (current) |
+| ResourceTimeline + timezone | v1.0.0 |
