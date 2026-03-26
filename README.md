@@ -1,26 +1,27 @@
 # trud-calendar
 
-[Documentation](https://trud-calendar-docs.vercel.app/) | [Playground](https://trud-calendar-docs.vercel.app/playground/)
+[Documentation](https://trud-calendar-docs.vercel.app/) | [Playground](https://trud-calendar-docs.vercel.app/playground/) | [npm](https://www.npmjs.com/package/trud-calendar)
 
-A beautiful, fully-featured React calendar component. Google Calendar-level UX, MIT license, shadcn-compatible, zero-config theming.
+The most complete open-source React calendar. Google Calendar-level UX with a dead-simple API. MIT licensed, zero config, works everywhere.
 
-- **4 views** — Month, Week, Day, Agenda
-- **Drag & Drop** — Move and resize events with pointer events (mouse + touch)
-- **Recurrence** — RFC 5545 RRULE support: daily, weekly, monthly, yearly, with exceptions
-- **Touch support** — Full touch/stylus support via Pointer Events API
-- **Keyboard navigation** — WAI-ARIA grid pattern with arrow keys, Enter/Space, Escape
-- **i18n** — Full locale support via native `Intl` API + translatable UI labels
-- **Dark mode** — Works out of the box
-- **Slots API** — Replace any sub-component (toolbar, events, day cells, popovers)
-- **Undo/Redo** — Built-in undo stack with Ctrl+Z/Y keyboard shortcuts
-- **Multi-select** — Select multiple events with Ctrl/Shift+click
-- **Mobile responsive** — Adaptive layout (1/3/7 day columns) + swipe navigation
-- **Virtual scrolling** — Viewport-based event filtering for large datasets
-- **Lightweight** — Zero heavy dependencies, no moment/date-fns
-- **Tailwind v4** — CSS variables with automatic shadcn theme inheritance
-- **Controlled & uncontrolled** — Works both ways for date and view state
+> **Resource views free.** Other libraries charge $500+/year for resource scheduling. We include it at no cost.
 
-## Installation
+## Why trud-calendar?
+
+| | trud-calendar | FullCalendar | react-big-calendar | vkurko/calendar |
+|---|:---:|:---:|:---:|:---:|
+| **5 views** (month/week/day/agenda/year) | **Free** | Free | 4 views | 4 views |
+| **Resource views** | **Free** | $500+/yr | No | Free |
+| **Drag & drop + resize** (both edges) | **Free** | Free | Limited | Plugin |
+| **Recurring events (RRULE)** | **Built-in** | Plugin | No | No |
+| **TypeScript strict** | **Native** | Yes | Yes | No |
+| **React hooks API** | **15+ hooks** | Wrapper | No | No |
+| **Zero-dep headless core** | **Yes** | No | No | No |
+| **RTL + Print CSS** | **Built-in** | Partial | No | No |
+| **iCal export** | **Built-in** | No | No | No |
+| **Bundle size** | **~95kb** | ~200kb+ | ~90kb | ~35kb |
+
+## Install
 
 ```bash
 npm install trud-calendar
@@ -32,686 +33,235 @@ pnpm add trud-calendar
 
 ### AI-assisted setup
 
-Using [Claude Code](https://claude.com/claude-code), [Cursor](https://cursor.com), [Copilot](https://github.com/features/copilot), or any AI coding agent? Install the [Agent Skill](https://agentskills.io) so your AI knows the full trud-calendar API:
+Using [Claude Code](https://claude.com/claude-code), [Cursor](https://cursor.com), or any AI coding agent?
 
 ```bash
 npx skills add trudapp/trud-calendar
 ```
 
-Works with 40+ agents. Your AI will know every prop, slot, hook, and pattern — no need to read the docs.
+Your AI will know every prop, slot, hook, and pattern — no docs needed.
 
-### Tailwind v4 setup
-
-Add the package source to your CSS so Tailwind generates the required utility classes:
+### CSS setup
 
 ```css
 @import "tailwindcss";
 @source "../node_modules/trud-calendar/dist";
+@import "trud-calendar/styles.css"; /* optional if using shadcn — variables auto-inherit */
 ```
 
-Import the theme variables (optional if you already use shadcn — the variables auto-inherit):
-
-```css
-@import "trud-calendar/styles.css";
-```
-
-### Without Tailwind
-
-Import the pre-built CSS:
-
-```css
-@import "trud-calendar/styles.css";
-```
-
----
+Without Tailwind: just `@import "trud-calendar/styles.css"`.
 
 ## Quick start
 
 ```tsx
 import { Calendar } from "trud-calendar";
 
-const events = [
-  {
-    id: "1",
-    title: "Team standup",
-    start: "2026-03-13T09:00:00",
-    end: "2026-03-13T09:30:00",
-  },
-  {
-    id: "2",
-    title: "Vacation",
-    start: "2026-03-16T00:00:00",
-    end: "2026-03-20T23:59:59",
-    allDay: true,
-    color: "#10b981",
-  },
-];
-
-function App() {
-  return (
-    <Calendar
-      events={events}
-      onEventClick={(event) => console.log("Clicked:", event)}
-      onSlotClick={(dateTime) => console.log("Slot:", dateTime)}
-    />
-  );
-}
+<Calendar
+  events={[
+    { id: "1", title: "Meeting", start: "2026-03-25T09:00:00", end: "2026-03-25T10:00:00" },
+    { id: "2", title: "Lunch", start: "2026-03-25T12:00:00", end: "2026-03-25T13:00:00", color: "#10b981" },
+  ]}
+  enableDnD
+  onEventDrop={(event, newStart, newEnd) => updateEvent(event.id, newStart, newEnd)}
+  onEventResize={(event, newStart, newEnd) => updateEvent(event.id, newStart, newEnd)}
+/>
 ```
 
-That's it. The calendar renders with sensible defaults — month view, English locale, Sunday start, full 24h time grid.
+That's it. Month view, English locale, full drag & drop. Zero config.
 
----
+## Feature highlights
 
-## Props
-
-`<Calendar>` accepts all fields from `CalendarConfig`:
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `events` | `CalendarEvent[]` | **required** | Events to display |
-| `defaultView` | `CalendarView` | `"month"` | Initial view (uncontrolled) |
-| `defaultDate` | `DateString` | today | Initial date (uncontrolled) |
-| `view` | `CalendarView` | — | Controlled view |
-| `date` | `DateString` | — | Controlled date |
-| `locale` | `Partial<CalendarLocale>` | `{ locale: "en-US", weekStartsOn: 0 }` | Locale settings |
-| `slots` | `Partial<CalendarSlots>` | — | Custom component overrides |
-| `enableDnD` | `boolean` | `false` | Enable drag and drop |
-| `dayStartHour` | `number` | `0` | Hour the time grid starts (0-23) |
-| `dayEndHour` | `number` | `24` | Hour the time grid ends (0-24) |
-| `className` | `string` | — | Additional CSS classes |
-| `onEventClick` | `(event) => void` | — | Fired when an event is clicked |
-| `onSlotClick` | `(dateTime) => void` | — | Fired when an empty slot is clicked |
-| `onEventDrop` | `(event, newStart, newEnd) => void` | — | Fired when an event is dropped after drag |
-| `onEventResize` | `(event, newStart, newEnd) => void` | — | Fired when an event is resized |
-| `onSlotSelect` | `(start, end) => void` | — | Fired when a time range is selected by dragging |
-| `onDateChange` | `(date) => void` | — | Fired when the visible date changes |
-| `onViewChange` | `(view) => void` | — | Fired when the view changes |
-
-### CalendarEvent
+### 5 views
 
 ```ts
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: string;  // ISO 8601: "2026-03-13T09:00:00"
-  end: string;    // ISO 8601: "2026-03-13T10:00:00"
-  allDay?: boolean;
-  color?: string;  // Any CSS color
-  recurrence?: RecurrenceRule;  // Recurring event rule
-  exDates?: string[];           // Dates to exclude from recurrence
-  recurringEventId?: string;    // Set on expanded instances
-  originalDate?: string;        // Original date of this instance
-  [key: string]: unknown;       // Attach any custom data
-}
+type CalendarView = "month" | "week" | "day" | "agenda" | "year";
 ```
 
-All dates use **ISO 8601 strings** — no `Date` objects. This makes them serializable, easy to memoize, and compatible with any backend.
+Year view shows a 12-month overview with event dots. Click any day to jump to day view.
 
----
-
-## Keyboard Navigation
-
-The calendar follows the WAI-ARIA grid pattern for full keyboard accessibility:
-
-| Key | Action |
-|-----|--------|
-| `Arrow keys` | Navigate between days/time slots |
-| `Enter` / `Space` | Click event or create event in empty slot |
-| `Escape` | Close popover or blur focus |
-| `Home` / `End` | Jump to first/last cell in row |
-| `Tab` | Move between regions (toolbar → grid → events) |
-
-Keyboard navigation is always enabled — no prop needed.
-
----
-
-## Views
-
-```ts
-type CalendarView = "month" | "week" | "day" | "agenda";
-```
-
-- **Month** — 6-week grid with event pills, multi-day spanning, "+N more" popover
-- **Week** — 7-column time grid with positioned overlapping events, all-day row, multi-day timed events
-- **Day** — Single-column time grid (same engine as week view)
-- **Agenda** — Chronological event list grouped by date
-
-### Multi-day timed events
-
-Timed events that span multiple days (e.g., a conference from Wednesday 10:00 to Friday 16:00) are segmented across each day in the Week/Day view. The first day shows the event from start time to day end, middle days show full-height, and the last day shows from day start to end time.
-
----
-
-## Drag & Drop, Resize, and Slot Selection
-
-Enable interactions with `enableDnD={true}`:
+### Resource scheduling (free)
 
 ```tsx
 <Calendar
   events={events}
+  resources={[
+    { id: "room-a", title: "Room A", color: "#3b82f6" },
+    { id: "room-b", title: "Room B", color: "#22c55e" },
+  ]}
+  defaultView="day"
   enableDnD
-  onEventDrop={(event, newStart, newEnd) => {
-    await api.updateEvent(event.id, { start: newStart, end: newEnd });
-  }}
-  onEventResize={(event, newStart, newEnd) => {
-    await api.updateEvent(event.id, { start: newStart, end: newEnd });
-  }}
-  onSlotSelect={(start, end) => {
-    // User dragged across a time range to create an event
-    openCreateModal({ start, end });
+  onEventDrop={(event, newStart, newEnd, extra) => {
+    // extra?.resourceId — the new resource after drag
   }}
 />
 ```
 
-- **Pointer Events** — All interactions use the Pointer Events API, working seamlessly on mouse, touch, and stylus
-- **Event move** — Drag events across days (month) or time slots (week/day)
-- **Event resize** — Drag the bottom edge of events in week/day view to change duration
-- **Drag-to-create** — Drag across empty slots to select a time range
-- **15-minute snap** — Week/day interactions snap to 15-minute increments
-- **Touch support** — Works on mobile and tablet with no extra configuration
+Just add `resources` — day/week views automatically become resource columns. Drag events between resources.
 
----
+### Interactions
 
-## Recurrence
+- **Drag & drop** — move events across days and time slots with snapped preview
+- **Resize from both edges** — drag top or bottom handle to change start/end time
+- **Drag-to-create** — drag across empty slots to select a time range
+- **Configurable snap** — `snapDuration={30}` for 30-minute increments (5/10/15/30/60)
+- **Constraints** — `dragConstraint`, `resizeConstraint`, `selectConstraint` return `false` to block
+- **Auto-scroll** — container scrolls when dragging near edges
+- **Long press** — `longPressDelay={300}` for touch devices
+- **Multi-select** — Ctrl/Shift+click to select multiple events
+- **Undo/redo** — `useUndoableEvents()` with Ctrl+Z/Y
 
-Create recurring events using the `recurrence` property on `CalendarEvent`:
+### Background events & business hours
+
+```tsx
+const events = [
+  { id: "bh", title: "Business Hours", start: "...T09:00:00", end: "...T17:00:00", display: "background", color: "#22c55e" },
+  // ...regular events
+];
+```
+
+### View customization
+
+```tsx
+<Calendar
+  events={events}
+  hiddenDays={[0, 6]}           // Hide weekends
+  showWeekNumbers                // ISO week numbers
+  highlightedDates={["2026-12-25"]}  // Highlight specific dates
+  validRange={{ start: "2026-01-01", end: "2026-12-31" }}  // Restrict navigation
+  flexibleSlotTimeLimits        // Auto-expand time grid for out-of-bounds events
+  dayStartHour={8}
+  dayEndHour={20}
+/>
+```
+
+### Custom toolbar buttons
+
+```tsx
+<Calendar
+  events={events}
+  customButtons={[
+    { key: "export", text: "Export .ics", onClick: () => downloadICal(events) },
+    { key: "print", text: "Print", onClick: () => window.print() },
+  ]}
+/>
+```
+
+### Recurring events (RFC 5545)
 
 ```tsx
 const events = [
   {
     id: "standup",
     title: "Daily Standup",
-    start: "2026-03-13T09:00:00",
-    end: "2026-03-13T09:30:00",
+    start: "2026-03-25T09:00:00",
+    end: "2026-03-25T09:30:00",
     recurrence: { freq: "daily" },
-  },
-  {
-    id: "review",
-    title: "Sprint Review",
-    start: "2026-03-13T14:00:00",
-    end: "2026-03-13T15:00:00",
-    recurrence: {
-      freq: "weekly",
-      byDay: ["FR"],
-      count: 12,
-    },
+    exDates: ["2026-03-28"], // Skip this date
   },
 ];
 ```
 
-### Expanding recurring events
-
-The calendar does **not** auto-expand recurring events. Use `expandRecurringEvents()` from the core:
-
-```tsx
-import { expandRecurringEvents } from "trud-calendar-core";
-
-const expanded = expandRecurringEvents(events, rangeStart, rangeEnd);
-// Returns: original non-recurring events + generated instances for recurring ones
-```
-
-Each generated instance has:
-- `recurringEventId` — ID of the parent event
-- `originalDate` — the date this instance was generated for
-- A synthetic `id` in the format `parentId::YYYY-MM-DD`
-
-### RecurrenceRule
+### iCal export
 
 ```ts
-interface RecurrenceRule {
-  freq: "daily" | "weekly" | "monthly" | "yearly";
-  interval?: number;     // Every N periods (default: 1)
-  byDay?: RecurrenceDay[];  // "MO", "TU", "WE", "TH", "FR", "SA", "SU"
-  byMonthDay?: number[]; // Day of month: [1, 15]
-  bySetPos?: number[];   // Position in set: [1] = first, [-1] = last
-  count?: number;        // Stop after N occurrences
-  until?: string;        // Stop after this date (YYYY-MM-DD)
-}
+import { eventsToICal, downloadICal } from "trud-calendar-core";
+
+downloadICal(events, "my-calendar.ics"); // Browser download
+const icsString = eventsToICal(events);  // Get .ics content
 ```
 
-### Editing recurring events
-
-Use `exDates` to exclude specific dates from a series:
+### Async event sources
 
 ```tsx
-const event = {
-  id: "standup",
-  title: "Daily Standup",
-  start: "2026-03-13T09:00:00",
-  end: "2026-03-13T09:30:00",
-  recurrence: { freq: "daily" },
-  exDates: ["2026-03-17", "2026-03-24"], // Skip these dates
-};
+import { useEventSources, useCalendar } from "trud-calendar";
+
+const { visibleRange } = useCalendar();
+const { events, isLoading, refetch } = useEventSources({
+  sources: [
+    { url: "/api/events" },
+    { fetcher: (start, end) => fetchTeamEvents(start, end) },
+  ],
+  start: visibleRange.start,
+  end: visibleRange.end,
+});
 ```
 
-To edit a single occurrence: add the date to `exDates` on the parent, then create a standalone event for the exception. To edit the whole series: update the parent event directly.
+Range-based caching, deduplication, loading state.
 
----
-
-## Locale & i18n
-
-### Date formatting
-
-Pass a [BCP 47 locale string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#locales_argument). All date/time formatting uses the native `Intl` API — no extra dependencies.
+### External drag-in
 
 ```tsx
-<Calendar
-  events={events}
-  locale={{
-    locale: "es-ES",
-    weekStartsOn: 1, // Monday
-  }}
-/>
+import { useExternalDrag } from "trud-calendar";
+
+const { makeDraggable, dropTargetProps } = useExternalDrag({
+  onExternalDrop: (info) => createEvent(info.day, info.start, info.resourceId, info.data),
+});
+
+<div {...makeDraggable({ taskId: "123" })}>Drag me to calendar</div>
+<div {...dropTargetProps}><Calendar events={events} /></div>
 ```
 
-### UI labels
-
-All button and label text is customizable via `locale.labels`:
-
-```tsx
-<Calendar
-  events={events}
-  locale={{
-    locale: "es-ES",
-    weekStartsOn: 1,
-    labels: {
-      today: "Hoy",
-      month: "Mes",
-      week: "Semana",
-      day: "Dia",
-      agenda: "Agenda",
-      allDay: "todo el dia",
-      noEvents: "No hay eventos en este periodo",
-      more: (n) => `+${n} mas`,
-    },
-  }}
-/>
-```
-
-You only need to provide the labels you want to override — the rest fall back to English defaults.
-
-```ts
-interface CalendarLabels {
-  today: string;
-  month: string;
-  week: string;
-  day: string;
-  agenda: string;
-  allDay: string;
-  noEvents: string;
-  more: (count: number) => string;
-}
-```
-
----
-
-## Controlled mode
-
-Control the date and/or view from outside:
-
-```tsx
-const [date, setDate] = useState("2026-03-13");
-const [view, setView] = useState<CalendarView>("week");
-
-<Calendar
-  events={events}
-  date={date}
-  view={view}
-  onDateChange={setDate}
-  onViewChange={setView}
-/>
-```
-
-Or use uncontrolled mode with `defaultDate` and `defaultView` (no callbacks needed).
-
----
-
-## Time grid customization
-
-Limit the visible hours in week/day views:
-
-```tsx
-<Calendar
-  events={events}
-  dayStartHour={8}   // Start at 8 AM
-  dayEndHour={20}    // End at 8 PM
-/>
-```
-
----
-
-## Slots API
-
-Replace any sub-component with your own. Slot components receive typed props — use them to build completely custom UIs while keeping the calendar's state management, layout algorithms, and navigation.
+### Slots API — replace any component
 
 ```tsx
 <Calendar
   events={events}
   slots={{
-    toolbar: MyCustomToolbar,
-    dayCell: MyCustomDayCell,
-    timeEvent: MyCustomTimeEvent,
-    allDayEvent: MyCustomAllDayEvent,
-    popover: MyCustomPopover,
-    agendaEvent: MyCustomAgendaEvent,
+    toolbar: MyToolbar,        // Full toolbar control (receives customButtons, canGoPrev/canGoNext)
+    dayCell: MyDayCell,        // Month view cells
+    timeEvent: MyTimeEvent,    // Week/day event cards
+    allDayEvent: MyAllDay,     // All-day row events
+    popover: MyPopover,        // Event detail popover
+    agendaEvent: MyAgenda,     // Agenda list items
+    resourceHeader: MyResHdr,  // Resource column headers
   }}
 />
 ```
 
-### Available slots
-
-| Slot | Props | Used in |
-|------|-------|---------|
-| `toolbar` | `ToolbarSlotProps` | All views |
-| `dayCell` | `DayCellSlotProps` | Month view |
-| `timeEvent` | `TimeEventSlotProps` | Week/Day view |
-| `allDayEvent` | `AllDayEventSlotProps` | Week/Day view |
-| `popover` | `PopoverSlotProps` | All views |
-| `agendaEvent` | `AgendaEventSlotProps` | Agenda view |
-
-### Example: Custom toolbar
+### i18n — any locale, zero extra deps
 
 ```tsx
-import type { ToolbarSlotProps } from "trud-calendar";
-
-function MyToolbar({ formattedDate, view, onPrev, onNext, onToday, onViewChange }: ToolbarSlotProps) {
-  return (
-    <div className="flex items-center justify-between p-4">
-      <div className="flex gap-2">
-        <button onClick={onPrev}>Back</button>
-        <button onClick={onToday}>Today</button>
-        <button onClick={onNext}>Forward</button>
-      </div>
-      <h2>{formattedDate}</h2>
-      <select value={view} onChange={(e) => onViewChange(e.target.value as any)}>
-        <option value="month">Month</option>
-        <option value="week">Week</option>
-        <option value="day">Day</option>
-        <option value="agenda">Agenda</option>
-      </select>
-    </div>
-  );
-}
-
-<Calendar events={events} slots={{ toolbar: MyToolbar }} />
+<Calendar events={events} locale={{ locale: "ja-JP", weekStartsOn: 1 }} />
 ```
 
-### Example: Custom day cell
+All formatting via native `Intl` API. 50+ locales supported.
 
-```tsx
-import type { DayCellSlotProps } from "trud-calendar";
+### Theming
 
-function MyDayCell({ date, isToday, isCurrentMonth, events }: DayCellSlotProps) {
-  return (
-    <div className={`p-2 ${isToday ? "bg-blue-100" : ""} ${!isCurrentMonth ? "opacity-30" : ""}`}>
-      <span>{new Date(date).getDate()}</span>
-      {events.length > 0 && <span className="text-xs">({events.length})</span>}
-    </div>
-  );
-}
-```
+- Auto-inherits **shadcn/ui** CSS variables
+- **Dark mode** — just add `.dark` class to parent
+- **RTL** — add `dir="rtl"` to parent
+- **Print** — `@media print` CSS built-in
+- 16+ CSS variables (`--trc-*`) for full control
 
----
+### 15+ React hooks
 
-## Theming
+`useCalendar`, `useNavigation`, `useEvents`, `useEventLayout`, `useCurrentTime`, `useDateFormat`, `useEventDrag`, `useEventResize`, `useSlotSelection`, `useGridKeyboard`, `useUndoableEvents`, `useEventSelection`, `useResponsiveView`, `useSwipeNavigation`, `useVirtualScroll`, `useAutoScroll`, `useEventSources`, `useExternalDrag`
 
-The calendar uses CSS custom properties that automatically inherit from shadcn/ui if present. Override any variable to customize the look:
-
-```css
-:root {
-  --trc-background: #ffffff;
-  --trc-foreground: #0a0a0a;
-  --trc-muted: #f5f5f5;
-  --trc-muted-foreground: #737373;
-  --trc-border: #e5e5e5;
-  --trc-primary: #171717;
-  --trc-primary-foreground: #fafafa;
-  --trc-accent: #f5f5f5;
-  --trc-accent-foreground: #171717;
-  --trc-card: #ffffff;
-  --trc-card-foreground: #0a0a0a;
-  --trc-ring: #171717;
-  --trc-radius: 0.5rem;
-
-  /* Calendar-specific */
-  --trc-today-bg: #dbeafe;
-  --trc-today-text: #1d4ed8;
-  --trc-event-default: #3b82f6;
-  --trc-current-time: #ef4444;
-  --trc-hour-height: 3rem;
-}
-```
-
-### Dark mode
-
-Add the `.dark` class to a parent element. The built-in dark theme activates automatically:
-
-```tsx
-<div className={darkMode ? "dark" : ""}>
-  <Calendar events={events} />
-</div>
-```
-
-### shadcn compatibility
-
-If your project already uses shadcn/ui, the calendar inherits your theme automatically — the CSS variables fall back to shadcn's `var(--background)`, `var(--foreground)`, etc. No extra configuration needed.
-
----
-
-## Hooks
-
-Use these hooks inside `<CalendarProvider>` to build custom calendar UIs from scratch.
-
-### useCalendar()
-
-Main orchestrator — combines state, events, and navigation.
-
-```ts
-const {
-  currentDate,    // DateString
-  view,           // CalendarView
-  events,         // CalendarEvent[] (all)
-  visibleEvents,  // CalendarEvent[] (filtered to visible range)
-  visibleRange,   // { start, end }
-  locale,         // string
-  prev, next, today,
-  setDate, setView,
-} = useCalendar();
-```
-
-### useNavigation()
-
-Date navigation and view switching.
-
-```ts
-const {
-  currentDate,
-  view,
-  formattedDate,  // Locale-aware title (e.g., "March 2026")
-  prev, next, today,
-  setDate, setView,
-} = useNavigation();
-```
-
-### useEvents()
-
-Event data for the visible range.
-
-```ts
-const {
-  visibleEvents,
-  getForDay,       // (date: DateString) => CalendarEvent[]
-  partitioned,     // { allDay: CalendarEvent[], timed: CalendarEvent[] }
-  segments,        // EventSegment[] (multi-day segments)
-  groupedByDate,   // Map<DateString, CalendarEvent[]>
-} = useEvents();
-```
-
-### useEventLayout(events)
-
-Column-packing algorithm for overlapping events in the time grid.
-
-```ts
-const positioned: PositionedEvent[] = useEventLayout(timedEvents);
-// Each PositionedEvent has: event, column, totalColumns, top, height
-```
-
-### useCurrentTime(intervalMs?)
-
-Live clock for "current time" indicators. Updates every 60s by default.
-
-```ts
-const { now, today, timeOfDay } = useCurrentTime();
-// timeOfDay: fractional hour (14.5 = 2:30 PM)
-```
-
-### useEventDrag()
-
-Pointer-based event drag hook. Use it to build custom drag interactions for moving events.
-
-```ts
-const { dragState, onPointerDown, isDragging, didDrag } = useEventDrag({
-  mode: "time", // "time" for week/day, "date" for month
-  onEventDrop,
-  enableDnD,
-});
-```
-
-### useGridKeyboard()
-
-Keyboard navigation hook implementing the WAI-ARIA grid pattern with roving tabindex.
-
-```ts
-const grid = useGridKeyboard({
-  cols: 7,
-  rows: 24,
-  onActivate: (row, col) => handleSlotClick(row, col),
-  onEscape: () => blurGrid(),
-});
-// grid.registerCell(row, col), grid.getTabIndex(row, col), grid.handleKeyDown, grid.handleFocus
-```
-
-### useUndoableEvents()
-
-Wraps a `CalendarEvent[]` with undo/redo support. Auto-snapshots on `onEventDrop` and `onEventResize`, with Ctrl+Z / Ctrl+Shift+Z keyboard shortcuts built in.
-
-```ts
-const {
-  events,        // CalendarEvent[] — current state
-  setEvents,     // (events) => void — update + snapshot
-  onEventDrop,   // auto-snapshots before applying
-  onEventResize, // auto-snapshots before applying
-  undo, redo,    // () => void
-  canUndo, canRedo, // boolean
-  snapshot,      // () => void — manual snapshot
-} = useUndoableEvents({ initialEvents, maxHistory: 30 });
-```
-
-### useEventSelection()
-
-Multi-select event management with Set-based tracking.
-
-```ts
-const {
-  selectedIds,    // Set<string>
-  isSelected,     // (id: string) => boolean
-  toggle,         // (id: string) => void — Ctrl+click
-  rangeSelect,    // (id: string, sortedIds: string[]) => void — Shift+click
-  clearSelection, // () => void
-  selectAll,      // (ids: string[]) => void
-} = useEventSelection();
-```
-
-### useResponsiveView()
-
-Adaptive layout hook using ResizeObserver.
-
-```ts
-const {
-  isMobile,       // boolean (< 640px)
-  isTablet,       // boolean (640px – 1024px)
-  containerWidth, // number
-  visibleDays,    // 1 | 3 | 7
-} = useResponsiveView(containerRef);
-```
-
-### useSwipeNavigation()
-
-Touch swipe detection for prev/next navigation (touch-only, ignores mouse).
-
-```ts
-const swipe = useSwipeNavigation({
-  onSwipeLeft: () => next(),
-  onSwipeRight: () => prev(),
-  threshold: 50,
-});
-// Spread swipe.onPointerDown, swipe.onPointerMove, swipe.onPointerUp on the container
-```
-
-### useVirtualScroll()
-
-Viewport-based scroll tracking for filtering visible events in large datasets.
-
-```ts
-const { viewportTop, viewportBottom, isVirtualized } = useVirtualScroll({
-  containerRef,
-  totalHours: 24,
-  enabled: true,
-});
-```
-
-### useDateFormat()
-
-Locale-aware date formatting functions.
-
-```ts
-const fmt = useDateFormat();
-fmt.toolbarTitle("2026-03-13", "month"); // "March 2026"
-fmt.time("2026-03-13T14:30:00");         // "2:30 PM"
-fmt.timeRange(start, end);               // "2:30 – 3:00 PM"
-fmt.weekdayShort("2026-03-13");          // "Fri"
-```
-
----
-
-## Headless core
-
-The `trud-calendar-core` package provides all logic with zero dependencies and zero React dependency. Use it to build calendar UIs in any framework.
+### Zero-dep headless core
 
 ```bash
 npm install trud-calendar-core
 ```
 
-### What's included
+All calendar logic as pure TypeScript functions — date utils, event layout, recurrence expansion, iCal export, resource grouping. Use in any framework.
 
-- **Types** — `CalendarEvent`, `CalendarView`, `DateString`, `DateTimeString`, `PositionedEvent`, `EventSegment`, `RecurrenceRule`, `TimedEventSegment`, `UndoStack`, `VirtualRange`
-- **Date utils** — `addDays`, `startOfWeek`, `startOfMonth`, `isSameDay`, `eachDayOfRange`, `getVisibleRange`, ...
-- **Formatting** — `formatToolbarTitle`, `formatTime`, `formatTimeRange`, `formatAgendaDate` (all via `Intl`)
-- **Event utils** — `sortEvents`, `filterEventsInRange`, `segmentMultiDayEvent`, `segmentTimedMultiDayEvent`, `groupEventsByDate`
-- **Recurrence** — `expandRecurringEvents`, `generateOccurrences` (RFC 5545 RRULE expansion)
-- **Layout algorithm** — `buildOverlapGroups`, `assignColumns`, `computeTimePositions` (column-packing)
-- **Undo/Redo** — `createUndoStack`, `pushState`, `undo`, `redo`, `canUndo`, `canRedo` (generic, framework-agnostic)
-- **Virtualization** — `filterVisibleEvents`, `scrollToViewportRange` (viewport-based event filtering)
-- **State** — `calendarReducer`, `createInitialState`
+## Architecture
 
-```ts
-import {
-  getVisibleRange,
-  filterEventsInRange,
-  computeTimePositions,
-  formatTime,
-} from "trud-calendar-core";
-
-const range = getVisibleRange("2026-03-13", "week", 1);
-const visible = filterEventsInRange(events, range.start, range.end);
-const positioned = computeTimePositions(timedEvents, 0, 24);
+```
+packages/core    — Zero dependencies, pure functions, framework-agnostic
+packages/react   — React components and hooks (depends only on core + react)
 ```
 
----
+- **TypeScript strict** — no `any`, full type inference
+- **Tree-shakeable** — named exports only
+- **Pointer Events API** — mouse + touch + stylus, no HTML5 Drag
+- **All dates are ISO 8601 strings** — serializable, memoizable
+- **319 tests** across 22 test files
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, code style, and PR guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
