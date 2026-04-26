@@ -99,6 +99,63 @@ function partsAt(timeZone: string, utcMs: number): WallParts {
   return result as WallParts;
 }
 
+// ── Browser default ─────────────────────────────────────────────
+
+/**
+ * Returns the runtime's local IANA timezone identifier (e.g.,
+ * "America/New_York"). Used as the default `displayTimeZone` when none is
+ * configured. Falls back to "UTC" if the runtime cannot resolve one.
+ */
+export function getBrowserTimeZone(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (typeof tz === "string" && tz.length > 0) return tz;
+  } catch {
+    /* fallthrough */
+  }
+  return "UTC";
+}
+
+// ── Event ⇄ display helpers ─────────────────────────────────────
+
+/**
+ * Convert an event's wall-clock time (anchored in `eventTimeZone`) to the
+ * equivalent wall-clock time in `displayTimeZone`.
+ *
+ * - Floating events (no `eventTimeZone`) are returned unchanged.
+ * - When `displayTimeZone` is undefined, the runtime's local zone is used.
+ * - When the two zones match, the wall is returned unchanged.
+ */
+export function eventWallToDisplay(
+  eventWall: DateTimeString,
+  eventTimeZone: string | undefined,
+  displayTimeZone: string | undefined,
+): DateTimeString {
+  if (!eventTimeZone) return eventWall;
+  const target = displayTimeZone ?? getBrowserTimeZone();
+  if (eventTimeZone === target) return eventWall;
+  return convertWallTime(eventWall, eventTimeZone, target);
+}
+
+/**
+ * Convert a wall-clock the user is interacting with (in `displayTimeZone`)
+ * to the wall-clock to store on the event (in `eventTimeZone`).
+ *
+ * Inverse of {@link eventWallToDisplay}. Floating events return unchanged so
+ * drag/resize on a floating event preserves its literal wall-clock.
+ */
+export function displayWallToEvent(
+  displayWall: DateTimeString,
+  eventTimeZone: string | undefined,
+  displayTimeZone: string | undefined,
+  options?: WallToUtcOptions,
+): DateTimeString {
+  if (!eventTimeZone) return displayWall;
+  const source = displayTimeZone ?? getBrowserTimeZone();
+  if (eventTimeZone === source) return displayWall;
+  return convertWallTime(displayWall, source, eventTimeZone, options);
+}
+
 // ── Validation ──────────────────────────────────────────────────
 
 const validTzCache = new Map<string, boolean>();

@@ -249,6 +249,17 @@ export interface CalendarConfig {
   defaultDate?: DateString;
   /** Locale settings */
   locale?: Partial<CalendarLocale>;
+  /**
+   * IANA timezone in which times are rendered to the user (e.g., the
+   * now-line position, event time labels, drag/resize previews).
+   *
+   * - Defaults to the runtime's local zone (`Intl.DateTimeFormat().resolvedOptions().timeZone`).
+   * - Events with a `timeZone` are converted to this zone for display.
+   * - Floating events (no `timeZone`) are shown as written, unaffected.
+   * - Drag/resize math is computed in this zone, then converted back to
+   *   each event's anchored zone before the change is reported.
+   */
+  displayTimeZone?: string;
   /** Slot overrides */
   slots?: Partial<CalendarSlots>;
   /** Callback when an event is clicked */

@@ -15,6 +15,7 @@ import {
   sortEvents,
   expandRecurringEvents,
   getTimeOfDay,
+  getBrowserTimeZone,
   type CalendarEvent,
   type CalendarView,
   type CalendarState,
@@ -66,6 +67,8 @@ interface CalendarContextValue {
   resources: Resource[];
   customButtons: CustomButton[];
   flexibleSlotTimeLimits: boolean;
+  /** Resolved IANA zone in which the calendar renders times — never undefined */
+  displayTimeZone: string;
   dragConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
   resizeConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
   selectConstraint?: (start: DateTimeString, end: DateTimeString) => boolean;
@@ -104,6 +107,10 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
   const resources = config.resources ?? [];
   const customButtons = config.customButtons ?? [];
   const flexibleSlotTimeLimits = config.flexibleSlotTimeLimits ?? false;
+  const displayTimeZone = useMemo(
+    () => config.displayTimeZone ?? getBrowserTimeZone(),
+    [config.displayTimeZone],
+  );
   const labels: CalendarLabels = useMemo(
     () => ({ ...DEFAULT_LABELS, ...config.locale?.labels }),
     [config.locale?.labels],
@@ -216,6 +223,7 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       resources,
       customButtons,
       flexibleSlotTimeLimits,
+      displayTimeZone,
       dragConstraint: config.dragConstraint,
       resizeConstraint: config.resizeConstraint,
       selectConstraint: config.selectConstraint,
@@ -250,6 +258,7 @@ export function CalendarProvider({ config, children }: CalendarProviderProps) {
       resources,
       customButtons,
       flexibleSlotTimeLimits,
+      displayTimeZone,
       config.dragConstraint,
       config.resizeConstraint,
       config.selectConstraint,

@@ -19,6 +19,7 @@ import {
   isMultiDayEvent,
   sortEvents,
   formatTime,
+  eventWallToDisplay,
   filterHiddenDays,
   getISOWeekNumber,
   type CalendarEvent,
@@ -32,6 +33,7 @@ interface MonthEventPillProps {
   event: CalendarEvent;
   segment?: EventSegment;
   locale: string;
+  displayTimeZone: string;
   onClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
   enableDnD?: boolean;
   isDragging?: boolean;
@@ -44,6 +46,7 @@ function MonthEventPill({
   event,
   segment,
   locale,
+  displayTimeZone,
   onClick,
   enableDnD,
   isDragging,
@@ -102,7 +105,7 @@ function MonthEventPill({
     >
       {!event.allDay && isStart && !isMultiDayEvent(event) && (
         <span className="text-[var(--trc-muted-foreground)] mr-1">
-          {formatTime(event.start, locale)}
+          {formatTime(eventWallToDisplay(event.start, event.timeZone, displayTimeZone), locale)}
         </span>
       )}
       {event.title}
@@ -131,6 +134,7 @@ export function MonthView() {
     highlightedDates,
     showWeekNumbers,
     labels,
+    displayTimeZone,
   } = useCalendarContext();
   const slots = useCalendarSlots();
   const selectionCtx = useSelectionContext();
@@ -150,6 +154,7 @@ export function MonthView() {
     selectedIds: selectionCtx.selectedIds,
     events: visibleEvents,
     longPressDelay,
+    displayTimeZone,
   });
 
   // Selection-aware click handler
@@ -395,6 +400,7 @@ export function MonthView() {
                           event={seg.event}
                           segment={seg}
                           locale={locale}
+                          displayTimeZone={displayTimeZone}
                           onClick={handleEventClick}
                           enableDnD={enableDnD}
                           isDragging={dragState?.event.id === seg.event.id}
@@ -416,6 +422,7 @@ export function MonthView() {
                             <MonthEventPill
                               event={event}
                               locale={locale}
+                              displayTimeZone={displayTimeZone}
                               onClick={handleEventClick}
                               enableDnD={enableDnD}
                               isDragging={dragState?.event.id === event.id}
@@ -472,6 +479,7 @@ export function MonthView() {
                   key={event.id}
                   event={event}
                   locale={locale}
+                  displayTimeZone={displayTimeZone}
                   onClick={(ev, e) => {
                     setMorePopover(null);
                     handleEventClick(ev, e);

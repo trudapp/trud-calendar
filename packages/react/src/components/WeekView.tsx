@@ -20,6 +20,7 @@ import {
   formatDayNumber,
   formatTime,
   formatTimeRange,
+  eventWallToDisplay,
   getEventsForDay,
   partitionEvents,
   computeTimePositions,
@@ -37,6 +38,7 @@ import type { DragState } from "../hooks/useEventDrag";
 interface TimeEventProps {
   positioned: PositionedEvent;
   locale: string;
+  displayTimeZone: string;
   onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
   enableDnD?: boolean;
   isDragging?: boolean;
@@ -61,6 +63,7 @@ interface TimeEventProps {
 function TimeEvent({
   positioned,
   locale,
+  displayTimeZone,
   onEventClick,
   enableDnD,
   isDragging,
@@ -189,7 +192,7 @@ function TimeEvent({
         </div>
         {displayHeight > 4 && (
           <div className="text-xs text-[var(--trc-muted-foreground)] truncate">
-            {formatTime(event.start, locale)}
+            {formatTime(eventWallToDisplay(event.start, event.timeZone, displayTimeZone), locale)}
           </div>
         )}
       </div>
@@ -377,6 +380,7 @@ export interface DayColumnProps {
   positioned: PositionedEvent[];
   todayFlag: boolean;
   locale: string;
+  displayTimeZone: string;
   dayStartHour: number;
   dayEndHour: number;
   timeOfDay: number;
@@ -432,6 +436,7 @@ export function DayColumn({
   positioned,
   todayFlag,
   locale,
+  displayTimeZone,
   dayStartHour,
   dayEndHour,
   timeOfDay,
@@ -516,6 +521,7 @@ export function DayColumn({
             key={`${p.event.id}-${day}`}
             positioned={p}
             locale={locale}
+            displayTimeZone={displayTimeZone}
             onEventClick={onEventClick}
             enableDnD={enableDnD}
             isDragging={eventIsDragging}
@@ -630,11 +636,12 @@ export function WeekView({ singleDay }: WeekViewProps) {
     highlightedDates,
     longPressDelay,
     labels,
+    displayTimeZone,
   } = useCalendarContext();
 
   const selectionCtx = useSelectionContext();
 
-  const { timeOfDay } = useCurrentTime();
+  const { timeOfDay } = useCurrentTime({ timeZone: displayTimeZone });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -656,6 +663,7 @@ export function WeekView({ singleDay }: WeekViewProps) {
     enabled: !!onEventResize,
     onEventResize,
     resizeConstraint,
+    displayTimeZone,
   });
 
   // Slot selection hook (drag to create)
@@ -680,6 +688,7 @@ export function WeekView({ singleDay }: WeekViewProps) {
     selectedIds: selectionCtx.selectedIds,
     events: visibleEvents,
     longPressDelay,
+    displayTimeZone,
   });
 
   // Auto-scroll during drag, resize, or slot selection
@@ -941,6 +950,7 @@ export function WeekView({ singleDay }: WeekViewProps) {
                 positioned={visiblePositioned}
                 todayFlag={todayFlag}
                 locale={locale}
+                displayTimeZone={displayTimeZone}
                 dayStartHour={dayStartHour}
                 dayEndHour={dayEndHour}
                 timeOfDay={timeOfDay}

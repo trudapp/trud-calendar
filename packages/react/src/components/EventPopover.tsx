@@ -14,6 +14,8 @@ import { cn } from "../lib/cn";
 import {
   formatTimeRange,
   formatAgendaDate,
+  eventWallToDisplay,
+  getBrowserTimeZone,
   isMultiDayEvent,
   type CalendarEvent,
 } from "trud-calendar-core";
@@ -45,6 +47,12 @@ interface EventPopoverContentProps {
   referenceEl: HTMLElement;
   onClose: () => void;
   locale?: string;
+  /**
+   * IANA zone in which times are rendered. Defaults to the runtime's local
+   * zone so the popover keeps working when used standalone (outside a
+   * CalendarProvider).
+   */
+  displayTimeZone?: string;
 }
 
 export function EventPopoverContent({
@@ -52,7 +60,9 @@ export function EventPopoverContent({
   referenceEl,
   onClose,
   locale = "en-US",
+  displayTimeZone,
 }: EventPopoverContentProps) {
+  const resolvedDisplayTz = displayTimeZone ?? getBrowserTimeZone();
   const slots = useCalendarSlots();
   const color = event.color || "var(--trc-event-default)";
 
@@ -148,7 +158,11 @@ export function EventPopoverContent({
             <span>
               {formatAgendaDate(event.start.slice(0, 10), locale)}
               <br />
-              {formatTimeRange(event.start, event.end, locale)}
+              {formatTimeRange(
+                eventWallToDisplay(event.start, event.timeZone, resolvedDisplayTz),
+                eventWallToDisplay(event.end, event.timeZone, resolvedDisplayTz),
+                locale,
+              )}
             </span>
           )}
         </div>

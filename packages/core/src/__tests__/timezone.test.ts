@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   convertWallTime,
+  displayWallToEvent,
+  eventWallToDisplay,
+  getBrowserTimeZone,
   getTimeZoneAbbreviation,
   getTimeZoneOffset,
   isValidTimeZone,
@@ -300,6 +303,68 @@ describe("convertWallTime", () => {
     const tokyo = convertWallTime(berlin, "Europe/Berlin", "Asia/Tokyo");
     const back = convertWallTime(tokyo, "Asia/Tokyo", "America/New_York");
     expect(back).toBe(ny);
+  });
+});
+
+// ── getBrowserTimeZone ──────────────────────────────────────────
+
+describe("getBrowserTimeZone", () => {
+  it("returns a valid IANA timezone", () => {
+    const tz = getBrowserTimeZone();
+    expect(typeof tz).toBe("string");
+    expect(tz.length).toBeGreaterThan(0);
+    expect(isValidTimeZone(tz)).toBe(true);
+  });
+});
+
+// ── eventWallToDisplay / displayWallToEvent ─────────────────────
+
+describe("eventWallToDisplay", () => {
+  it("returns wall unchanged for floating events (no event TZ)", () => {
+    expect(eventWallToDisplay("2026-03-13T09:00:00", undefined, "Asia/Tokyo")).toBe("2026-03-13T09:00:00");
+  });
+
+  it("returns wall unchanged when event TZ matches display TZ", () => {
+    expect(eventWallToDisplay("2026-03-13T09:00:00", "Europe/Berlin", "Europe/Berlin")).toBe("2026-03-13T09:00:00");
+  });
+
+  it("converts NY event wall to Berlin display in winter", () => {
+    expect(eventWallToDisplay("2026-01-15T09:00:00", "America/New_York", "Europe/Berlin")).toBe("2026-01-15T15:00:00");
+  });
+
+  it("converts NY event wall to Tokyo display (next day)", () => {
+    expect(eventWallToDisplay("2026-01-15T09:00:00", "America/New_York", "Asia/Tokyo")).toBe("2026-01-15T23:00:00");
+  });
+
+  it("falls back to browser TZ when display TZ is undefined", () => {
+    // We can't assert the exact result because it depends on the runtime,
+    // but we can assert it returns *something* without throwing.
+    const result = eventWallToDisplay("2026-01-15T09:00:00", "America/New_York", undefined);
+    expect(typeof result).toBe("string");
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
+  });
+});
+
+describe("displayWallToEvent", () => {
+  it("returns wall unchanged for floating events (no event TZ)", () => {
+    expect(displayWallToEvent("2026-03-13T09:00:00", undefined, "Asia/Tokyo")).toBe("2026-03-13T09:00:00");
+  });
+
+  it("returns wall unchanged when event TZ matches display TZ", () => {
+    expect(displayWallToEvent("2026-03-13T09:00:00", "Europe/Berlin", "Europe/Berlin")).toBe("2026-03-13T09:00:00");
+  });
+
+  it("inverts eventWallToDisplay (round trip)", () => {
+    const eventTz = "America/New_York";
+    const displayTz = "Asia/Tokyo";
+    const eventWall = "2026-07-15T09:00:00";
+    const display = eventWallToDisplay(eventWall, eventTz, displayTz);
+    expect(displayWallToEvent(display, eventTz, displayTz)).toBe(eventWall);
+  });
+
+  it("converts a Berlin display wall to an NY event wall", () => {
+    // Berlin 15:00 (CET) = NY 09:00 (EST) in winter.
+    expect(displayWallToEvent("2026-01-15T15:00:00", "America/New_York", "Europe/Berlin")).toBe("2026-01-15T09:00:00");
   });
 });
 

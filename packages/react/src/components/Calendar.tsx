@@ -55,6 +55,7 @@ export function Calendar({ className, ...config }: CalendarProps) {
                 referenceEl={popover.ref}
                 onClose={() => setPopover(null)}
                 locale={config.locale?.locale}
+                displayTimeZone={config.displayTimeZone}
               />
             )}
           </CalendarShell>

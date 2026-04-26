@@ -54,6 +54,7 @@ export function ResourceTimeGrid({ singleDay }: ResourceTimeGridProps) {
     highlightedDates,
     longPressDelay,
     resources,
+    displayTimeZone,
   } = useCalendarContext();
   const slots = useCalendarSlots();
   const selectionCtx = useSelectionContext();
@@ -61,7 +62,7 @@ export function ResourceTimeGrid({ singleDay }: ResourceTimeGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const { timeOfDay } = useCurrentTime();
+  const { timeOfDay } = useCurrentTime({ timeZone: displayTimeZone });
 
   // Hooks
   const { resizeState, didResize, onResizeHandlePointerDown, onResizeStartHandlePointerDown } = useEventResize({
@@ -71,6 +72,7 @@ export function ResourceTimeGrid({ singleDay }: ResourceTimeGridProps) {
     enabled: !!onEventResize,
     onEventResize,
     resizeConstraint,
+    displayTimeZone,
   });
 
   const { selection, onSlotPointerDown } = useSlotSelection({
@@ -93,6 +95,7 @@ export function ResourceTimeGrid({ singleDay }: ResourceTimeGridProps) {
     selectedIds: selectionCtx.selectedIds,
     events: visibleEvents,
     longPressDelay,
+    displayTimeZone,
   });
 
   // Auto-scroll
@@ -347,6 +350,7 @@ export function ResourceTimeGrid({ singleDay }: ResourceTimeGridProps) {
                   positioned={positioned}
                   todayFlag={todayFlag}
                   locale={locale}
+                  displayTimeZone={displayTimeZone}
                   dayStartHour={dayStartHour}
                   dayEndHour={dayEndHour}
                   timeOfDay={timeOfDay}

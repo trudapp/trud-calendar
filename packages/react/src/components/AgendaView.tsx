@@ -8,6 +8,7 @@ import {
   formatAgendaDate,
   formatTime,
   formatTimeRange,
+  eventWallToDisplay,
   isToday,
   isMultiDayEvent,
   parseDate,
@@ -18,6 +19,7 @@ import {
 interface AgendaEventItemProps {
   event: CalendarEvent;
   locale: string;
+  displayTimeZone: string;
   onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
   itemIndex: number;
   focusedIndex: number;
@@ -29,6 +31,7 @@ interface AgendaEventItemProps {
 function AgendaEventItem({
   event,
   locale,
+  displayTimeZone,
   onEventClick,
   itemIndex,
   focusedIndex,
@@ -83,8 +86,12 @@ function AgendaEventItem({
           {event.allDay
             ? "All day"
             : isMultiDayEvent(event)
-              ? `${formatTime(event.start, locale)} — multi-day`
-              : formatTimeRange(event.start, event.end, locale)}
+              ? `${formatTime(eventWallToDisplay(event.start, event.timeZone, displayTimeZone), locale)} — multi-day`
+              : formatTimeRange(
+                  eventWallToDisplay(event.start, event.timeZone, displayTimeZone),
+                  eventWallToDisplay(event.end, event.timeZone, displayTimeZone),
+                  locale,
+                )}
         </div>
       </div>
     </button>
@@ -92,7 +99,7 @@ function AgendaEventItem({
 }
 
 export function AgendaView() {
-  const { visibleEvents, visibleRange, locale, hiddenDays, labels } =
+  const { visibleEvents, visibleRange, locale, hiddenDays, labels, displayTimeZone } =
     useCalendarContext();
   const selectionCtx = useSelectionContext();
 
@@ -223,6 +230,7 @@ export function AgendaView() {
                     key={event.id}
                     event={event}
                     locale={locale}
+                    displayTimeZone={displayTimeZone}
                     onEventClick={handleEventClick}
                     itemIndex={idx}
                     focusedIndex={focusedIndex}

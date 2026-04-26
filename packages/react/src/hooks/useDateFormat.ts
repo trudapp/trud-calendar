@@ -9,6 +9,7 @@ import {
   formatTimeRange,
   formatAgendaDate,
   formatMonthDay,
+  eventWallToDisplay,
   type CalendarView,
   type DateString,
   type DateTimeString,
@@ -19,14 +20,23 @@ export interface UseDateFormatReturn {
   weekdayShort: (date: DateString) => string;
   weekdayNarrow: (date: DateString) => string;
   dayNumber: (date: DateString) => string;
-  time: (datetime: DateTimeString) => string;
-  timeRange: (start: DateTimeString, end: DateTimeString) => string;
+  /**
+   * Format an event time. Pass `eventTimeZone` for events anchored to a
+   * specific zone — the time will be converted to the calendar's display
+   * zone before formatting. Floating events omit the second argument.
+   */
+  time: (datetime: DateTimeString, eventTimeZone?: string) => string;
+  timeRange: (
+    start: DateTimeString,
+    end: DateTimeString,
+    eventTimeZone?: string,
+  ) => string;
   agendaDate: (date: DateString) => string;
   monthDay: (date: DateString) => string;
 }
 
 export function useDateFormat(): UseDateFormatReturn {
-  const { locale } = useCalendarContext();
+  const { locale, displayTimeZone } = useCalendarContext();
 
   return {
     toolbarTitle: useCallback(
@@ -47,13 +57,18 @@ export function useDateFormat(): UseDateFormatReturn {
       [locale],
     ),
     time: useCallback(
-      (datetime: DateTimeString) => formatTime(datetime, locale),
-      [locale],
+      (datetime: DateTimeString, eventTimeZone?: string) =>
+        formatTime(eventWallToDisplay(datetime, eventTimeZone, displayTimeZone), locale),
+      [locale, displayTimeZone],
     ),
     timeRange: useCallback(
-      (start: DateTimeString, end: DateTimeString) =>
-        formatTimeRange(start, end, locale),
-      [locale],
+      (start: DateTimeString, end: DateTimeString, eventTimeZone?: string) =>
+        formatTimeRange(
+          eventWallToDisplay(start, eventTimeZone, displayTimeZone),
+          eventWallToDisplay(end, eventTimeZone, displayTimeZone),
+          locale,
+        ),
+      [locale, displayTimeZone],
     ),
     agendaDate: useCallback(
       (date: DateString) => formatAgendaDate(date, locale),

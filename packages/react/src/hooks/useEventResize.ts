@@ -8,6 +8,7 @@ import {
   type DateTimeString,
   getTimeOfDay,
 } from "trud-calendar-core";
+import { anchorWallToEventZone } from "../lib/anchorTimes";
 
 /** Which edge of the event is being resized */
 export type ResizeEdge = "start" | "end";
@@ -32,6 +33,12 @@ export interface UseEventResizeOptions {
   onEventResize?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => void;
   /** Constraint callback — return false to prevent the resize */
   resizeConstraint?: (event: CalendarEvent, newStart: DateTimeString, newEnd: DateTimeString) => boolean;
+  /**
+   * IANA zone in which the column position is interpreted. For events with
+   * `event.timeZone`, the new edge is converted from this display zone back
+   * to the event's anchored zone before `onEventResize` is called.
+   */
+  displayTimeZone?: string;
 }
 
 export interface UseEventResizeReturn {
@@ -61,6 +68,7 @@ export function useEventResize({
   enabled = false,
   onEventResize,
   resizeConstraint,
+  displayTimeZone,
 }: UseEventResizeOptions): UseEventResizeReturn {
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
   const didResize = useRef(false);
@@ -134,7 +142,11 @@ export function useEventResize({
         const minEnd = eventStart + minDurationHours;
         fractionalHour = Math.max(minEnd, Math.min(dayEndHour, fractionalHour));
 
-        const newEnd = fractionalHourToDateTime(active.day, fractionalHour);
+        const displayNewEnd = fractionalHourToDateTime(active.day, fractionalHour);
+        // Convert only the changed edge; event.start is unchanged.
+        const newEnd = displayTimeZone
+          ? anchorWallToEventZone(displayNewEnd, active.event.timeZone, displayTimeZone)
+          : displayNewEnd;
         if (!resizeConstraint || resizeConstraint(active.event, active.event.start, newEnd)) {
           onEventResize?.(active.event, active.event.start, newEnd);
         }
@@ -144,7 +156,10 @@ export function useEventResize({
         const maxStart = eventEnd - minDurationHours;
         fractionalHour = Math.max(dayStartHour, Math.min(maxStart, fractionalHour));
 
-        const newStart = fractionalHourToDateTime(active.day, fractionalHour);
+        const displayNewStart = fractionalHourToDateTime(active.day, fractionalHour);
+        const newStart = displayTimeZone
+          ? anchorWallToEventZone(displayNewStart, active.event.timeZone, displayTimeZone)
+          : displayNewStart;
         if (!resizeConstraint || resizeConstraint(active.event, newStart, active.event.end)) {
           onEventResize?.(active.event, newStart, active.event.end);
         }

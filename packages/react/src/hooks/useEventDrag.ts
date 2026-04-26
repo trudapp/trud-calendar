@@ -7,6 +7,7 @@ import {
   type DateString,
   type DateTimeString,
 } from "trud-calendar-core";
+import { anchorTimesToEventZone } from "../lib/anchorTimes";
 
 /** Drag threshold in px to distinguish click from drag */
 const DRAG_THRESHOLD = 5;
@@ -48,6 +49,13 @@ export interface UseEventDragOptions {
   selectedIds?: Set<string>;
   /** All visible events (needed to resolve selected events for multi-drag) */
   events?: CalendarEvent[];
+  /**
+   * IANA zone in which positions are computed. Anchored events (with
+   * `event.timeZone`) get their new wall-clocks converted from this display
+   * zone back to the event's zone before `onEventDrop` is called. Defaults
+   * to the runtime's local zone.
+   */
+  displayTimeZone?: string;
   /** Long press delay in ms for touch devices (default 0 — immediate drag) */
   longPressDelay?: number;
 }
@@ -70,6 +78,7 @@ export function useEventDrag({
   mode,
   selectedIds,
   events,
+  displayTimeZone,
   longPressDelay = 0,
 }: UseEventDragOptions): UseEventDragReturn {
   const [dragState, setDragState] = useState<DragState | null>(null);
@@ -223,6 +232,19 @@ export function useEventDrag({
           let primaryNewStartMs: number | null = null;
           const extra = targetResourceId ? { resourceId: targetResourceId } : undefined;
 
+          const anchorIfNeeded = (
+            displayStart: DateTimeString,
+            displayEnd: DateTimeString,
+          ) =>
+            displayTimeZone
+              ? anchorTimesToEventZone(
+                  displayStart,
+                  displayEnd,
+                  active.event.timeZone,
+                  displayTimeZone,
+                )
+              : { newStart: displayStart, newEnd: displayEnd };
+
           if (mode === "time" && targetEl) {
             const rect = targetEl.getBoundingClientRect();
             let fractionalHour = yPositionToFractionalHour(
@@ -237,13 +259,14 @@ export function useEventDrag({
               Math.min(dayEndHour, fractionalHour),
             );
 
-            const newStart = fractionalHourToDateTime(targetDay, fractionalHour);
-            primaryNewStartMs = new Date(newStart).getTime();
+            const displayStart = fractionalHourToDateTime(targetDay, fractionalHour);
+            primaryNewStartMs = new Date(displayStart).getTime();
             const newEndDate = new Date(primaryNewStartMs + durationMs);
 
             const endDay = `${newEndDate.getFullYear()}-${pad(newEndDate.getMonth() + 1)}-${pad(newEndDate.getDate())}`;
-            const newEnd =
+            const displayEnd =
               `${endDay}T${pad(newEndDate.getHours())}:${pad(newEndDate.getMinutes())}:${pad(newEndDate.getSeconds())}` as DateTimeString;
+            const { newStart, newEnd } = anchorIfNeeded(displayStart, displayEnd);
 
             if (!dragConstraint || dragConstraint(active.event, newStart, newEnd)) {
               onEventDrop(active.event, newStart, newEnd, extra);
@@ -251,14 +274,15 @@ export function useEventDrag({
           } else if (mode === "date") {
             // Preserve original time, change date
             const originalTime = active.event.start.slice(11);
-            const newStart =
+            const displayStart =
               `${targetDay}T${originalTime}` as DateTimeString;
-            primaryNewStartMs = new Date(newStart).getTime();
+            primaryNewStartMs = new Date(displayStart).getTime();
             const newEndDate = new Date(primaryNewStartMs + durationMs);
 
             const endDay = `${newEndDate.getFullYear()}-${pad(newEndDate.getMonth() + 1)}-${pad(newEndDate.getDate())}`;
-            const newEnd =
+            const displayEnd =
               `${endDay}T${pad(newEndDate.getHours())}:${pad(newEndDate.getMinutes())}:${pad(newEndDate.getSeconds())}` as DateTimeString;
+            const { newStart, newEnd } = anchorIfNeeded(displayStart, displayEnd);
 
             if (!dragConstraint || dragConstraint(active.event, newStart, newEnd)) {
               onEventDrop(active.event, newStart, newEnd, extra);
