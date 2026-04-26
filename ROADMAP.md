@@ -138,5 +138,6 @@ These are on the radar but not prioritized yet:
 |-----------|---------------|
 | Phases 1-5 complete | v0.4.0 |
 | Phase 6 (timezones) | v0.5.0 |
-| Phase 6.7 (TZ-aware positioning) | **v0.6.0** (current) |
-| 1.0 polish (docs, ResourceTimeline TZ, full E2E) | v1.0.0 |
+| Phase 6.7 (TZ-aware positioning) | v0.6.0 |
+| Production-ready (E2E coverage + 6.7 wired through) | **v1.0.0** (current) |
+| ResourceTimeline TZ + cross-day re-bucketing + multi-calendar | v1.x backlog |
