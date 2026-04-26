@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useExternalDrag } from "../hooks/useExternalDrag";
 
@@ -38,7 +38,7 @@ function createDragEvent(
 }
 
 describe("useExternalDrag", () => {
-  let elementsFromPointSpy: ReturnType<typeof vi.spyOn>;
+  let elementsFromPointSpy: MockInstance<typeof document.elementsFromPoint>;
 
   beforeEach(() => {
     elementsFromPointSpy = vi.spyOn(document, "elementsFromPoint").mockReturnValue([]);
