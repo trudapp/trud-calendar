@@ -192,6 +192,8 @@ export function getVisibleRange(
       const yearEnd = `${d.getFullYear()}-12-31` as DateString;
       return { start: yearStart, end: yearEnd };
     }
+    case "timeline":
+      return { start: date, end: date };
   }
 }
 

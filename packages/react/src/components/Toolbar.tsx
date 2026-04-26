@@ -76,6 +76,7 @@ export function Toolbar() {
     day: labels.day,
     agenda: labels.agenda,
     year: labels.year,
+    timeline: labels.timeline,
   };
 
   return (

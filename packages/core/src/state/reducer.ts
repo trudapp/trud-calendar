@@ -23,6 +23,8 @@ function navigateByView(date: string, view: CalendarView, direction: 1 | -1): st
       return addMonths(date, direction);
     case "year":
       return addMonths(date, 12 * direction);
+    case "timeline":
+      return addDays(date, direction);
   }
 }
 

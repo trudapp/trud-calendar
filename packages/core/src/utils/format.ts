@@ -49,6 +49,13 @@ export function formatToolbarTitle(
       return getFormatter(locale, { month: "long", year: "numeric" }).format(d);
     case "year":
       return getFormatter(locale, { year: "numeric" }).format(d);
+    case "timeline":
+      return getFormatter(locale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }).format(d);
   }
 }
 

@@ -5,7 +5,7 @@ export type DateString = string;
 export type DateTimeString = string;
 
 /** Calendar view types */
-export type CalendarView = "month" | "week" | "day" | "agenda" | "year";
+export type CalendarView = "month" | "week" | "day" | "agenda" | "year" | "timeline";
 
 // ── Resource types ──────────────────────────────────────────────
 
@@ -220,6 +220,7 @@ export interface CalendarLabels {
   day: string;
   agenda: string;
   year: string;
+  timeline: string;
   allDay: string;
   noEvents: string;
   more: (count: number) => string;

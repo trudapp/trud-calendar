@@ -153,6 +153,10 @@ export {
   groupEventsByResource,
 } from "./utils/resources";
 
+// Timeline (resource timeline) utilities
+export type { TimelinePositionedEvent } from "./utils/timeline";
+export { computeTimelinePositions } from "./utils/timeline";
+
 export {
   createUndoStack,
   pushState,
