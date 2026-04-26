@@ -6,6 +6,7 @@ export { WeekView } from "./components/WeekView";
 export { DayView } from "./components/DayView";
 export { AgendaView } from "./components/AgendaView";
 export { ResourceTimeGrid, type ResourceTimeGridProps } from "./components/ResourceTimeGrid";
+export { ResourceTimeline } from "./components/ResourceTimeline";
 export { YearView } from "./components/YearView";
 export { EventPopoverContent, useEventPopover } from "./components/EventPopover";
 

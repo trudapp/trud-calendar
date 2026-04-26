@@ -10,6 +10,7 @@ import { WeekView } from "./WeekView";
 import { DayView } from "./DayView";
 import { AgendaView } from "./AgendaView";
 import { ResourceTimeGrid } from "./ResourceTimeGrid";
+import { ResourceTimeline } from "./ResourceTimeline";
 import { YearView } from "./YearView";
 import { EventPopoverContent } from "./EventPopover";
 import { cn } from "../lib/cn";
@@ -122,5 +123,7 @@ function ViewRenderer() {
       return <AgendaView />;
     case "year":
       return <YearView />;
+    case "timeline":
+      return <ResourceTimeline />;
   }
 }
