@@ -14,23 +14,23 @@ test.describe("Drag and Drop", () => {
     const monthGrid = page.locator("[role='grid'][aria-label='Month view']");
     await expect(monthGrid).toBeVisible();
 
-    // Find the first draggable event
-    const eventPill = monthGrid.locator("button[data-event-id]").first();
+    // Skip recurring instances — they materialize as new exception ids on
+    // drop, which makes id-equality assertions fail by design.
+    const eventPill = monthGrid
+      .locator("button[data-event-id]:not([data-event-id*='::'])")
+      .first();
     await expect(eventPill).toBeVisible();
 
     const eventId = await eventPill.getAttribute("data-event-id");
-
-    // Find the source cell and a different target cell
     const sourceBbox = await eventPill.boundingBox();
     expect(sourceBbox).not.toBeNull();
 
-    // Find a target gridcell that is different from the source
-    const gridCells = monthGrid.locator("[role='gridcell'][data-day]");
     const sourceDay = await eventPill
       .locator("xpath=ancestor::div[@data-day]")
       .getAttribute("data-day");
 
     // Get a cell that is not the source day
+    const gridCells = monthGrid.locator("[role='gridcell'][data-day]");
     let targetCell = null;
     const cellCount = await gridCells.count();
     for (let i = 0; i < cellCount; i++) {
@@ -50,13 +50,11 @@ test.describe("Drag and Drop", () => {
     const targetBbox = await targetCell.boundingBox();
     expect(targetBbox).not.toBeNull();
 
-    // Perform drag using pointer events (the calendar uses pointer events for DnD)
     await page.mouse.move(
       sourceBbox!.x + sourceBbox!.width / 2,
       sourceBbox!.y + sourceBbox!.height / 2,
     );
     await page.mouse.down();
-    // Move slowly to trigger drag detection
     await page.mouse.move(
       targetBbox!.x + targetBbox!.width / 2,
       targetBbox!.y + targetBbox!.height / 2,
@@ -64,11 +62,9 @@ test.describe("Drag and Drop", () => {
     );
     await page.mouse.up();
 
-    // Verify the event moved: it should now be inside the target cell
-    // Allow a brief moment for the state update
     await page.waitForTimeout(300);
 
-    // The event with the same id should still exist somewhere
+    // The non-recurring event keeps its id after the move.
     const movedEvent = page.locator(`button[data-event-id="${eventId}"]`);
     await expect(movedEvent.first()).toBeVisible();
   });
@@ -77,8 +73,10 @@ test.describe("Drag and Drop", () => {
     const monthGrid = page.locator("[role='grid'][aria-label='Month view']");
     await expect(monthGrid).toBeVisible();
 
-    // Get the first event and its parent day
-    const eventPill = monthGrid.locator("button[data-event-id]").first();
+    // Skip recurring — id changes on materialization.
+    const eventPill = monthGrid
+      .locator("button[data-event-id]:not([data-event-id*='::'])")
+      .first();
     await expect(eventPill).toBeVisible();
 
     const eventId = await eventPill.getAttribute("data-event-id");
@@ -217,25 +215,26 @@ test.describe("Drag and Drop", () => {
   });
 
   test("drag across empty slots to select time range", async ({ page }) => {
-    // Switch to week view
-    await page.getByRole("tab", { name: "Week" }).click();
+    // Day view keeps the test deterministic: a single column, all empty slots
+    // belong to the same day, no responsive collapse.
+    await page.getByRole("tab", { name: "Day" }).click();
     await expect(
       page.locator("[role='grid'][aria-label='Week view']"),
     ).toBeVisible();
 
-    // Find an empty time slot (gridcell without events)
-    // The day columns have gridcells for each hour
-    const hourSlots = page
+    // Pick an empty hour slot — skip the first few rows that may sit under the
+    // sticky all-day band.
+    const slot = page
       .locator("[role='grid'][aria-label='Week view'] [role='gridcell']")
-      .filter({ hasNot: page.locator("[data-event-id]") });
-
-    const slot = hourSlots.first();
+      .filter({ hasNot: page.locator("[data-event-id]") })
+      .nth(4);
     await expect(slot).toBeVisible();
+    await slot.scrollIntoViewIfNeeded();
 
     const slotBbox = await slot.boundingBox();
     expect(slotBbox).not.toBeNull();
 
-    // Drag across a range within the column (stay in the same x, drag down y)
+    // Drag down across two slot heights to select a 2-hour range.
     await page.mouse.move(
       slotBbox!.x + slotBbox!.width / 2,
       slotBbox!.y + 5,
@@ -248,14 +247,11 @@ test.describe("Drag and Drop", () => {
     );
     await page.mouse.up();
 
-    // This should open the "New Event" modal with pre-filled times
     const dialog = page.locator("dialog[open]");
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("New Event")).toBeVisible();
 
-    // The start time and end time inputs should be pre-filled
     const timeInputs = dialog.locator("input[type='time']");
-    const timeCount = await timeInputs.count();
-    expect(timeCount).toBeGreaterThanOrEqual(2);
+    expect(await timeInputs.count()).toBeGreaterThanOrEqual(2);
   });
 });

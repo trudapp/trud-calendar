@@ -38,8 +38,9 @@ test.describe("Recurrence", () => {
     // Verify the "Ends" section appears
     await expect(dialog.getByText("Ends")).toBeVisible();
 
-    // Set it to end after 5 occurrences
-    await dialog.getByText("After").click();
+    // Switch the recurrence end mode to "After N occurrences" by clicking the
+    // second radio (Never / After / On date). The count input is gated on this.
+    await dialog.locator("input[type='radio'][name='recEnd']").nth(1).check();
     const countInput = dialog.locator(
       "input[type='number'][min='1'][max='999']",
     );
@@ -112,10 +113,14 @@ test.describe("Recurrence", () => {
     const scopeDialog = page.locator("dialog[open]");
     await expect(scopeDialog).toBeVisible();
     await expect(
-      scopeDialog.getByText(/recurring event/i),
+      scopeDialog.getByRole("heading", { name: /recurring event/i }),
     ).toBeVisible();
-    await expect(scopeDialog.getByText("This event")).toBeVisible();
-    await expect(scopeDialog.getByText("All events")).toBeVisible();
+    await expect(
+      scopeDialog.getByRole("button", { name: /This event/ }),
+    ).toBeVisible();
+    await expect(
+      scopeDialog.getByRole("button", { name: /All events/ }),
+    ).toBeVisible();
   });
 
   test("edit single occurrence, verify only that one changes", async ({
@@ -144,7 +149,7 @@ test.describe("Recurrence", () => {
     // Scope dialog appears - choose "This event"
     const scopeDialog = page.locator("dialog[open]");
     await expect(scopeDialog).toBeVisible();
-    await scopeDialog.getByText("This event").click();
+    await scopeDialog.getByRole("button", { name: /This event/ }).click();
 
     // The edit modal should now appear
     const editDialog = page.locator("dialog[open]");
@@ -196,7 +201,7 @@ test.describe("Recurrence", () => {
     await expect(scopeDialog).toBeVisible();
 
     // Choose "All events" to delete the entire series
-    await scopeDialog.getByText("All events").click();
+    await scopeDialog.getByRole("button", { name: /All events/ }).click();
 
     // The edit modal opens; click Delete
     const editDialog = page.locator("dialog[open]");
