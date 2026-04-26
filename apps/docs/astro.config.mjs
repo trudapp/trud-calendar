@@ -7,7 +7,8 @@ import tailwindcss from "@tailwindcss/vite";
 const SITE_URL = "https://trud-calendar-docs.vercel.app";
 const DESCRIPTION =
   "The most complete open-source React calendar component library. Drag & drop, recurrence (RFC 5545), resource views, year view, iCal export, RTL, dark mode, headless core. Drop-in replacement for react-big-calendar.";
-const OG_IMAGE = `${SITE_URL}/og-image.png`;
+const OG_IMAGE = `${SITE_URL}/og/default.png`;
+const OG_IMAGE_SQUARE = `${SITE_URL}/og/default-square.png`;
 
 export default defineConfig({
   site: SITE_URL,
@@ -34,11 +35,18 @@ export default defineConfig({
         { tag: "meta", attrs: { property: "og:title", content: "trud-calendar — React calendar component library" } },
         { tag: "meta", attrs: { property: "og:description", content: DESCRIPTION } },
         { tag: "meta", attrs: { property: "og:image", content: OG_IMAGE } },
+        { tag: "meta", attrs: { property: "og:image:width", content: "1200" } },
+        { tag: "meta", attrs: { property: "og:image:height", content: "630" } },
+        { tag: "meta", attrs: { property: "og:image:alt", content: "trud-calendar — React calendar component library" } },
+        { tag: "meta", attrs: { property: "og:image", content: OG_IMAGE_SQUARE } },
+        { tag: "meta", attrs: { property: "og:image:width", content: "1200" } },
+        { tag: "meta", attrs: { property: "og:image:height", content: "1200" } },
         { tag: "meta", attrs: { property: "og:url", content: SITE_URL } },
         { tag: "meta", attrs: { name: "twitter:card", content: "summary_large_image" } },
         { tag: "meta", attrs: { name: "twitter:title", content: "trud-calendar — React calendar component library" } },
         { tag: "meta", attrs: { name: "twitter:description", content: DESCRIPTION } },
         { tag: "meta", attrs: { name: "twitter:image", content: OG_IMAGE } },
+        { tag: "meta", attrs: { name: "twitter:image:alt", content: "trud-calendar — React calendar component library" } },
         { tag: "link", attrs: { rel: "alternate", type: "text/plain", href: "/llms.txt", title: "llms.txt" } },
         { tag: "link", attrs: { rel: "alternate", type: "text/plain", href: "/llms-full.txt", title: "llms-full.txt" } },
       ],
