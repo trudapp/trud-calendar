@@ -1,20 +1,46 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import react from "@astrojs/react";
+import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
+const SITE_URL = "https://trud-calendar-docs.vercel.app";
+const DESCRIPTION =
+  "The most complete open-source React calendar component library. Drag & drop, recurrence (RFC 5545), resource views, year view, iCal export, RTL, dark mode, headless core. Drop-in replacement for react-big-calendar.";
+const OG_IMAGE = `${SITE_URL}/og-image.png`;
+
 export default defineConfig({
+  site: SITE_URL,
   vite: {
     plugins: [tailwindcss()],
   },
   integrations: [
     react(),
+    sitemap({
+      i18n: {
+        defaultLocale: "en",
+        locales: { en: "en", es: "es" },
+      },
+    }),
     starlight({
       title: "trud-calendar",
+      description: DESCRIPTION,
       favicon: "/favicon.ico",
       head: [
         { tag: "link", attrs: { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" } },
         { tag: "link", attrs: { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" } },
+        { tag: "meta", attrs: { property: "og:type", content: "website" } },
+        { tag: "meta", attrs: { property: "og:site_name", content: "trud-calendar" } },
+        { tag: "meta", attrs: { property: "og:title", content: "trud-calendar — React calendar component library" } },
+        { tag: "meta", attrs: { property: "og:description", content: DESCRIPTION } },
+        { tag: "meta", attrs: { property: "og:image", content: OG_IMAGE } },
+        { tag: "meta", attrs: { property: "og:url", content: SITE_URL } },
+        { tag: "meta", attrs: { name: "twitter:card", content: "summary_large_image" } },
+        { tag: "meta", attrs: { name: "twitter:title", content: "trud-calendar — React calendar component library" } },
+        { tag: "meta", attrs: { name: "twitter:description", content: DESCRIPTION } },
+        { tag: "meta", attrs: { name: "twitter:image", content: OG_IMAGE } },
+        { tag: "link", attrs: { rel: "alternate", type: "text/plain", href: "/llms.txt", title: "llms.txt" } },
+        { tag: "link", attrs: { rel: "alternate", type: "text/plain", href: "/llms-full.txt", title: "llms-full.txt" } },
       ],
       customCss: ["./src/styles/custom.css"],
       locales: {

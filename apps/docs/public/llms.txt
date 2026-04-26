@@ -1,0 +1,47 @@
+# trud-calendar
+
+> The most complete open-source React calendar component library. Headless core + React components for month/week/day/agenda/year views, drag & drop, resize, recurrence (RFC 5545 RRULE), resource scheduling, iCal export, RTL, dark mode, and full keyboard accessibility. MIT licensed.
+
+trud-calendar is a pnpm monorepo distributing two packages on npm:
+
+- `trud-calendar-core` — Zero-dependency, framework-agnostic calendar logic (date math, recurrence expansion, event layout, undo/redo, iCal export)
+- `trud-calendar` — React 18+ components and hooks built on the core. Pointer Events API, Tailwind v4, shadcn/ui compatible
+
+Date format is ISO 8601 strings throughout (no `Date` objects). Recurrence uses RFC 5545 RRULE semantics; consumers call `expandRecurringEvents()` before passing events to `<Calendar />`.
+
+Current version: **0.4.0** (Phases 1–5 complete). v1.0.0 will add ResourceTimeline view and named timezone support.
+
+## Installation
+
+- [Installation guide](https://trud-calendar-docs.vercel.app/installation/)
+- [Quick start](https://trud-calendar-docs.vercel.app/getting-started/)
+- [Migrating from react-big-calendar](https://trud-calendar-docs.vercel.app/migration/)
+
+## Guides
+
+- [Views — month, week, day, agenda, year](https://trud-calendar-docs.vercel.app/views/)
+- [Drag & drop and resize](https://trud-calendar-docs.vercel.app/drag-and-drop/)
+- [Recurrence (RFC 5545 RRULE)](https://trud-calendar-docs.vercel.app/recurrence/)
+- [Keyboard navigation (WAI-ARIA grid)](https://trud-calendar-docs.vercel.app/keyboard-navigation/)
+- [Locale & i18n (BCP 47)](https://trud-calendar-docs.vercel.app/i18n/)
+- [Theming and CSS variables (--trc-*)](https://trud-calendar-docs.vercel.app/theming/)
+- [Slots API for custom rendering](https://trud-calendar-docs.vercel.app/slots/)
+- [Resource views (resource scheduling)](https://trud-calendar-docs.vercel.app/resource-views/)
+
+## API reference
+
+- [Component props](https://trud-calendar-docs.vercel.app/props/)
+- [React hooks (15+ hooks)](https://trud-calendar-docs.vercel.app/hooks/)
+- [Headless core (zero-dep utilities)](https://trud-calendar-docs.vercel.app/headless-core/)
+
+## Project
+
+- [GitHub repository](https://github.com/trudapp/trud-calendar)
+- [Roadmap](https://github.com/trudapp/trud-calendar/blob/main/ROADMAP.md)
+- [Changelog](https://github.com/trudapp/trud-calendar/blob/main/CHANGELOG.md)
+- [Agent skill](https://trud-calendar-docs.vercel.app/.well-known/agent-skills/trud-calendar/SKILL.md) — install via `npx skills add trudapp/trud-calendar`
+
+## Optional
+
+- [Spanish docs (Documentación en español)](https://trud-calendar-docs.vercel.app/es/)
+- [llms-full.txt — comprehensive API summary](https://trud-calendar-docs.vercel.app/llms-full.txt)

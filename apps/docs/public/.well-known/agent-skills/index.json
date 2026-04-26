@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agentskills.io/schemas/agent-skills-index.v0.2.0.json",
+  "version": "0.2.0",
+  "name": "trud-calendar",
+  "description": "Skills for building calendar UIs with the trud-calendar React component library.",
+  "homepage": "https://trud-calendar-docs.vercel.app/",
+  "skills": [
+    {
+      "name": "trud-calendar",
+      "type": "skill",
+      "description": "Guide for building calendar UIs with the trud-calendar React component library. Use when installing, configuring, or customizing trud-calendar in a project.",
+      "url": "https://trud-calendar-docs.vercel.app/.well-known/agent-skills/trud-calendar/SKILL.md",
+      "sha256": "38b9bc5c9079ec27ce6a471477f87c4bdc589fd877f0c707c9c287922ce708d0",
+      "tags": [
+        "react",
+        "calendar",
+        "scheduling",
+        "ui-components",
+        "typescript"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+# trud-calendar docs — robots.txt
+# https://trud-calendar-docs.vercel.app/
+
+# Default policy: allow everything
+User-agent: *
+Allow: /
+
+# Content Signals — declare AI usage preferences
+# https://contentsignals.org/
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+
+# AI crawlers — explicit allow (open-source library, we want discovery)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+Sitemap: https://trud-calendar-docs.vercel.app/sitemap-index.xml
