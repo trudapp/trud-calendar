@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added — ResourceTimeline view (Phase 3.3)
+
+- New `view="timeline"` — opt-in horizontal scheduling layout with resources as rows and time on the X axis.
+- `<ResourceTimeline>` component exported from `trud-calendar`. Sticky resource column on the left, sticky hour header on top, vertical now-line when the visible day is today.
+- Pointer interactions matching the rest of the calendar (5px click-vs-drag threshold, snapping, constraints):
+  - Drag horizontally to change time within the same resource.
+  - Drag vertically to reassign across resources — `onEventDrop` receives `extra.resourceId` only when changed.
+  - Right-edge resize for end time. Min duration `snapDuration`, max `dayEndHour`.
+  - Slot click fires `onSlotClick(`${day}T${slotClickTime}`, { resourceId })`.
+- `displayTimeZone`-aware time labels and now-line position; drag/resize results returned in each event's anchored zone via `anchorTimesToEventZone`.
+- New core util `computeTimelinePositions(events, resourceIds, day, dayStartHour, dayEndHour)` exposing `leftPct` / `widthPct` / `row` / `totalRows` / `isSegmentStart` / `isSegmentEnd` for any custom horizontal layouts.
+- New type `TimelinePositionedEvent` and added `"timeline"` to `CalendarView` / `CalendarLabels` / `VIEWS`.
+- 16 new core tests for `computeTimelinePositions` covering positioning math, multi-day clipping, overlap row stacking, hidden-window filtering, all-day/background exclusion.
+- New documentation page: [Resource Timeline](/resource-timeline/) (EN + ES).
+
+### Known limitations in v1.0
+
+- **Resize from the left edge** is not yet implemented in the timeline.
+- **Drag-to-create slot selection** (`onSlotSelect`) is not yet wired on the timeline; `onSlotClick` works.
+- **Multi-day timeline scales** (week/month with horizontal time spanning days) are deferred.
+- Time-grid positioning of timezone-anchored events still uses literal wall-clock for layout (Phase 6.7); time labels are converted correctly.
+
 ## [0.5.0] - 2026-04-26
 
 ### Added — IANA timezone support (Phase 6)
