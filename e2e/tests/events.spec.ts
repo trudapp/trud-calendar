@@ -21,9 +21,12 @@ test.describe("Events", () => {
   });
 
   test("click an event opens the event modal", async ({ page }) => {
-    // Find the first visible event in month view and click it
+    // Pick a non-recurring event — recurring instances open the scope dialog
+    // first, not the edit modal directly. Recurring ids contain "::".
     const firstEvent = page
-      .locator("[role='grid'][aria-label='Month view'] button[data-event-id]")
+      .locator(
+        "[role='grid'][aria-label='Month view'] button[data-event-id]:not([data-event-id*='::'])",
+      )
       .first();
     await expect(firstEvent).toBeVisible();
     await firstEvent.click();
@@ -84,44 +87,42 @@ test.describe("Events", () => {
     // Modal should close
     await expect(dialog).not.toBeVisible();
 
-    // Verify the event appears in the calendar. Navigate to today's month
-    // to be sure we can see it.
+    // Switch to Day view of today — the new event must surface there even when
+    // the month cell shows "+N more" overflow.
     await page.getByLabel("Today").click();
+    await page.getByRole("tab", { name: "Day" }).click();
 
-    // The new event should be visible somewhere in the grid
     await expect(page.getByText("E2E Test Event").first()).toBeVisible();
   });
 
   test("delete an event and verify it is removed", async ({ page }) => {
-    // First, find an event and remember its title
+    // Skip recurring instances — they open the scope dialog instead of the
+    // edit modal, which is exercised in recurrence.spec.ts.
     const firstEvent = page
-      .locator("[role='grid'][aria-label='Month view'] button[data-event-id]")
+      .locator(
+        "[role='grid'][aria-label='Month view'] button[data-event-id]:not([data-event-id*='::'])",
+      )
       .first();
     await expect(firstEvent).toBeVisible();
-    // Click the event to open the modal
-    await firstEvent.click();
+    // Capture id BEFORE deletion — locator.first() re-resolves on each call,
+    // so reading after delete would return the new "first" event, not the one
+    // we just removed.
+    const eventId = await firstEvent.getAttribute("data-event-id");
+    expect(eventId).not.toBeNull();
 
+    await firstEvent.click();
     const dialog = page.locator("dialog[open]");
     await expect(dialog).toBeVisible();
 
-    // Click Delete (first click shows confirmation)
-    await dialog.getByRole("button", { name: "Delete" }).click();
-
-    // Confirm deletion
+    // First click toggles the button label to "Confirm Delete".
+    await dialog.getByRole("button", { name: "Delete", exact: true }).click();
+    // Second click commits the deletion.
     await dialog.getByRole("button", { name: "Confirm Delete" }).click();
 
-    // Modal should close
     await expect(dialog).not.toBeVisible();
 
-    // The event with that exact title should have fewer occurrences
-    // (it may still appear if there are other events with the same title from
-    // sample data, but the specific event-id should be gone)
-    // We check that the event-id is no longer present
-    const eventId = await firstEvent.getAttribute("data-event-id");
-    if (eventId) {
-      await expect(
-        page.locator(`button[data-event-id="${eventId}"]`),
-      ).toHaveCount(0);
-    }
+    await expect(
+      page.locator(`button[data-event-id="${eventId}"]`),
+    ).toHaveCount(0);
   });
 });

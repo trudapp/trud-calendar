@@ -39,13 +39,9 @@ test.describe("Views", () => {
     const columnHeaders = weekGrid.locator("[role='columnheader']");
     await expect(columnHeaders).toHaveCount(7);
 
-    // Should have hour labels visible in the time grid
-    // The left column contains hour labels like "8 AM", "9 AM", etc.
-    const hourLabels = weekGrid.locator(
-      ".text-xs.text-right",
-    );
-    const hourCount = await hourLabels.count();
-    expect(hourCount).toBeGreaterThan(0);
+    // Should have hour labels visible in the time grid (12 AM, 1 AM, ...)
+    await expect(weekGrid.getByText("12 AM").first()).toBeVisible();
+    await expect(weekGrid.getByText("12 PM").first()).toBeVisible();
   });
 
   test("day view shows single day column", async ({ page }) => {

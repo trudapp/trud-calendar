@@ -40,44 +40,21 @@ test.describe("Dark Mode", () => {
   test("calendar colors change appropriately in dark mode", async ({
     page,
   }) => {
-    // Get background color of the calendar in light mode
-    // If the CSS variable selector doesn't work, use a more general approach
-    const demoMain = page.locator(".demo-main");
-    await expect(demoMain).toBeVisible();
+    // Measure both demo-main and demo-shell backgrounds in light mode first.
+    const measure = () =>
+      page.evaluate(() => ({
+        main: getComputedStyle(document.querySelector(".demo-main")!).backgroundColor,
+        shell: getComputedStyle(document.querySelector(".demo-shell")!).backgroundColor,
+      }));
 
-    const lightBg = await demoMain.evaluate((el) => {
-      return getComputedStyle(el).backgroundColor;
-    });
-
-    // Toggle dark mode
-    await page.getByLabel("Toggle dark mode").click();
-
-    // Wait for CSS transition
-    await page.waitForTimeout(300);
-
-    const darkBg = await demoMain.evaluate((el) => {
-      return getComputedStyle(el).backgroundColor;
-    });
-
-    // The background colors should be different between light and dark modes
-    // In some setups the demo-main itself may be transparent, so we also
-    // check the overall shell background
-    const shellLight = await page.evaluate(() => {
-      return getComputedStyle(document.querySelector(".demo-shell")!).backgroundColor;
-    });
+    const light = await measure();
 
     await page.getByLabel("Toggle dark mode").click();
     await page.waitForTimeout(300);
 
-    await page.getByLabel("Toggle dark mode").click();
-    await page.waitForTimeout(300);
+    const dark = await measure();
 
-    const shellDark = await page.evaluate(() => {
-      return getComputedStyle(document.querySelector(".demo-shell")!).backgroundColor;
-    });
-
-    // At least one of the measured colors should differ
-    const colorsChanged = lightBg !== darkBg || shellLight !== shellDark;
-    expect(colorsChanged).toBe(true);
+    // At least one surface should change colors between light and dark.
+    expect(light.main !== dark.main || light.shell !== dark.shell).toBe(true);
   });
 });
