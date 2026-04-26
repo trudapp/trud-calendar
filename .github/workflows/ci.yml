@@ -40,5 +40,8 @@ jobs:
       - name: Type check
         run: pnpm --filter "./packages/**" exec tsc --noEmit
 
+      - name: Verify agent-skills index is in sync
+        run: pnpm check:agent-skills
+
       - name: Test
         run: pnpm test
