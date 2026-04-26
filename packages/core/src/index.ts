@@ -122,6 +122,18 @@ export {
   toRRuleString,
 } from "./utils/recurrence";
 
+// Timezone utilities
+export type { WallToUtcOptions } from "./utils/timezone";
+export {
+  getTimeZoneOffset,
+  wallTimeToUtc,
+  utcToWallTime,
+  convertWallTime,
+  listTimeZones,
+  isValidTimeZone,
+  getTimeZoneAbbreviation,
+} from "./utils/timezone";
+
 // Virtualization utilities
 export type { VirtualRange } from "./utils/virtualize";
 export { filterVisibleEvents, scrollToViewportRange } from "./utils/virtualize";

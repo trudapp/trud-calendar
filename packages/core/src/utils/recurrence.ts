@@ -296,6 +296,12 @@ function getNthWeekdayOfMonth(
  * Expand recurring events into individual instances within a visible range.
  * Non-recurring events pass through unchanged.
  * Instance IDs follow the pattern: `${parentId}::${YYYY-MM-DD}`
+ *
+ * Timezone semantics: instances inherit the parent's `timeZone` and preserve
+ * the wall-clock time string. A weekly event at "09:00" in
+ * "America/New_York" will appear at 09:00 every week in that zone, even
+ * across DST transitions — this matches RFC 5545 (TZID-anchored) and Google
+ * Calendar behavior. Floating events (no `timeZone`) propagate as floating.
  */
 export function expandRecurringEvents(
   events: CalendarEvent[],

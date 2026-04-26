@@ -244,6 +244,61 @@ describe("expandRecurringEvents", () => {
     expect(result[0].exDates).toBeUndefined();
   });
 
+  it("propagates timeZone from parent to instances", () => {
+    const events: CalendarEvent[] = [
+      {
+        id: "ny-standup",
+        title: "NY Standup",
+        start: "2026-03-09T09:00:00",
+        end: "2026-03-09T09:30:00",
+        timeZone: "America/New_York",
+        recurrence: { freq: "daily", count: 3 },
+      },
+    ];
+    const result = expandRecurringEvents(events, "2026-03-09", "2026-03-15");
+    expect(result).toHaveLength(3);
+    for (const instance of result) {
+      expect(instance.timeZone).toBe("America/New_York");
+    }
+  });
+
+  it("preserves wall-clock time across a DST transition for TZ-anchored events", () => {
+    // 2026-03-08 is the US DST jump (clocks go from 02:00 EST to 03:00 EDT).
+    // A 09:00 daily event in NY should still show 09:00 wall-clock on the 8th.
+    const events: CalendarEvent[] = [
+      {
+        id: "ny-meeting",
+        title: "Daily 9am NY",
+        start: "2026-03-07T09:00:00",
+        end: "2026-03-07T10:00:00",
+        timeZone: "America/New_York",
+        recurrence: { freq: "daily", count: 3 },
+      },
+    ];
+    const result = expandRecurringEvents(events, "2026-03-07", "2026-03-09");
+    expect(result.map((e) => e.start)).toEqual([
+      "2026-03-07T09:00:00",
+      "2026-03-08T09:00:00",
+      "2026-03-09T09:00:00",
+    ]);
+  });
+
+  it("leaves timeZone undefined for floating recurring events", () => {
+    const events: CalendarEvent[] = [
+      {
+        id: "floating",
+        title: "Floating",
+        start: "2026-03-09T09:00:00",
+        end: "2026-03-09T09:30:00",
+        recurrence: { freq: "daily", count: 2 },
+      },
+    ];
+    const result = expandRecurringEvents(events, "2026-03-09", "2026-03-15");
+    for (const instance of result) {
+      expect(instance.timeZone).toBeUndefined();
+    }
+  });
+
   it("performance: daily forever rule within 1 month range", () => {
     const events: CalendarEvent[] = [
       {

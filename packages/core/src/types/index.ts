@@ -90,6 +90,17 @@ export interface CalendarEvent {
   display?: "auto" | "background";
   /** Resource this event belongs to (for resource views) */
   resourceId?: string;
+  /**
+   * IANA timezone identifier (e.g., "America/New_York", "Europe/Berlin").
+   *
+   * When set, `start` and `end` are interpreted as wall-clock times in this
+   * zone — they survive DST transitions (a 9 AM event stays at 9 AM in its
+   * zone year-round). When unset, the event is "floating": its wall-clock
+   * time is shown as written, regardless of the calendar's display zone.
+   *
+   * This matches RFC 5545 (TZID property on VEVENT) and the iCalendar spec.
+   */
+  timeZone?: string;
   /** Arbitrary metadata */
   [key: string]: unknown;
 }
