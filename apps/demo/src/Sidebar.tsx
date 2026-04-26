@@ -39,6 +39,10 @@ export interface SidebarProps {
   onDayStartHourChange: (v: number) => void;
   dayEndHour: number;
   onDayEndHourChange: (v: number) => void;
+  displayTimeZone: string;
+  onDisplayTimeZoneChange: (v: string) => void;
+  anchorEvents: boolean;
+  onToggleAnchorEvents: () => void;
 }
 
 const LOCALES = [
@@ -48,6 +52,17 @@ const LOCALES = [
   { value: "de-DE", label: "Deutsch" },
   { value: "pt-BR", label: "Portugues (BR)" },
   { value: "ja-JP", label: "Japanese" },
+];
+
+const TIMEZONES = [
+  { value: "browser", label: "Browser default" },
+  { value: "UTC", label: "UTC" },
+  { value: "America/New_York", label: "America/New York (-5/-4)" },
+  { value: "America/Los_Angeles", label: "America/Los Angeles (-8/-7)" },
+  { value: "Europe/Berlin", label: "Europe/Berlin (+1/+2)" },
+  { value: "Asia/Tokyo", label: "Asia/Tokyo (+9)" },
+  { value: "Asia/Kolkata", label: "Asia/Kolkata (+5:30)" },
+  { value: "Australia/Sydney", label: "Australia/Sydney (+10/+11)" },
 ];
 
 const TABS = ["General", "Interactions", "Views", "Resources"] as const;
@@ -142,6 +157,19 @@ export function Sidebar(props: SidebarProps) {
                   active={props.weekStartsOn}
                   onChange={(i) => props.onWeekStartChange(i as 0 | 1)}
                 />
+              </ControlRow>
+
+              <ControlRow label="Display timezone">
+                <select
+                  data-testid="display-timezone"
+                  value={props.displayTimeZone}
+                  onChange={(e) => props.onDisplayTimeZoneChange(e.target.value)}
+                  className="sidebar-select"
+                >
+                  {TIMEZONES.map((tz) => (
+                    <option key={tz.value} value={tz.value}>{tz.label}</option>
+                  ))}
+                </select>
               </ControlRow>
 
               <ControlRow label="Custom Slots">
@@ -310,10 +338,26 @@ export function Sidebar(props: SidebarProps) {
 
               {props.enableResources && (
                 <div className="text-[10px] text-[var(--trc-muted-foreground)] space-y-1">
-                  <p>3 resources: Room A, Room B, Room C</p>
+                  <p>4 resources: Room A, Room B, Room C, Room D</p>
                   <p>Events auto-assigned to resources.</p>
-                  <p>Switch to Day or Week view to see resource columns.</p>
-                  <p>Drag events between resource columns!</p>
+                  <p>Switch to Day or Week view → vertical resource columns.</p>
+                  <p>Switch to <strong>Timeline</strong> view → horizontal rows with drag/resize.</p>
+                </div>
+              )}
+
+              <ControlRow label="Anchor events to NY">
+                <TogglePill
+                  options={["Off", "On"]}
+                  active={props.anchorEvents ? 1 : 0}
+                  onChange={(i) => { if ((i === 1) !== props.anchorEvents) props.onToggleAnchorEvents(); }}
+                />
+              </ControlRow>
+
+              {props.anchorEvents && (
+                <div className="text-[10px] text-[var(--trc-muted-foreground)] space-y-1">
+                  <p>All events get <code>timeZone: "America/New_York"</code>.</p>
+                  <p>Combine with a different display TZ to see conversion.</p>
+                  <p>Drag/resize results return wall-clocks in NY, not display zone.</p>
                 </div>
               )}
             </>
