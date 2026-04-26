@@ -73,6 +73,7 @@ const DEMO_RESOURCES: Resource[] = [
   { id: "room-a", title: "Room A", color: "#3b82f6" },
   { id: "room-b", title: "Room B", color: "#22c55e" },
   { id: "room-c", title: "Room C", color: "#f59e0b" },
+  { id: "room-d", title: "Room D", color: "#8b5cf6" },
 ];
 
 // ── Background events ───────────────────────────────────────────────────
@@ -150,6 +151,10 @@ export function App() {
   // Resources
   const [enableResources, setEnableResources] = useState(false);
 
+  // Timezones
+  const [displayTimeZone, setDisplayTimeZone] = useState<string>(() => loadPref("trc-displayTz", "browser"));
+  const [anchorEvents, setAnchorEvents] = useState<boolean>(() => loadPref("trc-anchor", false));
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
@@ -170,17 +175,21 @@ export function App() {
     [enableBackgroundEvents],
   );
 
-  // Assign resourceId to events when resources are enabled (preserve existing assignments)
+  // Assign resourceId to events when resources are enabled (preserve existing assignments).
+  // When anchor mode is on, also stamp each event with timeZone: "America/New_York" so the
+  // calendar treats them as NY-anchored regardless of where the user is browsing from.
   const eventsWithResources = useMemo(() => {
-    if (!enableResources) return [...events, ...backgroundEvents];
+    const stampTz = (e: CalendarEvent) =>
+      anchorEvents ? { ...e, timeZone: "America/New_York" } : e;
+    if (!enableResources) return [...events.map(stampTz), ...backgroundEvents];
     return [
-      ...events.map((e, i) => ({
+      ...events.map((e, i) => stampTz({
         ...e,
         resourceId: e.resourceId || DEMO_RESOURCES[i % DEMO_RESOURCES.length].id,
       })),
       ...backgroundEvents,
     ];
-  }, [events, enableResources, backgroundEvents]);
+  }, [events, enableResources, backgroundEvents, anchorEvents]);
 
   const validRange = useMemo(() => {
     if (!validRangeEnabled) return undefined;
@@ -458,6 +467,10 @@ export function App() {
             onDayStartHourChange={(v) => { setDayStartHour(v); savePref("trc-dayStart", v); }}
             dayEndHour={dayEndHour}
             onDayEndHourChange={(v) => { setDayEndHour(v); savePref("trc-dayEnd", v); }}
+            displayTimeZone={displayTimeZone}
+            onDisplayTimeZoneChange={(v) => { setDisplayTimeZone(v); savePref("trc-displayTz", v); }}
+            anchorEvents={anchorEvents}
+            onToggleAnchorEvents={() => { setAnchorEvents((v) => !v); savePref("trc-anchor", !anchorEvents); }}
           />
 
           {/* Calendar */}
@@ -481,12 +494,12 @@ export function App() {
               flexibleSlotTimeLimits={flexibleSlotTimeLimits}
               longPressDelay={longPressDelay}
               resources={enableResources ? DEMO_RESOURCES : undefined}
-              enableBackgroundEvents={enableBackgroundEvents}
               dayStartHour={dayStartHour}
               dayEndHour={dayEndHour}
               dragConstraint={enableConstraints ? businessHoursConstraint : undefined}
               resizeConstraint={enableConstraints ? businessHoursConstraint : undefined}
               customButtons={customButtons}
+              displayTimeZone={displayTimeZone === "browser" ? undefined : displayTimeZone}
             />
           </main>
         </div>
