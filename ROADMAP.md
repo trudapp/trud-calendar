@@ -115,7 +115,7 @@ These features are already implemented and tested:
 | 6.4 | TZ-aware drag/resize | `done` | react | When dragging or resizing an anchored event, `onEventDrop`/`onEventResize` receive new wall-clocks in the event's anchored zone (Google Calendar semantics). |
 | 6.5 | DST safety | `done` | core | Spring-forward gaps shift forward by default (opt-in throw). Fall-back overlaps return earlier instant by default (opt-in later). |
 | 6.6 | Recurring events through DST | `done` | core | Anchored recurring series preserves wall-clock across DST transitions, matching RFC 5545 TZID semantics. |
-| 6.7 | TZ-aware time-grid positioning | `todo` | react | Convert event positions in week/day columns to display-zone wall-clock. Currently anchored events render at their literal wall-clock position; required for mixed-TZ calendars. |
+| 6.7 | TZ-aware time-grid positioning | `done` | core + react | `computeTimePositions` accepts `displayTimeZone` and converts each anchored event's wall-clock to the display zone before computing top/height. Floating events are unaffected. WeekView, DayView, and ResourceTimeGrid all consume it. ResourceTimeline (Gantt-style) tracked separately in backlog. |
 
 ---
 
@@ -126,6 +126,8 @@ These are on the radar but not prioritized yet:
 - **Multi-day timeline scales** — Week/month timeline with horizontal time spanning multiple days
 - **Timeline left-edge resize** — Resize from start edge; right-edge resize already shipped
 - **Timeline drag-to-create slot selection** — `onSlotSelect` integration on the horizontal axis
+- **TZ-aware ResourceTimeline positioning** — Phase 6.7 covers WeekView/DayView/ResourceTimeGrid; the horizontal Gantt-style ResourceTimeline still positions anchored events by literal wall-clock
+- **Cross-day re-bucketing for anchored events** — When an anchored event's display-zone wall-clock falls on a different calendar day than its literal start (e.g. NY 11 PM = Tokyo 12 PM next day), it currently stays in its literal day's column
 - **Multi-calendar** — Drag events between separate calendar instances
 
 ---
@@ -135,5 +137,6 @@ These are on the radar but not prioritized yet:
 | Milestone | Target version |
 |-----------|---------------|
 | Phases 1-5 complete | v0.4.0 |
-| Phase 6 (timezones) | **v0.5.0** (current) |
-| Phase 6.7 + ResourceTimeline | v1.0.0 |
+| Phase 6 (timezones) | v0.5.0 |
+| Phase 6.7 (TZ-aware positioning) | **v0.6.0** (current) |
+| 1.0 polish (docs, ResourceTimeline TZ, full E2E) | v1.0.0 |

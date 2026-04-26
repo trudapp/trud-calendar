@@ -915,6 +915,7 @@ export function WeekView({ singleDay }: WeekViewProps) {
               allTimedEvents,
               dayStartHour,
               dayEndHour,
+              displayTimeZone,
             );
 
             // Annotate positioned events with segment info

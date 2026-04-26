@@ -320,7 +320,12 @@ export function ResourceTimeGrid({ singleDay }: ResourceTimeGridProps) {
               });
 
               const allTimedEvents = [...singleDayEvents, ...syntheticEvents];
-              const positioned = computeTimePositions(allTimedEvents, dayStartHour, dayEndHour);
+              const positioned = computeTimePositions(
+                allTimedEvents,
+                dayStartHour,
+                dayEndHour,
+                displayTimeZone,
+              );
 
               // Annotate segments
               const segmentMap = new Map(
