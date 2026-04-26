@@ -12,6 +12,7 @@ import {
   getTimeOfDay,
   rangesOverlap,
 } from "./date";
+import { eventWallToDisplay } from "./timezone";
 
 // ── Sorting ──────────────────────────────────────────────────────
 
@@ -227,11 +228,28 @@ export function assignColumns(
   return result.map((r) => ({ ...r, totalColumns }));
 }
 
-/** Compute positioned events for a single day in a time grid */
+/**
+ * Compute positioned events for a single day in a time grid.
+ *
+ * `displayTimeZone` controls how anchored events (those carrying their own
+ * `timeZone` field) are POSITIONED on the grid. When set, an event's
+ * wall-clock is converted from its anchored zone to the display zone before
+ * computing the top/height fractions — so an NY 9 AM EDT event renders at the
+ * 22:00 row when displayed in Tokyo.
+ *
+ * Floating events (no `timeZone` field) are unaffected: they always render at
+ * their literal wall-clock position.
+ *
+ * Note: this function does NOT re-bucket events into different days. If an
+ * anchored event's display-zone wall-clock falls on a different calendar day
+ * than its literal start date, the caller is responsible for re-segmenting it
+ * into the right day column.
+ */
 export function computeTimePositions(
   events: CalendarEvent[],
   dayStartHour: number = 0,
   dayEndHour: number = 24,
+  displayTimeZone?: string,
 ): PositionedEvent[] {
   const totalHours = dayEndHour - dayStartHour;
   const groups = buildOverlapGroups(events);
@@ -240,8 +258,17 @@ export function computeTimePositions(
   for (const group of groups) {
     const columns = assignColumns(group);
     for (const { event, column, totalColumns } of columns) {
-      const startTime = Math.max(getTimeOfDay(event.start), dayStartHour);
-      const endTime = Math.min(getTimeOfDay(event.end), dayEndHour);
+      const eventStart =
+        displayTimeZone && event.timeZone
+          ? eventWallToDisplay(event.start, event.timeZone, displayTimeZone)
+          : event.start;
+      const eventEnd =
+        displayTimeZone && event.timeZone
+          ? eventWallToDisplay(event.end, event.timeZone, displayTimeZone)
+          : event.end;
+
+      const startTime = Math.max(getTimeOfDay(eventStart), dayStartHour);
+      const endTime = Math.min(getTimeOfDay(eventEnd), dayEndHour);
       const top = ((startTime - dayStartHour) / totalHours) * 100;
       const height = Math.max(((endTime - startTime) / totalHours) * 100, 1); // min 1% height
 

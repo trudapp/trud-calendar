@@ -256,6 +256,96 @@ describe("computeTimePositions", () => {
     expect(positioned[1].totalColumns).toBe(2);
     expect(positioned[0].column).not.toBe(positioned[1].column);
   });
+
+  // ── Phase 6.7: TZ-aware positioning ──────────────────────────────
+  it("positions anchored event in display zone wall-clock (NY → UTC)", () => {
+    // April 27, 2026 — NY is on EDT (UTC-4). 9:00 AM NY = 13:00 UTC = 1:00 PM.
+    const events: CalendarEvent[] = [
+      {
+        id: "1",
+        title: "OKR",
+        start: "2026-04-27T09:00:00",
+        end: "2026-04-27T10:00:00",
+        timeZone: "America/New_York",
+      },
+    ];
+    const positioned = computeTimePositions(events, 0, 24, "UTC");
+    expect(positioned[0].top).toBeCloseTo((13 / 24) * 100, 5);
+    expect(positioned[0].height).toBeCloseTo((1 / 24) * 100, 5);
+  });
+
+  it("positions anchored event in display zone wall-clock (NY → Tokyo)", () => {
+    // NY 9:00 AM EDT = UTC 13:00 = Tokyo 22:00. Same calendar day.
+    const events: CalendarEvent[] = [
+      {
+        id: "1",
+        title: "OKR",
+        start: "2026-04-27T09:00:00",
+        end: "2026-04-27T10:30:00",
+        timeZone: "America/New_York",
+      },
+    ];
+    const positioned = computeTimePositions(events, 0, 24, "Asia/Tokyo");
+    expect(positioned[0].top).toBeCloseTo((22 / 24) * 100, 5);
+    expect(positioned[0].height).toBeCloseTo((1.5 / 24) * 100, 5);
+  });
+
+  it("positions anchored event with half-hour offset zone (NY → Kolkata)", () => {
+    // NY 9:00 AM EDT = UTC 13:00 = Kolkata 18:30 (UTC+5:30).
+    const events: CalendarEvent[] = [
+      {
+        id: "1",
+        title: "OKR",
+        start: "2026-04-27T09:00:00",
+        end: "2026-04-27T10:00:00",
+        timeZone: "America/New_York",
+      },
+    ];
+    const positioned = computeTimePositions(events, 0, 24, "Asia/Kolkata");
+    expect(positioned[0].top).toBeCloseTo((18.5 / 24) * 100, 5);
+  });
+
+  it("falls back to literal wall-clock for floating events even with displayTimeZone", () => {
+    // No timeZone field on the event → it's floating; display zone has no
+    // effect on positioning.
+    const events = [
+      makeEvent("1", "2026-04-27T09:00:00", "2026-04-27T10:00:00"),
+    ];
+    const positioned = computeTimePositions(events, 0, 24, "Asia/Tokyo");
+    expect(positioned[0].top).toBeCloseTo((9 / 24) * 100, 5);
+    expect(positioned[0].height).toBeCloseTo((1 / 24) * 100, 5);
+  });
+
+  it("falls back to literal wall-clock when displayTimeZone is omitted", () => {
+    // Anchored event but no displayTimeZone → use the event's own wall-clock
+    // (backwards-compatible default).
+    const events: CalendarEvent[] = [
+      {
+        id: "1",
+        title: "OKR",
+        start: "2026-04-27T09:00:00",
+        end: "2026-04-27T10:00:00",
+        timeZone: "America/New_York",
+      },
+    ];
+    const positioned = computeTimePositions(events, 0, 24);
+    expect(positioned[0].top).toBeCloseTo((9 / 24) * 100, 5);
+  });
+
+  it("positions anchored event the same as floating when zones match", () => {
+    // NY anchored event displayed in NY zone — should match literal.
+    const events: CalendarEvent[] = [
+      {
+        id: "1",
+        title: "OKR",
+        start: "2026-04-27T09:00:00",
+        end: "2026-04-27T10:00:00",
+        timeZone: "America/New_York",
+      },
+    ];
+    const positioned = computeTimePositions(events, 0, 24, "America/New_York");
+    expect(positioned[0].top).toBeCloseTo((9 / 24) * 100, 5);
+  });
 });
 
 describe("groupEventsByDate", () => {

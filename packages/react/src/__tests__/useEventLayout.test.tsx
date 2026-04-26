@@ -123,4 +123,51 @@ describe("useEventLayout", () => {
     // height = 1/24 * 100 ≈ 4.1667
     expect(positioned.height).toBeCloseTo(100 / 24, 2);
   });
+
+  // ── Phase 6.7: TZ-aware positioning via context ──────────────────
+  it("converts anchored event positions to displayTimeZone wall-clock", () => {
+    // April 27 2026 is in EDT (UTC-4). NY 9:00 → UTC 13:00 → Tokyo 22:00.
+    const tokyoWrapper = createWrapper({
+      defaultDate: "2026-04-27",
+      defaultView: "day",
+      dayStartHour: 0,
+      dayEndHour: 24,
+      displayTimeZone: "Asia/Tokyo",
+    });
+
+    const events = [
+      {
+        id: "1",
+        title: "OKR",
+        start: "2026-04-27T09:00:00",
+        end: "2026-04-27T10:00:00",
+        timeZone: "America/New_York",
+      },
+    ];
+
+    const { result } = renderHook(() => useEventLayout(events), {
+      wrapper: tokyoWrapper,
+    });
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].top).toBeCloseTo((22 / 24) * 100, 5);
+  });
+
+  it("leaves floating events at literal wall-clock when displayTimeZone is set", () => {
+    const tokyoWrapper = createWrapper({
+      defaultDate: "2026-04-27",
+      defaultView: "day",
+      dayStartHour: 0,
+      dayEndHour: 24,
+      displayTimeZone: "Asia/Tokyo",
+    });
+
+    const events = [makeEvent("1", "2026-04-27T09:00:00", "2026-04-27T10:00:00")];
+
+    const { result } = renderHook(() => useEventLayout(events), {
+      wrapper: tokyoWrapper,
+    });
+
+    expect(result.current[0].top).toBeCloseTo((9 / 24) * 100, 5);
+  });
 });

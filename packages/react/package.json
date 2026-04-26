@@ -1,6 +1,6 @@
 {
   "name": "trud-calendar",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A beautiful, fully-featured React calendar component. Google Calendar-level UX, MIT license, shadcn-compatible.",
   "license": "MIT",
   "repository": {

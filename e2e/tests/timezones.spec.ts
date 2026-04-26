@@ -136,4 +136,50 @@ test.describe("Timezones — anchored events", () => {
     await anchorToggle(page, "Off").click();
     await expect(okr).toContainText("9:00 AM");
   });
+
+  test("anchored event renders at the converted GEOMETRY position (Phase 6.7)", async ({
+    page,
+  }) => {
+    // Capture the row geometry of "9 AM" and "10 PM" in week view's time
+    // gutter, then assert the anchored event's top is closer to the converted
+    // hour, not the literal one. NY 9:00 AM EDT → Tokyo 10:00 PM (22:00).
+    await page.getByRole("tab", { name: "Week" }).click();
+    await page.getByRole("button", { name: "Resources" }).click();
+    await anchorToggle(page, "On").click();
+    await page.getByRole("button", { name: "General" }).click();
+    await page.getByTestId("display-timezone").selectOption("Asia/Tokyo");
+
+    const okr = page.locator('[data-event-id="evt-13"]');
+    await expect(okr).toBeVisible();
+
+    const geometry = await page.evaluate(() => {
+      const grid = document.querySelector(
+        "[role='grid'][aria-label='Week view']",
+      );
+      if (!grid) return null;
+      const labels = Array.from(grid.querySelectorAll("div")).filter((d) =>
+        /^\d{1,2}\s*(AM|PM)$/.test(d.textContent?.trim() || ""),
+      );
+      const find = (text: string) =>
+        labels.find((l) => l.textContent?.trim() === text)?.getBoundingClientRect();
+      const okr = document.querySelector('[data-event-id="evt-13"]');
+      return {
+        nine: find("9 AM")?.top ?? null,
+        twentyTwo: find("10 PM")?.top ?? null,
+        okrTop: (okr as HTMLElement | null)?.getBoundingClientRect().top ?? null,
+      };
+    });
+
+    expect(geometry).not.toBeNull();
+    expect(geometry!.nine).not.toBeNull();
+    expect(geometry!.twentyTwo).not.toBeNull();
+    expect(geometry!.okrTop).not.toBeNull();
+
+    // The event should sit close to the 10 PM row (within one row height ≈
+    // 40px) and far from the literal 9 AM row.
+    const distToTen = Math.abs(geometry!.okrTop! - geometry!.twentyTwo!);
+    const distToNine = Math.abs(geometry!.okrTop! - geometry!.nine!);
+    expect(distToTen).toBeLessThan(40);
+    expect(distToNine).toBeGreaterThan(distToTen);
+  });
 });
