@@ -28,6 +28,7 @@ Current version: **0.5.0** (Phases 1–5 complete + named timezone support). v1.
 - [Theming and CSS variables (--trc-*)](https://trud-calendar-docs.vercel.app/theming/)
 - [Slots API for custom rendering](https://trud-calendar-docs.vercel.app/slots/)
 - [Resource views (resource scheduling)](https://trud-calendar-docs.vercel.app/resource-views/)
+- [Resource timeline (horizontal Gantt-style layout)](https://trud-calendar-docs.vercel.app/resource-timeline/)
 
 ## API reference
 

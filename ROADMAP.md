@@ -69,7 +69,7 @@ These features are already implemented and tested:
 |---|---------|--------|---------|-------------|
 | 3.1 | Resource data model | `done` | core | `Resource` type, `resourceId` on CalendarEvent, `EventDropExtra`. `flattenResources`, `getEventsForResource`, `groupEventsByResource` utilities. |
 | 3.2 | ResourceTimeGrid view | `done` | react | `resources` prop auto-transforms day/week views into resource columns. Day mode: 1 col per resource. Week mode: days × resources grid. |
-| 3.3 | ResourceTimeline view | `todo` | react | Horizontal timeline — resources as rows, time on X axis. Day/week/month durations. |
+| 3.3 | ResourceTimeline view | `done` | react | Horizontal timeline — resources as rows, time on X axis. Day-scale in v1; week/month scales deferred. Drag (horizontal time + vertical resource) and right-edge resize supported. |
 | 3.4 | Drag between resources | `done` | react | Drag detects `data-resource-id`. `onEventDrop`, `onSlotClick`, `onSlotSelect` receive `extra?.resourceId`. |
 | 3.5 | Resource header slot | `done` | react | `resourceHeader` slot on CalendarSlots for custom resource label rendering. |
 
@@ -123,7 +123,9 @@ These features are already implemented and tested:
 
 These are on the radar but not prioritized yet:
 
-- **ResourceTimeline view** — Horizontal timeline with resources as rows, time on X axis
+- **Multi-day timeline scales** — Week/month timeline with horizontal time spanning multiple days
+- **Timeline left-edge resize** — Resize from start edge; right-edge resize already shipped
+- **Timeline drag-to-create slot selection** — `onSlotSelect` integration on the horizontal axis
 - **Multi-calendar** — Drag events between separate calendar instances
 
 ---

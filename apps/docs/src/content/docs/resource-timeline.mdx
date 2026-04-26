@@ -1,0 +1,160 @@
+---
+title: Resource Timeline
+description: Horizontal timeline view with one row per resource and time on the X axis. Drag, drop, resize, and reassign across resources.
+---
+
+The **timeline view** is a horizontal scheduling layout — resources as rows, time across the X axis, events as draggable bars. It's the layout most teams reach for when planning rooms, vehicles, technicians, or anything else where you need to see "who is doing what, when" at a glance.
+
+```tsx
+const resources = [
+  { id: "alice", title: "Alice", color: "#3b82f6" },
+  { id: "bob",   title: "Bob",   color: "#22c55e" },
+  { id: "carol", title: "Carol", color: "#f59e0b" },
+];
+
+const events = [
+  { id: "1", title: "Sprint planning",  start: "2026-04-26T09:00:00", end: "2026-04-26T10:30:00", resourceId: "alice" },
+  { id: "2", title: "Pair programming", start: "2026-04-26T10:00:00", end: "2026-04-26T12:00:00", resourceId: "bob"   },
+  { id: "3", title: "Customer call",    start: "2026-04-26T14:00:00", end: "2026-04-26T15:00:00", resourceId: "carol" },
+];
+
+<Calendar
+  events={events}
+  resources={resources}
+  defaultView="timeline"
+  enableDnD
+  onEventDrop={(event, newStart, newEnd, extra) => save({ ...event, start: newStart, end: newEnd, resourceId: extra?.resourceId ?? event.resourceId })}
+  onEventResize={(event, newStart, newEnd) => save({ ...event, start: newStart, end: newEnd })}
+  onSlotClick={(dateTime, extra) => create({ start: dateTime, resourceId: extra?.resourceId })}
+/>
+```
+
+`view="timeline"` is opt-in. If you don't pass it, the day/week views still auto-switch to the vertical [Resource Views](/resource-views/) layout when you provide `resources`.
+
+## Layout
+
+```
+┌──────────┬──────────────────────────────────────────────────┐
+│ Resource │  9 AM   10 AM   11 AM   12 PM   1 PM    2 PM     │  ← sticky hour header
+├──────────┼──────────────────────────────────────────────────┤
+│ ● Alice  │   ████████████░░░░░                              │
+├──────────┼──────────────────────────────────────────────────┤
+│ ● Bob    │       ████████████████████░░░░░                  │
+├──────────┼──────────────────────────────────────────────────┤
+│ ● Carol  │                              ██████████░░░░░     │
+└──────────┴──────────────────────────────────────────────────┘
+```
+
+The resource column is sticky on the left, the hour header is sticky on top, and a vertical now-line marks the current time when the visible day is today.
+
+## When to use timeline vs. resource views
+
+| | Resource Timeline (`view="timeline"`) | Resource Views (auto with `resources`) |
+|---|---|---|
+| **Layout** | Horizontal: resources rows, time X axis | Vertical: resources columns, time Y axis |
+| **Scale** | Single day, full hour range | Single day or full week |
+| **Best for** | Wide screens, many resources, dispatch boards | Standard calendars, fewer resources, mobile |
+| **Drag direction** | Horizontal (time) and vertical (resource) | Vertical (time) and horizontal (resource/day) |
+| **Multi-day events** | Clipped to the visible day with chopped corners | Span across day columns |
+
+You can switch between them at runtime — both consume the same `resources` and `events`, just a different `view` value.
+
+## Interactions
+
+All interactions match the rest of the calendar's UX (Pointer Events, 5px click-vs-drag threshold, snapping to `snapDuration`, constraint callbacks).
+
+### Drag horizontally
+
+Hold the bar and drag left/right to change the event's time within the same resource. The new time snaps to `snapDuration` (default 15 minutes).
+
+### Drag vertically
+
+Drag the bar up/down to reassign the event to a different resource. `onEventDrop` receives `extra.resourceId` set to the **target** resource only when it changed:
+
+```tsx
+onEventDrop={(event, newStart, newEnd, extra) => {
+  if (extra?.resourceId) {
+    // Event moved to a different resource
+    save({ ...event, start: newStart, end: newEnd, resourceId: extra.resourceId });
+  } else {
+    // Event stayed on the same resource, just changed time
+    save({ ...event, start: newStart, end: newEnd });
+  }
+}}
+```
+
+### Resize the right edge
+
+A thin handle on the right edge of each bar stretches the event's end time. The minimum duration is `snapDuration`; the maximum is `dayEndHour`. Resizing from the left edge will land in a follow-up release.
+
+### Slot click
+
+Clicking the empty area of a row fires `onSlotClick(dateTime, { resourceId })`, where `dateTime` is `${day}T${slotClickTime}` (default `09:00:00`). Useful for "create event at this resource" flows.
+
+## Day range
+
+The timeline always renders the **current day** at `state.currentDate`. Use the toolbar's prev/next buttons (or `goToPrev` / `goToNext` from `useNavigation`) to navigate days. Hours visible are controlled by `dayStartHour` and `dayEndHour`:
+
+```tsx
+<Calendar
+  view="timeline"
+  resources={resources}
+  events={events}
+  dayStartHour={8}
+  dayEndHour={20}    // Render 8 AM to 8 PM only
+/>
+```
+
+## Custom resource header
+
+The same `resourceHeader` slot used by the vertical resource views applies here:
+
+```tsx
+<Calendar
+  view="timeline"
+  resources={resources}
+  events={events}
+  slots={{
+    resourceHeader: ({ resource }) => (
+      <div className="flex items-center gap-2">
+        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: resource.color }} />
+        <span className="font-semibold">{resource.title}</span>
+        <span className="text-xs text-gray-500">{resource.location}</span>
+      </div>
+    ),
+  }}
+/>
+```
+
+`resource` is the full `Resource` object including any custom metadata you attach.
+
+## CSS variables
+
+Tune the layout without overriding component classes:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `--trc-resource-col` | `160px` | Width of the sticky left column |
+| `--trc-timeline-row` | `56px` | Minimum height per resource sub-row |
+| `--trc-now-line` | `#ef4444` | Color of the vertical "now" indicator |
+
+## Timezones
+
+Event time labels use `displayTimeZone` (defaults to the runtime's local zone). Drag and resize results are returned in each event's anchored zone — see [Timezones](/timezones/) for the full semantics.
+
+## Empty state
+
+If you set `view="timeline"` without providing `resources`, the calendar renders a placeholder:
+
+> Timeline: no resources configured
+
+Configure at least one resource (and assign `resourceId` on events) to see content.
+
+## Limitations in v1.0
+
+- **Resize from the left edge** is not yet implemented. Use drag instead to shift the start.
+- **Drag-to-create slot selection** (`onSlotSelect`) is not yet wired in the timeline. `onSlotClick` works.
+- **Multi-day timeline scales** (week, month with horizontal time spanning multiple days) are deferred. Timeline currently shows one day at a time.
+- **Time-grid positioning of timezone-anchored events** still uses the event's literal wall-clock for layout, not the display-zone wall-clock. Time **labels** are converted correctly. This affects only mixed-timezone calendars.
+
+These are tracked in [the roadmap](https://github.com/trudapp/trud-calendar/blob/main/ROADMAP.md).
