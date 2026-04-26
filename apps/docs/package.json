@@ -18,6 +18,7 @@
   "dependencies": {
     "@astrojs/react": "^5.0.0",
     "@tailwindcss/vite": "^4.2.1",
+    "@vercel/edge": "^1.2.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.1",
