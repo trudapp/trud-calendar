@@ -40,6 +40,14 @@ type CalendarEvent = {
 };
 ```
 
+### Resource Timeline
+
+Optional horizontal scheduling view: `view="timeline"`. Resources render as horizontal rows with a sticky left column, hours on a sticky top header, and events as draggable bars. Drag horizontally to change time within the same resource; drag vertically to reassign across resources (`extra.resourceId` set on `onEventDrop` only when changed). Resize from the right edge to change end time. `onSlotClick` fires with `extra.resourceId`. Empty state when no resources configured. CSS variables: `--trc-resource-col` (160px), `--trc-timeline-row` (56px), `--trc-now-line` (#ef4444).
+
+Single-day scale only in v1.0; multi-day timeline scales (week/month) and left-edge resize are deferred. The vertical [Resource Views](/resource-views/) layout is still the default when `resources` is provided without `view="timeline"`.
+
+Core util: `computeTimelinePositions(events, resourceIds, day, dayStartHour, dayEndHour)` returns `Map<resourceId, TimelinePositionedEvent[]>` with `leftPct`, `widthPct`, `row`, `totalRows`, `isSegmentStart`, `isSegmentEnd`. Available standalone for custom timeline implementations.
+
 ### Timezones
 
 Optional `timeZone` (IANA) on `CalendarEvent` anchors it to a zone with RFC 5545 (TZID) semantics. Floating events (no zone) display literally. Calendar accepts `displayTimeZone` (defaults to runtime's local zone via `Intl.DateTimeFormat().resolvedOptions().timeZone`); event times are converted from `event.timeZone` → `displayTimeZone` for rendering. Drag/resize on anchored events report wall-clocks in the event's anchored zone, not the display zone (Google Calendar semantics). DST handled: gaps shift forward by default (opt-in throw), overlaps return the earlier instant by default (opt-in later). Recurring events anchored to a zone preserve their wall-clock across DST transitions.
@@ -94,7 +102,7 @@ type CalendarProps = {
   resources?: Resource[];
 
   // view + navigation
-  view?: CalendarView;             // "month" | "week" | "day" | "agenda" | "year"
+  view?: CalendarView;             // "month" | "week" | "day" | "agenda" | "year" | "timeline"
   defaultView?: CalendarView;
   date?: DateString;
   defaultDate?: DateString;

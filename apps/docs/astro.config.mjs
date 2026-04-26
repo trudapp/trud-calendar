@@ -136,6 +136,11 @@ export default defineConfig({
               label: "Resource Views",
               translations: { es: "Vistas de Recursos" },
             },
+            {
+              slug: "resource-timeline",
+              label: "Resource Timeline",
+              translations: { es: "Timeline de Recursos" },
+            },
           ],
         },
         {
