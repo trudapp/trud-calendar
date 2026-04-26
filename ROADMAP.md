@@ -103,11 +103,26 @@ These features are already implemented and tested:
 
 ---
 
+## Phase 6 — Timezones
+
+> Goal: First-class IANA timezone support without taking on any dependencies.
+
+| # | Feature | Status | Package | Description |
+|---|---------|--------|---------|-------------|
+| 6.1 | Timezone utilities | `done` | core | `getTimeZoneOffset`, `wallTimeToUtc`, `utcToWallTime`, `convertWallTime`, `listTimeZones`, `isValidTimeZone`, `getTimeZoneAbbreviation`, `getBrowserTimeZone`, `eventWallToDisplay`, `displayWallToEvent`. Built on `Intl.DateTimeFormat`, zero deps. |
+| 6.2 | Anchored events | `done` | core | Optional `CalendarEvent.timeZone` (RFC 5545 TZID semantics). Floating events (no zone) preserved as backwards-compatible default. |
+| 6.3 | Display zone | `done` | react | `CalendarConfig.displayTimeZone` (defaults to runtime's local zone). Drives time formatting, now-line position, and drag/resize math. |
+| 6.4 | TZ-aware drag/resize | `done` | react | When dragging or resizing an anchored event, `onEventDrop`/`onEventResize` receive new wall-clocks in the event's anchored zone (Google Calendar semantics). |
+| 6.5 | DST safety | `done` | core | Spring-forward gaps shift forward by default (opt-in throw). Fall-back overlaps return earlier instant by default (opt-in later). |
+| 6.6 | Recurring events through DST | `done` | core | Anchored recurring series preserves wall-clock across DST transitions, matching RFC 5545 TZID semantics. |
+| 6.7 | TZ-aware time-grid positioning | `todo` | react | Convert event positions in week/day columns to display-zone wall-clock. Currently anchored events render at their literal wall-clock position; required for mixed-TZ calendars. |
+
+---
+
 ## Backlog (not scheduled)
 
 These are on the radar but not prioritized yet:
 
-- **Timezone support** — Named timezone handling (America/New_York, etc.)
 - **ResourceTimeline view** — Horizontal timeline with resources as rows, time on X axis
 - **Multi-calendar** — Drag events between separate calendar instances
 
@@ -117,5 +132,6 @@ These are on the radar but not prioritized yet:
 
 | Milestone | Target version |
 |-----------|---------------|
-| Phases 1-5 complete | **v0.4.0** (current) |
-| ResourceTimeline + timezone | v1.0.0 |
+| Phases 1-5 complete | v0.4.0 |
+| Phase 6 (timezones) | **v0.5.0** (current) |
+| Phase 6.7 + ResourceTimeline | v1.0.0 |

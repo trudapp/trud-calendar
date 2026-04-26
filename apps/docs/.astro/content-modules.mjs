@@ -15,6 +15,7 @@ export default new Map([
 ["src/content/docs/es/resource-views.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fes%2Fresource-views.mdx&astroContentModuleFlag=true")],
 ["src/content/docs/es/slots.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fes%2Fslots.mdx&astroContentModuleFlag=true")],
 ["src/content/docs/es/theming.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fes%2Ftheming.mdx&astroContentModuleFlag=true")],
+["src/content/docs/es/timezones.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fes%2Ftimezones.mdx&astroContentModuleFlag=true")],
 ["src/content/docs/es/views.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fes%2Fviews.mdx&astroContentModuleFlag=true")],
 ["src/content/docs/getting-started.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fgetting-started.mdx&astroContentModuleFlag=true")],
 ["src/content/docs/headless-core.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fheadless-core.mdx&astroContentModuleFlag=true")],
@@ -29,5 +30,6 @@ export default new Map([
 ["src/content/docs/resource-views.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fresource-views.mdx&astroContentModuleFlag=true")],
 ["src/content/docs/slots.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fslots.mdx&astroContentModuleFlag=true")],
 ["src/content/docs/theming.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Ftheming.mdx&astroContentModuleFlag=true")],
+["src/content/docs/timezones.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Ftimezones.mdx&astroContentModuleFlag=true")],
 ["src/content/docs/views.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fdocs%2Fviews.mdx&astroContentModuleFlag=true")]]);
 		

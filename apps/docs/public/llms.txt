@@ -9,7 +9,7 @@ trud-calendar is a pnpm monorepo distributing two packages on npm:
 
 Date format is ISO 8601 strings throughout (no `Date` objects). Recurrence uses RFC 5545 RRULE semantics; consumers call `expandRecurringEvents()` before passing events to `<Calendar />`.
 
-Current version: **0.4.0** (Phases 1–5 complete). v1.0.0 will add ResourceTimeline view and named timezone support.
+Current version: **0.5.0** (Phases 1–5 complete + named timezone support). v1.0.0 will add ResourceTimeline view.
 
 ## Installation
 
@@ -24,6 +24,7 @@ Current version: **0.4.0** (Phases 1–5 complete). v1.0.0 will add ResourceTime
 - [Recurrence (RFC 5545 RRULE)](https://trud-calendar-docs.vercel.app/recurrence/)
 - [Keyboard navigation (WAI-ARIA grid)](https://trud-calendar-docs.vercel.app/keyboard-navigation/)
 - [Locale & i18n (BCP 47)](https://trud-calendar-docs.vercel.app/i18n/)
+- [Timezones (IANA, RFC 5545 TZID, DST-safe)](https://trud-calendar-docs.vercel.app/timezones/)
 - [Theming and CSS variables (--trc-*)](https://trud-calendar-docs.vercel.app/theming/)
 - [Slots API for custom rendering](https://trud-calendar-docs.vercel.app/slots/)
 - [Resource views (resource scheduling)](https://trud-calendar-docs.vercel.app/resource-views/)

@@ -110,6 +110,11 @@ export default defineConfig({
               translations: { es: "Idiomas e i18n" },
             },
             {
+              slug: "timezones",
+              label: "Timezones",
+              translations: { es: "Zonas horarias" },
+            },
+            {
               slug: "theming",
               label: "Theming",
               translations: { es: "Temas" },

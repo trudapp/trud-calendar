@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-26
+
+### Added — IANA timezone support (Phase 6)
+
+- `CalendarEvent.timeZone?: string` — optional IANA zone with RFC 5545 TZID semantics. Floating events (no `timeZone`) preserved as backwards-compatible default.
+- `CalendarConfig.displayTimeZone?: string` — IANA zone in which times are rendered. Defaults to the runtime's local zone (`Intl.DateTimeFormat().resolvedOptions().timeZone`).
+- New core utilities (zero-dep, built on `Intl.DateTimeFormat` with cached DTF instances):
+  - `getTimeZoneOffset(utc, tz)` — minutes east of UTC
+  - `wallTimeToUtc(wall, tz, opts?)` and `utcToWallTime(utc, tz)` — wall-clock ⇄ UTC, with `{ ambiguous, invalid }` options for DST overlap and gap resolution
+  - `convertWallTime(wall, fromTz, toTz, opts?)` — direct cross-zone conversion preserving the absolute instant
+  - `listTimeZones()` — every supported IANA zone plus `"UTC"` (which `Intl.supportedValuesOf` excludes by spec); 80-zone curated fallback for older runtimes
+  - `isValidTimeZone(tz)` — cached validation
+  - `getTimeZoneAbbreviation(tz, atInstant?)` — `"EST"`, `"EDT"`, `"GMT+5:30"`, etc.
+  - `getBrowserTimeZone()` — runtime's local zone with safe UTC fallback
+  - `eventWallToDisplay`, `displayWallToEvent` — used by the React layer; floating events pass through unchanged
+- Drag and resize on anchored events now report new wall-clocks in the event's anchored zone (matches Google Calendar). Floating events keep existing semantics.
+- Recurring events anchored to a zone preserve their wall-clock across DST transitions (RFC 5545 TZID).
+- New documentation page: [Timezones](/timezones/) (EN + ES).
+- 76 new tests (319 → 401): timezone offsets across NY/Berlin/Sydney/Tokyo/Kolkata/Kathmandu/Auckland, DST gaps and overlaps in both hemispheres, round-trip identity, half- and quarter-hour offsets, helper functions, and recurring TZ propagation.
+
+### Known limitation
+
+- Anchored events with a `timeZone` different from the calendar's `displayTimeZone` render time labels in the display zone but are positioned in the time grid using their literal wall-clock. The position-conversion pass over the layout pipeline is planned for v1.0.0. Single-zone calendars (the common case) are unaffected.
+
+## [0.4.0]
+
 ### Added
 
 - Undo/Redo system — generic `UndoStack<T>` in core + `useUndoableEvents` React hook with Ctrl+Z/Y shortcuts

@@ -36,6 +36,7 @@ import type {
   TimedEventSegment,
   UndoStack,
   VirtualRange,
+  WallToUtcOptions,
 } from "trud-calendar-core";
 ```
 
@@ -115,6 +116,49 @@ import {
   groupEventsByDate,
 } from "trud-calendar-core";
 ```
+
+### Timezones
+
+Zero-dependency IANA timezone support built on `Intl.DateTimeFormat`:
+
+```ts
+import {
+  getTimeZoneOffset,
+  wallTimeToUtc,
+  utcToWallTime,
+  convertWallTime,
+  listTimeZones,
+  isValidTimeZone,
+  getTimeZoneAbbreviation,
+  getBrowserTimeZone,
+  eventWallToDisplay,
+  displayWallToEvent,
+} from "trud-calendar-core";
+import type { WallToUtcOptions } from "trud-calendar-core";
+
+// Offset (minutes east of UTC) at a specific instant.
+getTimeZoneOffset("2026-01-15T12:00:00Z", "America/New_York"); // -300
+getTimeZoneOffset("2026-07-15T12:00:00Z", "America/New_York"); // -240 (EDT)
+
+// Wall-clock ⇄ UTC. Default DST handling:
+// - gap (spring-forward, wall doesn't exist)  → shift forward
+// - overlap (fall-back, wall happens twice)   → earlier instant
+wallTimeToUtc("2026-03-13T09:00:00", "America/New_York");      // "2026-03-13T13:00:00Z"
+wallTimeToUtc("2026-03-08T02:30:00", "America/New_York", { invalid: "throw" });
+wallTimeToUtc("2026-11-01T01:30:00", "America/New_York", { ambiguous: "later" });
+
+// Direct cross-zone conversion (preserves the absolute instant).
+convertWallTime("2026-01-15T09:00:00", "America/New_York", "Europe/Berlin");
+// → "2026-01-15T15:00:00"
+
+// Pickers and validation.
+listTimeZones();                       // IANA list + "UTC"
+isValidTimeZone("Mars/Olympus");       // false
+getTimeZoneAbbreviation("Asia/Tokyo"); // "GMT+9"
+getBrowserTimeZone();                  // e.g., "America/Argentina/Buenos_Aires"
+```
+
+See [Timezones](/timezones/) for the full guide, including DST edge cases and how `event.timeZone` plus `displayTimeZone` interact.
 
 ### Recurrence
 

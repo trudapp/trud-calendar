@@ -1,0 +1,172 @@
+---
+title: Timezones
+description: Anchor events to IANA timezones, render in any display zone, and handle DST safely with zero dependencies.
+---
+
+trud-calendar treats time the same way iCalendar (RFC 5545) does. Events can be **anchored** to a specific IANA timezone or **floating** (no zone). The calendar renders all times in a chosen **display zone** and converts on the fly. Drag and resize preserve each event's anchored zone — a "9 AM New York" meeting stays at 9 AM New York after you drag it, even when you're viewing the calendar from Tokyo.
+
+The implementation is built entirely on `Intl.DateTimeFormat` — no `date-fns`, `date-fns-tz`, `@js-temporal/polyfill`, or any other dependency. The core package stays at zero deps.
+
+## The two kinds of events
+
+```ts
+// Floating event — wall-clock is shown literally, regardless of display zone.
+// Use for events that "happen at the same wall time everywhere", e.g. a
+// daily reminder, a personal habit, a checklist item.
+{
+  id: "habit",
+  title: "Morning routine",
+  start: "2026-03-13T07:00:00",
+  end: "2026-03-13T07:30:00",
+}
+
+// Anchored event — has an IANA timezone. The wall-clock is interpreted in
+// that zone. Use for real-world events that have a "true" location: a
+// meeting, a flight, a class.
+{
+  id: "ny-meeting",
+  title: "Sprint planning",
+  start: "2026-03-13T09:00:00",
+  end: "2026-03-13T10:00:00",
+  timeZone: "America/New_York",
+}
+```
+
+The `timeZone` field is optional and follows RFC 5545 `TZID` semantics. Calendars that previously stored only floating events keep working without changes — adding `timeZone` is opt-in.
+
+## Display zone
+
+```tsx
+<Calendar
+  events={events}
+  displayTimeZone="Europe/Berlin"
+/>
+```
+
+If you don't pass `displayTimeZone`, the calendar uses the runtime's local zone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). For most apps that's exactly what you want.
+
+The display zone affects:
+
+- The **time labels** rendered on events
+- The **now-line** position in week/day view
+- The **drag and resize math** (positions are computed in the display zone, then converted back to each event's anchored zone)
+
+## How conversion works
+
+The "Sprint planning" event above (anchored to New York, 09:00) renders this way in different display zones:
+
+| `displayTimeZone` | What the user sees | Reason |
+|---|---|---|
+| `America/New_York` | "9:00 AM" | Same zone — no conversion |
+| `Europe/Berlin` (winter) | "3:00 PM" | EST + 6 = CET |
+| `Asia/Tokyo` | "11:00 PM" | EST + 14 = JST |
+| `undefined` (browser zone) | Whatever the user's local zone produces |
+
+Floating events ignore `displayTimeZone` entirely and are shown as written.
+
+## Drag and drop semantics
+
+When the user drags an anchored event, the new time is reported back in the event's anchored zone — not the display zone:
+
+```tsx
+<Calendar
+  events={events}
+  displayTimeZone="Europe/Berlin"
+  enableDnD
+  onEventDrop={(event, newStart, newEnd) => {
+    // event.timeZone === "America/New_York"
+    // newStart and newEnd are wall-clock strings IN America/New_York,
+    // even though the user dragged the event in a Berlin grid.
+    save({ ...event, start: newStart, end: newEnd });
+  }}
+/>
+```
+
+This matches Google Calendar's behavior: the meeting "owner" zone is preserved across drag operations. Resize works the same way — only the changed edge is converted; the unchanged edge passes through untouched.
+
+For floating events, drag and resize report wall-clocks as written by the user (no conversion).
+
+## DST handling
+
+DST is fully handled at conversion time. Two edge cases come up:
+
+### Spring forward — the gap
+
+Some wall-clocks don't exist. On 2026-03-08 in `America/New_York`, clocks jump from `02:00 EST` directly to `03:00 EDT` — `02:30` never happens.
+
+`wallTimeToUtc("2026-03-08T02:30:00", "America/New_York")` shifts forward to the first valid instant after the gap (`03:30 EDT`) by default. Pass `{ invalid: "throw" }` to get a `RangeError` instead.
+
+### Fall back — the overlap
+
+Some wall-clocks happen twice. On 2026-11-01 in `America/New_York`, clocks jump from `02:00 EDT` back to `01:00 EST` — `01:30` happens twice.
+
+`wallTimeToUtc("2026-11-01T01:30:00", "America/New_York")` returns the **earlier** instant by default (the first 1:30, still in EDT). Pass `{ ambiguous: "later" }` for the second occurrence.
+
+### Recurring events through DST
+
+A weekly event at "9 AM Monday in `America/New_York`" stays at 9 AM every week, before *and* after the spring-forward jump. The expanded instances all carry the same `timeZone`, so wall-clock is preserved by definition. This matches RFC 5545 (TZID-anchored) and Google Calendar.
+
+## Using the core utilities directly
+
+All the timezone logic lives in `trud-calendar-core` and is consumable on its own (zero deps):
+
+```ts
+import {
+  getTimeZoneOffset,
+  wallTimeToUtc,
+  utcToWallTime,
+  convertWallTime,
+  listTimeZones,
+  isValidTimeZone,
+  getTimeZoneAbbreviation,
+  getBrowserTimeZone,
+  eventWallToDisplay,
+  displayWallToEvent,
+} from "trud-calendar-core";
+
+// Offset in minutes east of UTC.
+getTimeZoneOffset("2026-01-15T12:00:00Z", "America/New_York"); // -300
+getTimeZoneOffset("2026-07-15T12:00:00Z", "America/New_York"); // -240
+getTimeZoneOffset("2026-01-15T12:00:00Z", "Asia/Kathmandu");   //  345
+
+// Wall ⇄ UTC.
+wallTimeToUtc("2026-03-13T09:00:00", "America/New_York"); // "2026-03-13T13:00:00Z"
+utcToWallTime("2026-03-13T13:00:00Z", "Europe/Berlin");   // "2026-03-13T14:00:00"
+
+// Direct cross-zone conversion (preserves the absolute instant).
+convertWallTime("2026-01-15T09:00:00", "America/New_York", "Europe/Berlin");
+// → "2026-01-15T15:00:00"
+
+// Pickers and validation.
+listTimeZones();                  // Every supported IANA zone + "UTC"
+isValidTimeZone("Mars/Olympus");  // false
+getTimeZoneAbbreviation("America/New_York", "2026-07-15T12:00:00Z"); // "EDT"
+```
+
+## Building a timezone picker
+
+```tsx
+import { listTimeZones } from "trud-calendar-core";
+
+function TimeZonePicker({ value, onChange }: { value: string; onChange: (tz: string) => void }) {
+  return (
+    <select value={value} onChange={(e) => onChange(e.target.value)}>
+      {listTimeZones().map((tz) => (
+        <option key={tz} value={tz}>{tz}</option>
+      ))}
+    </select>
+  );
+}
+```
+
+`listTimeZones()` returns the runtime's full IANA list (via `Intl.supportedValuesOf("timeZone")`) plus `"UTC"`, which `Intl` excludes by spec. Falls back to a curated 80-zone list on older runtimes that lack `supportedValuesOf`.
+
+## Migrating from floating events
+
+Existing calendars that store only floating events keep working unchanged. Pre-1.0 behavior is preserved 100%. To start anchoring events:
+
+1. Add `timeZone` to events that should be anchored. Leave floating events alone.
+2. Optionally pass `displayTimeZone` to control the rendering zone. Default is the user's local zone.
+3. Update your `onEventDrop`/`onEventResize` storage to persist `event.timeZone` along with `start`/`end`.
+
+No data migration is required. The same `start`/`end` strings work for both floating and anchored events.

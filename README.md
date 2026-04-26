@@ -14,6 +14,7 @@ The most complete open-source React calendar. Google Calendar-level UX with a de
 | **Resource views** | **Free** | $500+/yr | No | Free |
 | **Drag & drop + resize** (both edges) | **Free** | Free | Limited | Plugin |
 | **Recurring events (RRULE)** | **Built-in** | Plugin | No | No |
+| **IANA timezones (DST-safe)** | **Built-in, zero deps** | Plugin | No | No |
 | **TypeScript strict** | **Native** | Yes | Yes | No |
 | **React hooks API** | **15+ hooks** | Wrapper | No | No |
 | **Zero-dep headless core** | **Yes** | No | No | No |

@@ -29,6 +29,7 @@ El componente `<Calendar>` acepta todos los campos de `CalendarConfig`, mas `cla
 | `resources` | `Resource[]` | `[]` | Recursos para las vistas de recursos (las vistas dia/semana ganan una columna por recurso) |
 | `flexibleSlotTimeLimits` | `boolean` | `false` | Expandir automaticamente la grilla cuando los eventos caen fuera del rango horario |
 | `customButtons` | `CustomButton[]` | `[]` | Botones personalizados inyectados en el toolbar |
+| `displayTimeZone` | `string` | zona del browser | Zona IANA en la que se renderizan los tiempos. Ver [Zonas horarias](/es/timezones/). |
 | `className` | `string` | — | Clases CSS adicionales |
 
 ## Callbacks
@@ -58,6 +59,7 @@ interface CalendarEvent {
   end: DateTimeString;     // "2026-03-13T10:00:00"
   allDay?: boolean;
   color?: string;
+  timeZone?: string;             // Zona IANA (TZID de RFC 5545). Ver Zonas horarias.
   recurrence?: RecurrenceRule;   // Regla de evento recurrente
   exDates?: DateString[];        // Fechas a excluir de la recurrencia
   recurringEventId?: string;     // Presente en instancias expandidas (apunta al padre)

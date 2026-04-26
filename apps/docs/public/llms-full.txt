@@ -40,6 +40,22 @@ type CalendarEvent = {
 };
 ```
 
+### Timezones
+
+Optional `timeZone` (IANA) on `CalendarEvent` anchors it to a zone with RFC 5545 (TZID) semantics. Floating events (no zone) display literally. Calendar accepts `displayTimeZone` (defaults to runtime's local zone via `Intl.DateTimeFormat().resolvedOptions().timeZone`); event times are converted from `event.timeZone` → `displayTimeZone` for rendering. Drag/resize on anchored events report wall-clocks in the event's anchored zone, not the display zone (Google Calendar semantics). DST handled: gaps shift forward by default (opt-in throw), overlaps return the earlier instant by default (opt-in later). Recurring events anchored to a zone preserve their wall-clock across DST transitions.
+
+Core APIs (zero deps, built on `Intl.DateTimeFormat` with cached DTF instances):
+
+- `getTimeZoneOffset(utc, tz)` → minutes east of UTC
+- `wallTimeToUtc(wall, tz, opts?)` → UTC ISO with Z; `opts.invalid: "shift" | "throw"`, `opts.ambiguous: "earlier" | "later"`
+- `utcToWallTime(utc, tz)` → wall-clock string in tz
+- `convertWallTime(wall, fromTz, toTz, opts?)` → wall-clock in toTz
+- `listTimeZones()` → `Intl.supportedValuesOf("timeZone")` + always-included `"UTC"`, with curated 80-zone fallback
+- `isValidTimeZone(tz)` → boolean (cached)
+- `getTimeZoneAbbreviation(tz, atInstant?)` → `"EST"`, `"EDT"`, `"GMT+5:30"`, etc.
+- `getBrowserTimeZone()` → runtime's local zone with UTC fallback
+- `eventWallToDisplay(wall, eventTz, displayTz)` / `displayWallToEvent(wall, eventTz, displayTz, opts?)` — used internally by the React layer; floating events pass through unchanged
+
 ### Recurrence
 
 RFC 5545 RRULE semantics. The calendar does NOT auto-expand. Consumers must call:

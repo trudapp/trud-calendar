@@ -130,6 +130,23 @@ recurrence: {
 }
 ```
 
+## Recurring events with timezones
+
+Set `timeZone` on the parent event to anchor a recurring series to a specific IANA zone. Every expanded instance inherits the zone, and the wall-clock time is preserved across DST transitions:
+
+```ts
+{
+  id: "ny-standup",
+  title: "Daily 9 AM NY standup",
+  start: "2026-03-07T09:00:00",
+  end: "2026-03-07T09:30:00",
+  timeZone: "America/New_York",
+  recurrence: { freq: "daily" },
+}
+```
+
+This event stays at "9:00 AM" in `America/New_York` every day, including before *and* after the spring-forward jump on 2026-03-08 — exactly as RFC 5545 (TZID) and Google Calendar specify. See [Timezones](/timezones/) for details.
+
 ## Excluding dates (exDates)
 
 Use `exDates` to skip specific dates from a recurring series:
