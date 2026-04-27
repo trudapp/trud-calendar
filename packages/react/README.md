@@ -2,9 +2,11 @@
 
 A beautiful, fully-featured React calendar component. Google Calendar-level UX, MIT license, shadcn-compatible, zero-config theming.
 
-- **4 views** — Month, Week, Day, Agenda
+- **6 views** — Month, Week, Day, Agenda, Year, and horizontal Resource Timeline
 - **Drag & Drop** — Move and resize events with pointer events (mouse + touch)
+- **Resources** — Resource columns in week/day, plus a horizontal Gantt-style timeline
 - **Recurrence** — RFC 5545 RRULE support: daily, weekly, monthly, yearly, with exceptions
+- **Timezones** — IANA-anchored events + `displayTimeZone` prop (labels and grid geometry agree)
 - **Touch support** — Full touch/stylus support via Pointer Events API
 - **Keyboard navigation** — WAI-ARIA grid pattern with arrow keys, Enter/Space, Escape
 - **i18n** — Full locale support via native `Intl` API + translatable UI labels

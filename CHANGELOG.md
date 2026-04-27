@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [1.0.0] - 2026-04-26
 
-### Added — ResourceTimeline view (Phase 3.3)
+First production-ready release. Phases 1–6 complete; the library is now feature-complete against its design goals (Google Calendar-level UX, MIT license, shadcn-compatible, headless core).
+
+### Added — ResourceTimeline view (Phase 3.3 + 3.4)
 
 - New `view="timeline"` — opt-in horizontal scheduling layout with resources as rows and time on the X axis.
 - `<ResourceTimeline>` component exported from `trud-calendar`. Sticky resource column on the left, sticky hour header on top, vertical now-line when the visible day is today.
@@ -14,19 +16,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - Drag horizontally to change time within the same resource.
   - Drag vertically to reassign across resources — `onEventDrop` receives `extra.resourceId` only when changed.
   - Right-edge resize for end time. Min duration `snapDuration`, max `dayEndHour`.
-  - Slot click fires `onSlotClick(`${day}T${slotClickTime}`, { resourceId })`.
+  - Slot click fires `onSlotClick(\`${day}T${slotClickTime}\`, { resourceId })`.
 - `displayTimeZone`-aware time labels and now-line position; drag/resize results returned in each event's anchored zone via `anchorTimesToEventZone`.
 - New core util `computeTimelinePositions(events, resourceIds, day, dayStartHour, dayEndHour)` exposing `leftPct` / `widthPct` / `row` / `totalRows` / `isSegmentStart` / `isSegmentEnd` for any custom horizontal layouts.
 - New type `TimelinePositionedEvent` and added `"timeline"` to `CalendarView` / `CalendarLabels` / `VIEWS`.
-- 16 new core tests for `computeTimelinePositions` covering positioning math, multi-day clipping, overlap row stacking, hidden-window filtering, all-day/background exclusion.
 - New documentation page: [Resource Timeline](/resource-timeline/) (EN + ES).
 
-### Known limitations in v1.0
+### Added — TZ-aware time-grid positioning (Phase 6.7)
 
+- `computeTimePositions(events, dayStartHour, dayEndHour, displayTimeZone?)` accepts an optional display zone. When the event has its own `timeZone` and `displayTimeZone` is set, `eventWallToDisplay` converts start/end before computing top/height.
+- `useEventLayout`, `WeekView`, and `ResourceTimeGrid` now consume `displayTimeZone` from `CalendarContext`.
+- An NY-anchored event at 9:00 AM EDT viewed in `displayTimeZone="Asia/Tokyo"` previously showed the label "10:00 PM" but rendered at the 9 AM row — labels and geometry now agree.
+- Floating events (no `timeZone`) and the no-`displayTimeZone` case are unchanged. Fully backwards-compatible.
+- 8 new tests (6 core, 2 hook) and 1 E2E geometry test.
+
+### Added — Demo timezone playground
+
+- Display TZ selector with 8 IANA zones plus "Browser default" persisted to `localStorage`.
+- "Anchor events to NY" toggle that stamps every event with `timeZone: "America/New_York"` to demo Google Calendar–style wall-clock anchoring across display zones.
+- Fourth resource (Room D) for richer ResourceTimeline demos.
+
+### Added — End-to-end test coverage
+
+- 25 new Playwright specs: timezones (display selector, anchor mode, NY → UTC/Tokyo/Kolkata conversions, geometry), ResourceTimeline (rows, time axis, drag horizontal/vertical, slot click), ResourceTimeGrid (Day & Week resource columns, drag between resources, toggle off).
+- Repaired 11 pre-existing specs that drifted as features evolved (recurring scope dialog, modal selectors, viewport sizing for container queries).
+- Suite is **59/59 green in ~6.5s**.
+
+### Fixed
+
+- Time-grid positioning of timezone-anchored events now uses display-zone wall-clock (previously literal). Resolves the only known limitation noted in v0.5.0.
+
+### Known limitations carried into v1.0
+
+- **ResourceTimeline (horizontal Gantt)** still positions anchored events by literal wall-clock; tracked in backlog separately from time-grid Phase 6.7.
+- **Cross-day re-bucketing** — when an anchored event's display-zone wall-clock falls on a different calendar day than its literal start (e.g. NY 11 PM = Tokyo 12 PM next day), it currently stays in its literal day's column.
 - **Resize from the left edge** is not yet implemented in the timeline.
 - **Drag-to-create slot selection** (`onSlotSelect`) is not yet wired on the timeline; `onSlotClick` works.
 - **Multi-day timeline scales** (week/month with horizontal time spanning days) are deferred.
-- Time-grid positioning of timezone-anchored events still uses literal wall-clock for layout (Phase 6.7); time labels are converted correctly.
+
+## [0.6.0] — superseded by 1.0.0
+
+Phase 6.7 (TZ-aware time-grid positioning) shipped to `main` but was rolled into the 1.0.0 release before publication. See entries above.
+
+## [0.5.0] - 2026-04-26
 
 ## [0.5.0] - 2026-04-26
 

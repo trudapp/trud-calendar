@@ -1,7 +1,7 @@
 # Roadmap — trud-calendar
 
 > Feature tracking for the path to a top-tier React calendar library.
-> Updated: 2026-03-25
+> Updated: 2026-04-27
 
 ## Legend
 
@@ -13,16 +13,18 @@
 
 ---
 
-## Current state (v0.1.x)
+## Current state (v1.0.0)
 
 These features are already implemented and tested:
 
-- **Views:** Month, Week, Day, Agenda
+- **Views:** Month, Week, Day, Agenda, Year, Resource Timeline
 - **Interactions:** Drag & drop, event resize (bottom edge), slot selection (drag-to-create), click events/slots, swipe navigation
 - **Events:** All-day, multi-day, overlapping (column-packing), per-event colors, recurring (RFC 5545 RRULE), exception dates, undo/redo
 - **Customization:** 6 slot overrides (toolbar, dayCell, timeEvent, allDayEvent, popover, agendaEvent), 16+ CSS variables (`--trc-*`), dark mode, shadcn/ui compatibility
 - **Navigation:** Today/prev/next, view switching, controlled & uncontrolled modes, keyboard (WAI-ARIA grid), swipe
 - **i18n:** BCP 47 locales via `Intl`, configurable labels, week start day
+- **Timezones:** IANA-anchored events (RFC 5545 TZID), `displayTimeZone` prop, DST-safe recurrence, TZ-aware time-grid positioning
+- **Resources:** Resource columns in week/day, horizontal Resource Timeline, drag between resources
 - **Responsive:** Container queries, adaptive visible days (1/3/7), mobile-optimized spacing
 - **Accessibility:** ARIA roles, roving tabindex, focus management, keyboard nav
 - **Performance:** Memoization, virtual scrolling (opt-in), event filtering by range
@@ -138,5 +140,6 @@ These are on the radar but not prioritized yet:
 |-----------|---------------|
 | Phases 1-5 complete | v0.4.0 |
 | Phase 6 (timezones) | v0.5.0 |
-| Phase 6.7 (TZ-aware positioning) | **v0.6.0** (current) |
-| 1.0 polish (docs, ResourceTimeline TZ, full E2E) | v1.0.0 |
+| Phase 6.7 (TZ-aware positioning) | v0.6.0 |
+| Production-ready (E2E coverage + 6.7 wired through) | **v1.0.0** (current) |
+| ResourceTimeline TZ + cross-day re-bucketing + multi-calendar | v1.x backlog |
