@@ -1,5 +1,7 @@
 # trud-calendar
 
+![trud-calendar](https://raw.githubusercontent.com/trudapp/trud-calendar/main/packages/react/assets/trud-calendar.png)
+
 A beautiful, fully-featured React calendar component. Google Calendar-level UX, MIT license, shadcn-compatible, zero-config theming.
 
 - **6 views** — Month, Week, Day, Agenda, Year, and horizontal Resource Timeline
