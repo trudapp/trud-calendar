@@ -27,7 +27,7 @@
     },
     "./styles.css": "./dist/styles.css"
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "assets"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch"
