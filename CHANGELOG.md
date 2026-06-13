@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.0.1] - 2026-06-13
+
+### Docs
+
+- Add a calendar screenshot to the top of the `trud-calendar` package README so it renders on npmjs.com and GitHub. The image is referenced via an absolute `raw.githubusercontent.com` URL (npm does not render relative image paths) and is shipped in the npm tarball via the `assets` entry in `files`.
+
+No code changes — `trud-calendar` and `trud-calendar-core` are functionally identical to 1.0.0.
+
 ## [1.0.0] - 2026-04-26
 
 First production-ready release. Phases 1–6 complete; the library is now feature-complete against its design goals (Google Calendar-level UX, MIT license, shadcn-compatible, headless core).
